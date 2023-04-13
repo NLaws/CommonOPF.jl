@@ -8,6 +8,18 @@ function tails(edges:: Vector{Tuple})
 end
 
 
+function dss_files_to_dict(dssfilepath::String)
+    d = let d
+        with_logger(SimpleLogger(Error)) do  # lots of info from parse_dss
+            open(dssfilepath) do io
+                parse_dss(io)  # method from PowerModelsDistribution
+            end
+        end
+    end
+    return d
+end
+
+
 """
     fill_transformer_vals!(d::Dict, p::Inputs)
 
