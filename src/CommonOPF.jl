@@ -19,10 +19,13 @@ export
     Phases,
     SinglePhase,
     ThreePhase,
-    MultiPhase
+    MultiPhase,
+    Inputs,
+    singlephase38linesInputs
 
 
 include("io.jl")
 include("types.jl")
+include("inputs.jl")
 
 end
