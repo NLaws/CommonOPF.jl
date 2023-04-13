@@ -18,7 +18,6 @@ export
     AbstractInputs,
     Phases,
     SinglePhase,
-    ThreePhase,
     MultiPhase,
     Inputs,
     singlephase38linesInputs
