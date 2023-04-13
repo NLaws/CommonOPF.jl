@@ -14,9 +14,15 @@ export
     dsstxt_to_sparse_array,
     dss_dict_to_arrays,
     dss_loads,
-    dss_files_to_dict
+    dss_files_to_dict,
+    AbstractInputs,
+    Phases,
+    SinglePhase,
+    ThreePhase,
+    MultiPhase
 
 
 include("io.jl")
+include("types.jl")
 
 end
