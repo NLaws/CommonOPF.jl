@@ -1,0 +1,13 @@
+name = "CommonOPF"
+uuid = "dad7ea18-2b21-482e-81c1-e84414cc4b03"
+authors = ["Nick Laws <laws.nick@gmail.com> and contributors"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
