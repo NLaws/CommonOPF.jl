@@ -170,8 +170,8 @@ function dss_dict_to_arrays(d::Dict, Sbase::Real, Vbase::Real)
 
             d["linecode"][linecode] = Dict(
                 "nphases" => length(phs),
-                "rmatrix" => Diagonal(ones(3)) * get(v, "r1", 0.00001),
-                "xmatrix" => Diagonal(ones(3)) *  get(v, "x1", 0.00001),
+                "rmatrix" => Diagonal(ones(3)) * get(v, "r1", 0.001),
+                "xmatrix" => Diagonal(ones(3)) *  get(v, "x1", 0.0),
             )
         catch e
             @warn("Unable to parse switch $(k) when processing OpenDSS model.")
@@ -437,6 +437,8 @@ function extract_one_phase!(phs::Int, edges, linecodes, linelengths, phases, lin
             d["nphases"] = 1
         end
     else  # use the extract phase's self impedance rather than the average across phases
+        # NOTE using self impedance only results in WAY too high voltage drop / impedance
+        # this method can result in slightly more accurate voltage drop
         for (phase_vec, line_code) in zip(phases, linecodes)
             if length(phase_vec) == 1 || length(linecodes_dict[line_code]["rmatrix"]) == 1 continue end
             d = linecodes_dict[line_code]
