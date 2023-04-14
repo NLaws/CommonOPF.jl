@@ -221,7 +221,7 @@ function dss_dict_to_arrays(d::Dict, Sbase::Real, Vbase::Real, substation_bus::S
             end
 
             if "phases_list" in keys(v)  # we got the phase(s) from the bus string
-                phs = v["phases"]
+                phs = v["phases_list"]
             elseif b1 in tails(edges)
                 phs = phases_into_bus[b1]
             else  # might be able to add the transformer after parsing others
