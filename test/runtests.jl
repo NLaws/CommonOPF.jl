@@ -17,7 +17,7 @@ import Logging: SimpleLogger, Error, with_logger
 
     with_logger(SimpleLogger(Error)) do  # silence warnings
     edges, linecodes, linelengths, linecodes_dict, phases, Isquared_up_bounds, regulators = 
-        dss_dict_to_arrays(d, CommonOPF.SBASE_DEFAULT, CommonOPF.VBASE_DEFAULT);
+        dss_dict_to_arrays(d, CommonOPF.SBASE_DEFAULT, CommonOPF.VBASE_DEFAULT, "rg60");
     @test length(edges) == 13
 
     #=
@@ -39,7 +39,7 @@ import Logging: SimpleLogger, Error, with_logger
     end
 
     edges, linecodes, linelengths, linecodes_dict, phases, Isquared_up_bounds, regulators = 
-        dss_dict_to_arrays(d, CommonOPF.SBASE_DEFAULT, CommonOPF.VBASE_DEFAULT);
+        dss_dict_to_arrays(d, CommonOPF.SBASE_DEFAULT, CommonOPF.VBASE_DEFAULT, "rg60");
     @test length(edges) == 13
     phases = CommonOPF.extract_one_phase!(2, edges, linecodes, linelengths, phases, linecodes_dict)
     @test length(edges) == 13 - 3
@@ -48,7 +48,7 @@ import Logging: SimpleLogger, Error, with_logger
     @test !( ("684", "652") in edges )
 
     edges, linecodes, linelengths, linecodes_dict, phases, Isquared_up_bounds, regulators = 
-        dss_dict_to_arrays(d, CommonOPF.SBASE_DEFAULT, CommonOPF.VBASE_DEFAULT);
+        dss_dict_to_arrays(d, CommonOPF.SBASE_DEFAULT, CommonOPF.VBASE_DEFAULT, "rg60");
     @test length(edges) == 13
     phases = CommonOPF.extract_one_phase!(3, edges, linecodes, linelengths, phases, linecodes_dict)
     @test length(edges) == 13 - 1

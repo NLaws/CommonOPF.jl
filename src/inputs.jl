@@ -251,7 +251,7 @@ function Inputs(
     d = dss_files_to_dict(dssfilepath)
 
     edges, linecodes, linelengths, linecodes_dict, phases, Isquared_up_bounds, regulators = 
-        dss_dict_to_arrays(d, Sbase, Vbase)
+        dss_dict_to_arrays(d, Sbase, Vbase, substation_bus)
 
     if extract_phase in [1,2,3]
         phases = extract_one_phase!(extract_phase, edges, linecodes, linelengths, phases, linecodes_dict; 

@@ -20,6 +20,9 @@ function dss_files_to_dict(dssfilepath::String)
 end
 
 
+strip_phases(bus::AbstractString) = chop(bus, tail=length(bus)-findfirst('.', bus)+1)
+
+
 """
     fill_transformer_vals!(d::Dict, p::Inputs)
 
@@ -41,6 +44,15 @@ function fill_transformer_vals!(d::Dict, Sbase::Real, Vbase::Real)
     else
         d["bus"]   = get(d, "bus", nothing)
         d["bus_2"] = get(d, "bus_2", nothing)
+    end
+
+    # need to strip phases from bus names to use bus names in matching edges later
+    if occursin(".", d["bus"])
+        d["bus"] = strip_phases(d["bus"])
+    end
+
+    if occursin(".", d["bus_2"])
+        d["bus_2"] = strip_phases(d["bus_2"])
     end
 
     if "kvas" in keys(d)
@@ -65,7 +77,7 @@ TODO need a standardize format for the output of parse_dss rather than following
     of defining things in openDSS (for example busses can be defined as an array or individual 
     call outs for some objects).
 """
-function dss_dict_to_arrays(d::Dict, Sbase::Real, Vbase::Real)
+function dss_dict_to_arrays(d::Dict, Sbase::Real, Vbase::Real, substation_bus::String)
     # TODO allocate empty arrays with number of lines
     # TODO separate this method into sub-methods, generally parse components separately
     edges = Tuple[]
@@ -81,7 +93,7 @@ function dss_dict_to_arrays(d::Dict, Sbase::Real, Vbase::Real)
     # some reuseable stuff
     function get_b1_b2_phs(v::Dict)
         if occursin(".", v["bus1"])  # have to account for .1.2 phases for example
-            b1 = chop(v["bus1"], tail=length(v["bus1"])-findfirst('.', v["bus1"])+1)
+            b1 = strip_phases(v["bus1"])
             phs = sort!(collect(parse(Int,ph) for ph in split(v["bus1"][findfirst('.', v["bus1"])+1:end], ".")))
         else  # default to 3 phases
             b1 = v["bus1"]
@@ -93,7 +105,7 @@ function dss_dict_to_arrays(d::Dict, Sbase::Real, Vbase::Real)
         end
 
         if occursin(".", v["bus2"])
-            b2 = chop(v["bus2"], tail=length(v["bus2"])-findfirst('.', v["bus2"])+1)
+            b2 = strip_phases(v["bus2"])
         else
             b2 = v["bus2"]
         end
@@ -197,6 +209,11 @@ function dss_dict_to_arrays(d::Dict, Sbase::Real, Vbase::Real)
                 # this transformer does not connect anything so we ignore it
                 @warn("Not parsing transformer $k between $b1 and $b2
                     because it does not have an edge in to or out of it.")
+                continue
+            end
+
+            if b2 == substation_bus
+                @warn("Not parsing transformer $k because it regulates the substation_bus $substation_bus")
                 continue
             end
 
@@ -327,7 +344,7 @@ function dss_loads(d::Dict)
     for v in values(d["load"])
 
         if occursin(".", v["bus1"])
-            bus = chop(v["bus1"], tail=length(v["bus1"])-findfirst('.', v["bus1"])+1)
+            bus = strip_phases(v["bus1"])
             phases = collect(parse(Int,ph) for ph in split(v["bus1"][findfirst('.', v["bus1"])+1:end], "."))
         else
             bus = v["bus1"]
