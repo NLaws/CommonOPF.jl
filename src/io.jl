@@ -443,9 +443,10 @@ function extract_one_phase!(phs::Int, edges, linecodes, linelengths, phases, lin
             # the matrix values can be 2x2 or 3x3, with phases (1,2), (1,3), or (2,3) in 2x2 matrices
             i = indexin(phs, sort(phase_vec))[1]
             m,n = size(d["rmatrix"])
-            z_mutual = 1/m * sum(d["rmatrix"][i,j] for i=1:m, j=1:n if i > j)
-            d["rmatrix"] = d["rmatrix"][i,i] - z_mutual
-            d["xmatrix"] = d["xmatrix"][i,i] - z_mutual
+            r_mutual = 1/m * sum(d["rmatrix"][i,j] for i=1:m, j=1:n if i > j)
+            x_mutual = 1/m * sum(d["xmatrix"][i,j] for i=1:m, j=1:n if i > j)
+            d["rmatrix"] = d["rmatrix"][i,i] - r_mutual
+            d["xmatrix"] = d["xmatrix"][i,i] - x_mutual
             d["nphases"] = 1
         end
     end
