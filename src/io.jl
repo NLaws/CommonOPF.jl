@@ -386,7 +386,7 @@ function dss_loads(d::Dict)
 end
 
 
-function pos_seq(z::AbstractArray, phs::Int)
+function pos_seq(z::AbstractArray)
     m, n = size(z,1), size(z,2)  # can't use size alone b/c of single phase lines
     if !(m == n)
         throw(@error "Cannot make positive sequence impendance from non-square matrix")
@@ -394,9 +394,8 @@ function pos_seq(z::AbstractArray, phs::Int)
     if m == 1
         return z
     end
-    # dg = diag(z)
-    i = indexin(phs, [1:m])[1]
-    z_self   = z[phs,phs]#1/m * sum(dg)
+    dg = diag(z)
+    z_self   = 1/m * sum(dg)
     z_mutual = 1/m * sum(z[i,j] for i=1:m, j=1:n if i != j)
     return [z_self - z_mutual]
 end
@@ -427,13 +426,9 @@ function extract_one_phase!(phs::Int, edges, linecodes, linelengths, phases, lin
 
     # step 3 modify the rmatrix, xmatrix values s.t. the rij, xij methods will get the right values
     # (the SinglePhase rij, xij methods take the first value from the matrices)
-    for (phase_vec, line_code) in zip(phases, linecodes)
-        if length(phase_vec) == 1 || length(linecodes_dict[line_code]["rmatrix"]) == 1 continue end
-        d = linecodes_dict[line_code]
-        # the matrix values can be 2x2 or 3x3, with phases (1,2), (1,3), or (2,3) in 2x2 matrices
-        i = indexin(phs, sort(phase_vec))[1]
-        d["rmatrix"] = pos_seq(d["rmatrix"], i)
-        d["xmatrix"] = pos_seq(d["xmatrix"], i)
+    for d in values(linecodes_dict)
+        d["rmatrix"] = pos_seq(d["rmatrix"])
+        d["xmatrix"] = pos_seq(d["xmatrix"])
         d["nphases"] = 1
     end
     lcs_to_delete = setdiff(keys(linecodes_dict), linecodes)
