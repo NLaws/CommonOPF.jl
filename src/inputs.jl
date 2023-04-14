@@ -252,16 +252,21 @@ function Inputs(
     if isempty(Pload) && isempty(Qload)
         Pload, Qload = dss_loads(d)
         # hack for single phase models
-        if all(v == [1] for v in phases)
+        if all(length(phs) == 1 for phs in phases)
             # strip phase index out of loads
+            phs = extract_phase == 0 ? 1 : extract_phase  # default to phs 1, else extract_phase
             newP = Dict{String, Any}()
             for (b,v) in Pload
-                newP[b] = v[1]
+                if phs in keys(v)
+                    newP[b] = v[phs]
+                end
             end
             Pload = newP
             newQ = Dict{String, Any}()
             for (b,v) in Qload
-                newQ[b] = v[1]
+                if phs in keys(v)
+                    newQ[b] = v[phs]
+                end
             end
             Qload = newQ
         end
