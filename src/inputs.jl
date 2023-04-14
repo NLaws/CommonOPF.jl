@@ -237,12 +237,17 @@ function Inputs(
         P_lo_bound=-1e4,
         Q_lo_bound=-1e4,
         relaxed=true,
+        extract_phase::Int=0  # set to 1, 2, or 3
     )
 
     d = dss_files_to_dict(dssfilepath)
 
     edges, linecodes, linelengths, linecodes_dict, phases, Isquared_up_bounds, regulators = 
         dss_dict_to_arrays(d, Sbase, Vbase)
+
+    if extract_phase in [1,2,3]
+        phases = extract_one_phase!(extract_phase, edges, linecodes, linelengths, phases, linecodes_dict)
+    end
 
     if isempty(Pload) && isempty(Qload)
         Pload, Qload = dss_loads(d)

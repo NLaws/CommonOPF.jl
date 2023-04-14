@@ -307,7 +307,7 @@ function dss_dict_to_arrays(d::Dict, Sbase::Real, Vbase::Real)
         end
     end
 
-    return edges, linecodes, linelengths, d["linecode"], phases, Isquared_up_bounds, regulators
+    return edges, linecodes, linelengths, deepcopy(d["linecode"]), phases, Isquared_up_bounds, regulators
 end
 
 
@@ -420,8 +420,12 @@ function extract_one_phase!(phs::Int, edges, linecodes, linelengths, phases, lin
         d["xmatrix"] = [d["xmatrix"][i, i]]
         d["nphases"] = 1
     end
-    # return edges, linecodes, linelengths, phases, linecodes_dict
-    nothing
+    lcs_to_delete = setdiff(keys(linecodes_dict), linecodes)
+    for lc in lcs_to_delete
+        delete!(linecodes_dict, lc)
+    end
+    phases = repeat([[phs]], length(phases))
+    return phases
 end
 
 
