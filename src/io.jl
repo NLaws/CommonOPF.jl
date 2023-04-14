@@ -22,6 +22,8 @@ end
 
 strip_phases(bus::AbstractString) = chop(bus, tail=length(bus)-findfirst('.', bus)+1)
 
+get_phases(bus::AbstractString) = sort!(collect(parse(Int,ph) for ph in split(bus[findfirst('.', bus)+1:end], ".")))
+
 
 """
     fill_transformer_vals!(d::Dict, p::Inputs)
@@ -48,6 +50,7 @@ function fill_transformer_vals!(d::Dict, Sbase::Real, Vbase::Real)
 
     # need to strip phases from bus names to use bus names in matching edges later
     if occursin(".", d["bus"])
+        d["phases_list"] = get_phases(d["bus"])
         d["bus"] = strip_phases(d["bus"])
     end
 
@@ -94,7 +97,7 @@ function dss_dict_to_arrays(d::Dict, Sbase::Real, Vbase::Real, substation_bus::S
     function get_b1_b2_phs(v::Dict)
         if occursin(".", v["bus1"])  # have to account for .1.2 phases for example
             b1 = strip_phases(v["bus1"])
-            phs = sort!(collect(parse(Int,ph) for ph in split(v["bus1"][findfirst('.', v["bus1"])+1:end], ".")))
+            phs = get_phases(v["bus1"])
         else  # default to 3 phases
             b1 = v["bus1"]
             if v["phases"] == 1
@@ -217,9 +220,11 @@ function dss_dict_to_arrays(d::Dict, Sbase::Real, Vbase::Real, substation_bus::S
                 continue
             end
 
-            if b1 in tails(edges)
+            if "phases_list" in keys(v)  # we got the phase(s) from the bus string
+                phs = v["phases"]
+            elseif b1 in tails(edges)
                 phs = phases_into_bus[b1]
-            else
+            else  # might be able to add the transformer after parsing others
                 push!(transformers_to_try_again, k)
                 continue
             end

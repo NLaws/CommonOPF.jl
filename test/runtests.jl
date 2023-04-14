@@ -1,6 +1,5 @@
 using CommonOPF
 using Test
-import Logging: SimpleLogger, Error, with_logger
 
 # # hack for local testing
 # using Pkg
@@ -15,7 +14,6 @@ import Logging: SimpleLogger, Error, with_logger
     dssfilepath = joinpath("data", "ieee13", "IEEE13Nodeckt.dss")
     d = dss_files_to_dict(dssfilepath)
 
-    with_logger(SimpleLogger(Error)) do  # silence warnings
     edges, linecodes, linelengths, linecodes_dict, phases, Isquared_up_bounds, regulators = 
         dss_dict_to_arrays(d, CommonOPF.SBASE_DEFAULT, CommonOPF.VBASE_DEFAULT, "rg60");
     @test length(edges) == 13
@@ -53,13 +51,11 @@ import Logging: SimpleLogger, Error, with_logger
     phases = CommonOPF.extract_one_phase!(3, edges, linecodes, linelengths, phases, linecodes_dict)
     @test length(edges) == 13 - 1
     @test !( ("684", "652") in edges )
-    end
 end
 
 
 @testset "Inputs" begin
     dssfilepath = joinpath("data", "ieee13", "IEEE13Nodeckt.dss")
-    with_logger(SimpleLogger(Error)) do  # silence warnings
 
     p = Inputs(dssfilepath, "rg60");
     p2 = Inputs(dssfilepath, "rg60", extract_phase=2);
@@ -68,7 +64,6 @@ end
         @test phs == [2]
     end
 
-    end # logger
 end
 
 end
