@@ -396,7 +396,7 @@ function pos_seq(z::AbstractArray)
     end
     dg = diag(z)
     z_self   = 1/m * sum(dg)
-    z_mutual = 1/m * sum(z[i,j] for i=1:m, j=1:n if i != j)
+    z_mutual = 1/m * sum(z[i,j] for i=1:m, j=1:n if i > j)
     return [z_self - z_mutual]
 end
 
