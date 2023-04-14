@@ -59,7 +59,7 @@ end
 """
     dss_dict_to_arrays(d::Dict)
 
-Parse the dict from PowerModelsDistribution.parse_dss into values needed for LinDistFlow
+Parse the dict from PowerModelsDistribution.parse_dss into values needed for OPF modules
 
 TODO need a standardize format for the output of parse_dss rather than following all the ways
     of defining things in openDSS (for example busses can be defined as an array or individual 
@@ -383,6 +383,45 @@ function dss_loads(d::Dict)
         end
     end
     return P, Q
+end
+
+
+"""
+
+Given a certain phase modify the `edges`, `linecodes`, `phases`, `linecodes_dict`, and `linelengths`
+to convert a multiphase system into a single phase system. 
+This is _not_ a positive sequence model as we take only the appropriate diagaonal elements of the 
+r and x matrices for the specified phase.
+"""
+function extract_one_phase!(phs::Int, edges, linecodes, linelengths, phases, linecodes_dict)
+
+    # step 1 find the lines that include phs
+    indices_to_remove = Int[]
+    for (i, phase_vec) in enumerate(phases)
+        if !(phs in phase_vec)
+            push!(indices_to_remove, i)
+        end
+    end
+    
+    # step 2 delete lines and associated values that do no include phs
+    deleteat!(phases,      indices_to_remove)
+    deleteat!(linecodes,   indices_to_remove)
+    deleteat!(edges,       indices_to_remove)
+    deleteat!(linelengths, indices_to_remove)
+
+    # step 3 modify the rmatrix, xmatrix values s.t. the rij, xij methods will get the right values
+    # (the SinglePhase rij, xij methods take the first value from the matrices)
+    for (phase_vec, line_code) in zip(phases, linecodes)
+        if length(phase_vec) == 1 || length(linecodes_dict[line_code]["rmatrix"]) == 1 continue end
+        d = linecodes_dict[line_code]
+        # the matrix values can be 2x2 or 3x3
+        i = indexin(phs, sort(phase_vec))[1]
+        d["rmatrix"] = [d["rmatrix"][i, i]]
+        d["xmatrix"] = [d["xmatrix"][i, i]]
+        d["nphases"] = 1
+    end
+    # return edges, linecodes, linelengths, phases, linecodes_dict
+    nothing
 end
 
 
