@@ -244,7 +244,8 @@ function Inputs(
         P_lo_bound=-1e4,
         Q_lo_bound=-1e4,
         relaxed=true,
-        extract_phase::Int=0  # set to 1, 2, or 3
+        extract_phase::Int=0,  # set to 1, 2, or 3,
+        use_extract_phase_impedance::Bool=false
     )
 
     d = dss_files_to_dict(dssfilepath)
@@ -253,7 +254,9 @@ function Inputs(
         dss_dict_to_arrays(d, Sbase, Vbase)
 
     if extract_phase in [1,2,3]
-        phases = extract_one_phase!(extract_phase, edges, linecodes, linelengths, phases, linecodes_dict)
+        phases = extract_one_phase!(extract_phase, edges, linecodes, linelengths, phases, linecodes_dict; 
+            use_extract_phase_impedance=use_extract_phase_impedance
+        )
     end
 
     if isempty(Pload) && isempty(Qload)
