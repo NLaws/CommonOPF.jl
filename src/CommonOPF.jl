@@ -1,6 +1,7 @@
 module CommonOPF
 
 using LinearAlgebra
+using Graphs, MetaGraphs
 import PowerModelsDistribution: parse_dss, DELTA
 import Logging: SimpleLogger, Error, with_logger
 
@@ -20,9 +21,18 @@ export
     SinglePhase,
     MultiPhase,
     Inputs,
-    singlephase38linesInputs
+    singlephase38linesInputs,
+    make_graph,
+    outneighbors,
+    all_outneighbors,
+    inneighbors,
+    all_inneighbors,
+    induced_subgraph,
+    busses_from_deepest_to_source,
+    vertices_from_deepest_to_source
 
 
+include("graphs.jl")
 include("io.jl")
 include("types.jl")
 include("inputs.jl")
