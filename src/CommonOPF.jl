@@ -2,6 +2,7 @@ module CommonOPF
 
 using LinearAlgebra
 using Graphs, MetaGraphs
+import MetaGraphs: inneighbors, outneighbors, induced_subgraph
 import PowerModelsDistribution: parse_dss, DELTA
 import Logging: SimpleLogger, Error, with_logger
 
