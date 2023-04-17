@@ -38,7 +38,6 @@ export
     delete_edge_index!,
     delete_edge_ij!,
     delete_bus_j!,
-    remove_bus!,
     info_max_rpu_xpu,
     info_max_Ppu_Qpu,
     i_to_j,

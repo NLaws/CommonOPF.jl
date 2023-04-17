@@ -108,44 +108,6 @@ end
 
 
 """
-    remove_bus!(j::String, p::Inputs{SinglePhase})
-
-Remove bus `j` in the line i->j->k from the model by making an equivalent line from busses i->k
-"""
-function remove_bus!(j::String, p::Inputs{SinglePhase})
-    # get all the old values
-    i, k = i_to_j(j, p)[1], j_to_k(j, p)[1]
-    ij_idx, jk_idx = get_ij_idx(i, j, p), get_ij_idx(j, k, p)
-    ij_len, jk_len = p.linelengths[ij_idx], p.linelengths[jk_idx]
-    ij_linecode, jk_linecode = get_ijlinecode(i,j,p), get_ijlinecode(j,k,p)
-    r_ij, x_ij, r_jk, x_jk = rij(i,j,p)*p.Zbase, xij(i,j,p)*p.Zbase, rij(j,k,p)*p.Zbase, xij(j,k,p)*p.Zbase
-    # make the new values
-    r_ik = r_ij + r_jk
-    x_ik = x_ij + x_jk
-    ik_len = ij_len + jk_len
-    ik_linecode = ik_key = i * "-" * k
-    ik_amps = minimum([p.Isquared_up_bounds[ij_linecode], p.Isquared_up_bounds[jk_linecode]])
-    # delete the old values
-    delete_edge_ij!(i, j, p)
-    delete_edge_ij!(j, k, p)
-    delete_bus_j!(j, p)
-    # add the new values
-    push!(p.edges, (i, k))
-    push!(p.linecodes, ik_linecode)
-    push!(p.phases, [1])
-    push!(p.linelengths, ik_len)
-    push!(p.edge_keys, ik_key)
-    p.Zdict[ik_linecode] = Dict(
-        "nphases" => 1,
-        "name" => ik_linecode,
-        "rmatrix" => [r_ik / ik_len],
-        "xmatrix" => [x_ik / ik_len],
-    )
-    p.Isquared_up_bounds[ik_linecode] = ik_amps
-end
-
-
-"""
     check_paths(paths::AbstractVecOrMat, p::Inputs)
 
 paths is vector of vectors containing bus names for parallel lines.
