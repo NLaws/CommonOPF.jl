@@ -71,7 +71,7 @@ end
 
 
 """
-    delete_edge_ij!(i::String, j::String, p::Inputs{SinglePhase})
+    delete_edge_ij!(i::String, j::String, p::Inputs)
 
 delete edge `(i, j)` from
 - p.edges
@@ -83,7 +83,7 @@ delete edge `(i, j)` from
 NOTE do not delete!(p.Zdict, ij_linecode) nor delete!(p.Isquared_up_bounds, ij_linecode) 
 because anything indexed on linecodes can be used for multiple lines
 """
-function delete_edge_ij!(i::String, j::String, p::Inputs{SinglePhase})
+function delete_edge_ij!(i::String, j::String, p::Inputs)
     idx = get_ij_idx(i, j, p)
     delete_edge_index!(idx, p)
     true
@@ -91,11 +91,11 @@ end
 
 
 """
-    delete_bus_j!(j::String, p::Inputs{SinglePhase})
+    delete_bus_j!(j::String, p::Inputs)
 
 Remove bus `j` from `p.busses`
 """
-function delete_bus_j!(j::String, p::Inputs{SinglePhase})
+function delete_bus_j!(j::String, p::Inputs)
     p.busses = setdiff(p.busses, [j])
     if j in keys(p.Pload)
         delete!(p.Pload, j)
