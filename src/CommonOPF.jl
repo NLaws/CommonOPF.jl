@@ -41,6 +41,8 @@ export
     remove_bus!,
     info_max_rpu_xpu,
     info_max_Ppu_Qpu,
+    i_to_j,
+    j_to_k,
     get_ij_idx,
     get_ijlinelength,
     get_ijlinecode,
