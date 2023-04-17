@@ -40,12 +40,17 @@ export
     delete_bus_j!,
     remove_bus!,
     info_max_rpu_xpu,
-    info_max_Ppu_Qpu
+    info_max_Ppu_Qpu,
+    get_ij_idx,
+    get_ijlinelength,
+    get_ijlinecode,
+    get_ijedge
 
 
 include("graphs.jl")
 include("io.jl")
 include("types.jl")
 include("inputs.jl")
+include("utils.jl")
 
 end

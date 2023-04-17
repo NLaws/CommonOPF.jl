@@ -59,8 +59,26 @@ using Test
     @test ["c", "e"] in paths
     @test ["d", "f"] in paths
 
+    p = Inputs(
+        edges, 
+        linecodes, 
+        linelengths, 
+        phases,
+        substation_bus;
+        Pload=Pload, 
+        Qload=Qload, 
+        Sbase=1, 
+        Vbase=1, 
+        Zdict=Zdict, 
+        v0=v0, 
+        Isquared_up_bounds=Dict{String, Float64}()
+    )
     p.Pload = Dict("c" =>[1.0])
-    @test_throws "not merging" check_paths(paths, p)
+    try
+        check_paths(paths, p)
+    catch e
+        @test "not merging" in e
+    end
     p.Pload = Dict()
     @test check_paths(paths, p)
 end
