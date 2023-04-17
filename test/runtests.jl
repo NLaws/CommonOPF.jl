@@ -10,6 +10,62 @@ using Test
 
 @testset "CommonOPF.jl" begin
 
+@testset "merge parallel single phase lines" begin
+    #= 
+           c -- e                   
+          /       \                    
+    a -- b         g      ->   a -- b -- cd -- ef -- g
+          \       /                     
+           d -- f            
+           
+    Merge parallel lines sets that do not have loads
+    =#
+    
+    edges = [("a", "b"), ("b", "c"), ("b", "d"), ("c", "e"), ("d", "f"), ("e", "g"), ("f", "g")]
+    linecodes = repeat(["l1"], length(edges))
+    linelengths = repeat([1.0], length(edges))
+    phases = [[1,2], [1], [2], [1], [2], [1], [2]]
+    substation_bus = "a"
+    Pload = Dict()
+    Qload = Dict()
+    Zdict = Dict("l1" => Dict("rmatrix"=> [1.0], "xmatrix"=> [1.0], "nphases"=> 1))
+    v0 = 1.0
+
+    busses = String[]
+    for t in edges
+        push!(busses, t[1])
+        push!(busses, t[2])
+    end
+    busses = unique(busses)
+    g = make_graph(busses, edges)
+    end_bs = busses_with_multiple_inneighbors(g)  # ["g"]
+
+    @test_throws "Found more than one" next_bus_above_with_outdegree_more_than_one(g, "g")
+    @test next_bus_above_with_outdegree_more_than_one(g, "b") === nothing
+    @test next_bus_above_with_outdegree_more_than_one(g, "e") === "b"
+    @test next_bus_above_with_outdegree_more_than_one(g, "d") === "b"
+
+    @test length(end_bs) == 1
+    @test end_bs == ["g"]
+
+    b2 = end_bs[1]
+    ins = inneighbors(g, b2)
+    start_bs = unique(
+        next_bus_above_with_outdegree_more_than_one.(repeat([g], length(ins)), ins)
+    )
+    @test start_bs == ["b"]
+
+    paths = paths_between(g, start_bs[1], b2)
+    @test ["c", "e"] in paths
+    @test ["d", "f"] in paths
+
+    p.Pload = Dict("c" =>[1.0])
+    @test_throws "not merging" check_paths(paths, p)
+    p.Pload = Dict()
+    @test check_paths(paths, p)
+end
+
+
 @testset "extract_one_phase!" begin
     dssfilepath = joinpath("data", "ieee13", "IEEE13Nodeckt.dss")
     d = dss_files_to_dict(dssfilepath)

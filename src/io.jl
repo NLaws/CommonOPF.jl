@@ -80,7 +80,8 @@ TODO need a standardize format for the output of parse_dss rather than following
     of defining things in openDSS (for example busses can be defined as an array or individual 
     call outs for some objects).
 """
-function dss_dict_to_arrays(d::Dict, Sbase::Real, Vbase::Real, substation_bus::String)
+function dss_dict_to_arrays(d::Dict, Sbase::Real, Vbase::Real, substation_bus::String; 
+    enforce_tree::Bool=true)
     # TODO allocate empty arrays with number of lines
     # TODO separate this method into sub-methods, generally parse components separately
     edges = Tuple[]
@@ -123,9 +124,14 @@ function dss_dict_to_arrays(d::Dict, Sbase::Real, Vbase::Real, substation_bus::S
         end
         try
             b1, b2, phs = get_b1_b2_phs(v)
+            # TODO option to merge lines if they split and come back together
             if b2 in tails(edges)
-                @warn "Not adding line $k ($b1 to $b2) because there is already an edge into $b2"
-                continue
+                if enforce_tree
+                    @warn "Not adding line $k ($b1 to $b2) because there is already an edge into $b2"
+                    continue
+                else
+                    @warn "Adding line into a bus with a line already into it: line $k ($b1 to $b2)"
+                end
             end
             push!(edges, (b1, b2))
             push!(phases, phs)

@@ -245,13 +245,14 @@ function Inputs(
         Q_lo_bound=-1e4,
         relaxed=true,
         extract_phase::Int=0,  # set to 1, 2, or 3,
-        use_extract_phase_impedance::Bool=false
+        use_extract_phase_impedance::Bool=false,
+        enforce_tree::Bool=true
     )
 
     d = dss_files_to_dict(dssfilepath)
 
     edges, linecodes, linelengths, linecodes_dict, phases, Isquared_up_bounds, regulators = 
-        dss_dict_to_arrays(d, Sbase, Vbase, substation_bus)
+        dss_dict_to_arrays(d, Sbase, Vbase, substation_bus; enforce_tree=enforce_tree)
 
     if extract_phase in [1,2,3]
         phases = extract_one_phase!(extract_phase, edges, linecodes, linelengths, phases, linecodes_dict; 
@@ -307,6 +308,140 @@ function Inputs(
         relaxed=relaxed,
         regulators=regulators
     )
+end
+
+
+"""
+    delete_edge_index!(idx::Int, p::Inputs)
+
+Delete all the edge attributes in `Inputs`` at index `idx`
+"""
+function delete_edge_index!(idx::Int, p::Inputs)
+    deleteat!(p.edges,       idx)
+    deleteat!(p.linecodes,   idx)
+    deleteat!(p.phases,      idx)
+    deleteat!(p.linelengths, idx)
+    deleteat!(p.edge_keys,   idx)
+    true
+end
+
+
+"""
+    delete_edge_ij!(i::String, j::String, p::Inputs{SinglePhase})
+
+delete edge `(i, j)` from
+- p.edges
+- p.phases
+- p.linelengths
+- p.edge_keys
+- p.Isquared_up_bounds
+
+NOTE do not delete!(p.Zdict, ij_linecode) nor delete!(p.Isquared_up_bounds, ij_linecode) 
+because anything indexed on linecodes can be used for multiple lines
+"""
+function delete_edge_ij!(i::String, j::String, p::Inputs{SinglePhase})
+    idx = get_ij_idx(i, j, p)
+    delete_edge_index!(idx, p)
+    true
+end
+
+
+"""
+    delete_bus_j!(j::String, p::Inputs{SinglePhase})
+
+Remove bus `j` from `p.busses`
+"""
+function delete_bus_j!(j::String, p::Inputs{SinglePhase})
+    p.busses = setdiff(p.busses, [j])
+    if j in keys(p.Pload)
+        delete!(p.Pload, j)
+    end
+    if j in keys(p.Qload)
+        delete!(p.Qload, j)
+    end
+    true
+end
+
+
+"""
+    remove_bus!(j::String, p::Inputs{SinglePhase})
+
+Remove bus `j` in the line i->j->k from the model by making an equivalent line from busses i->k
+"""
+function remove_bus!(j::String, p::Inputs{SinglePhase})
+    # get all the old values
+    i, k = i_to_j(j, p)[1], j_to_k(j, p)[1]
+    ij_idx, jk_idx = get_ij_idx(i, j, p), get_ij_idx(j, k, p)
+    ij_len, jk_len = p.linelengths[ij_idx], p.linelengths[jk_idx]
+    ij_linecode, jk_linecode = get_ijlinecode(i,j,p), get_ijlinecode(j,k,p)
+    r_ij, x_ij, r_jk, x_jk = rij(i,j,p)*p.Zbase, xij(i,j,p)*p.Zbase, rij(j,k,p)*p.Zbase, xij(j,k,p)*p.Zbase
+    # make the new values
+    r_ik = r_ij + r_jk
+    x_ik = x_ij + x_jk
+    ik_len = ij_len + jk_len
+    ik_linecode = ik_key = i * "-" * k
+    ik_amps = minimum([p.Isquared_up_bounds[ij_linecode], p.Isquared_up_bounds[jk_linecode]])
+    # delete the old values
+    delete_edge_ij!(i, j, p)
+    delete_edge_ij!(j, k, p)
+    delete_bus_j!(j, p)
+    # add the new values
+    push!(p.edges, (i, k))
+    push!(p.linecodes, ik_linecode)
+    push!(p.phases, [1])
+    push!(p.linelengths, ik_len)
+    push!(p.edge_keys, ik_key)
+    p.Zdict[ik_linecode] = Dict(
+        "nphases" => 1,
+        "name" => ik_linecode,
+        "rmatrix" => [r_ik / ik_len],
+        "xmatrix" => [x_ik / ik_len],
+    )
+    p.Isquared_up_bounds[ik_linecode] = ik_amps
+end
+
+
+
+"""
+    info_max_rpu_xpu(p::Inputs)
+
+report the maximum per-unit resistance and reactance values of the lines.
+It is important that the rpu ans xpu values be << 1. See Chiang and Baran 2013:
+A load flow solution with feasible voltage magnitude always exists and is unique when
+1. V0 ≈ 1
+2. loss values < 1
+3. rpu, xpu << 1
+"""
+function info_max_rpu_xpu(p::Inputs)
+    Rmax = maximum([rij(i,j,p) for (i,j) in p.edges])
+    Xmax = maximum([xij(i,j,p) for (i,j) in p.edges])
+    @info("Max. Rpu: $Rmax   Max Xpu: $Xmax")
+    return Rmax, Xmax
+end
+
+
+function info_max_Ppu_Qpu(p::Inputs)
+    maxP = maximum(maximum.(values(p.Pload))) / p.Sbase
+    maxQ = maximum(maximum.(values(p.Qload))) / p.Sbase
+    @info("Max. Ppu: $maxP   Max Qpu: $maxQ")
+    return maxP, maxQ
+end
+
+
+"""
+    check_paths(paths::AbstractVecOrMat, p::Inputs)
+
+paths is vector of vectors containing bus names for parallel lines.
+if any load busses are in the paths then an error is thrown because we are not handling that case yet.
+"""
+function check_paths(paths::AbstractVecOrMat, p::Inputs)
+    load_busses = union(keys(p.Pload), keys(p.Qload))
+    for path in paths, bus in path
+        if bus in load_busses
+            @error("At least one load bus is in the parallel lines: not merging.")
+        end
+    end
+    true
 end
 
 

@@ -30,7 +30,17 @@ export
     all_inneighbors,
     induced_subgraph,
     busses_from_deepest_to_source,
-    vertices_from_deepest_to_source
+    vertices_from_deepest_to_source,
+    busses_with_multiple_inneighbors,
+    next_bus_above_with_outdegree_more_than_one,
+    paths_between,
+    check_paths,
+    delete_edge_index!,
+    delete_edge_ij!,
+    delete_bus_j!,
+    remove_bus!,
+    info_max_rpu_xpu,
+    info_max_Ppu_Qpu
 
 
 include("graphs.jl")

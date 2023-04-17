@@ -1,5 +1,5 @@
 """
-    make_graph(busses::AbstractVector{String}, edges::AbstractVector{Tuple})
+    make_graph(busses::AbstractVector{String}, edges::AbstractVector)
 
 return SimpleDiGraph, Dict, Dict 
 with the dicts for bus => int and int => bus
@@ -18,7 +18,7 @@ julia> get_prop(g, :int_bus_map)[13]
 "24"
 ```
 """
-function make_graph(busses::AbstractVector{String}, edges::AbstractVector{Tuple})
+function make_graph(busses::AbstractVector{String}, edges::AbstractVector)
     bus_int_map = Dict(b => i for (i,b) in enumerate(busses))
     int_bus_map = Dict(i => b for (b, i) in bus_int_map)
     g = MetaDiGraph(length(busses))
@@ -157,3 +157,58 @@ function vertices_from_deepest_to_source(g::MetaDiGraph, source::Int64)
 end
 
 
+"""
+    busses_with_multiple_inneighbors(g::MetaDiGraph)
+
+Find all the busses in `g` with indegree > 1
+"""
+function busses_with_multiple_inneighbors(g::MetaDiGraph)
+    bs = String[]
+    for v in vertices(g)
+        if indegree(g, v) > 1
+            push!(bs, get_prop(g, v, :bus))
+        end
+    end
+    return bs
+end
+
+
+"""
+    next_bus_above_with_outdegree_more_than_one(g::MetaDiGraph, b::String)
+
+Find the next bus above `b` with outdegree more than one.
+If none are found than `nothing` is returned.
+Throws an error if a bus with indegree > 1 is found above `b`.
+"""
+function next_bus_above_with_outdegree_more_than_one(g::MetaDiGraph, b::String)
+    ins = inneighbors(g, b)
+    check_ins(ins) = length(ins) > 1 ? error("Found more than one in neighbor for vertex $b") : nothing
+    check_ins(ins)
+    if length(ins) == 0
+        return nothing
+    end
+    while length(outneighbors(g, ins[1])) == 1
+        ins = inneighbors(g, ins[1])
+        check_ins(ins)
+        if length(ins) == 0
+            return nothing
+        end
+    end
+    return ins[1]
+end
+
+
+function paths_between(g::MetaDiGraph, b1, b2)
+    outs = outneighbors(g, b1)
+    paths = [[o] for o in outs]
+    check_nxtbs(bs) = length(bs) == 1 ? true : error("The paths between $b1 and $b2 diverge.")
+    for (i,o) in enumerate(outs)
+        nxtbs = outneighbors(g, o)
+        while nxtbs[1] != b2
+            check_nxtbs(nxtbs)
+            push!(paths[i], nxtbs[1])
+            nxtbs = outneighbors(g, nxtbs[1])
+        end
+    end
+    return paths
+end
