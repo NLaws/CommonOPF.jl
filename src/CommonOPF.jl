@@ -45,7 +45,8 @@ export
     get_ij_idx,
     get_ijlinelength,
     get_ijlinecode,
-    get_ijedge
+    get_ijedge,
+    info_max_Ppu_Qpu
 
 
 include("graphs.jl")
