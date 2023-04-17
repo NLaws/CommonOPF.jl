@@ -156,8 +156,9 @@ function dss_dict_to_arrays(d::Dict, Sbase::Real, Vbase::Real, substation_bus::S
             # for now just make sure the linecode and line values are in consistent units
             # and BEWARE PowerModelsDistribution will scale values from openDSS!
             push!(linelengths, v["length"]) 
-        catch
+        catch e
             @warn("Unable to parse line $(k) when processing OpenDSS model.")
+            println(e)
         end
     end
 
