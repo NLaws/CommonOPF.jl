@@ -366,6 +366,8 @@ function dss_loads(d::Dict)
             P[bus] = Dict{Int, Array{Real}}(phases[1] => [0.0])
             Q[bus] = Dict{Int, Array{Real}}(phases[1] => [0.0])
         end
+
+        # the "phases" value is really nphases (this key is set in PMD)
         if v["phases"] == 1 && get(v, "conn", "") != DELTA  # DELTA is a PMD Enum
             phs = phases[1]
             if phs in keys(P[bus])
