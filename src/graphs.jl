@@ -1,7 +1,64 @@
 """
+    busses_from_edges(edges::AbstractVector)
+    
+collect and return all the unique values in the edge tuples of 2 strings
+"""
+function busses_from_edges(edges::AbstractVector)
+    busses = String[]
+    for t in edges
+        push!(busses, t[1])
+        push!(busses, t[2])
+    end
+    return unique(busses)
+end
+
+
+"""
+    make_graph(edges::AbstractVector)
+
+return SimpleDiGraph by inferring busses from `edges`
+with the dicts for bus => int and int => bus
+(because Graphs.jl only works with integer nodes)
+```julia
+julia> g["13", :bus]
+10
+
+julia> get_prop(g, :bus_int_map)["13"]
+10
+
+julia> g[13, :bus]
+"24"
+
+julia> get_prop(g, :int_bus_map)[13]
+"24"
+```
+"""
+function make_graph(edges::AbstractVector)
+    busses = busses_from_edges(edges)
+    bus_int_map = Dict(b => i for (i,b) in enumerate(busses))
+    int_bus_map = Dict(i => b for (b, i) in bus_int_map)
+    g = MetaDiGraph(length(busses))
+    for e in edges
+        add_edge!(g, Edge(bus_int_map[e[1]], bus_int_map[e[2]]))
+    end
+    g = MetaDiGraph(g)
+    set_prop!(g, :bus_int_map, bus_int_map)
+    set_prop!(g, :int_bus_map, int_bus_map)
+    for (bus, i) in bus_int_map
+        set_indexing_prop!(g, i, :bus, bus)
+        # this allows g[:bus][bus_string] -> bus_int
+        # and g[bus_int, :bus] -> bus_string
+        # and g[bus_string, :bus] -> bus_int
+        # to reverse use get_prop(g, i, :bus)
+    end
+    return g
+end
+
+
+"""
     make_graph(busses::AbstractVector{String}, edges::AbstractVector)
 
-return SimpleDiGraph, Dict, Dict 
+return SimpleDiGraph
 with the dicts for bus => int and int => bus
 (because Graphs.jl only works with integer nodes)
 ```julia

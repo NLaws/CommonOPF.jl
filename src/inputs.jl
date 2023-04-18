@@ -142,12 +142,7 @@ function Inputs(
     # Ibase^2 should be used to recover amperage from lij ?
     Zbase = Vbase^2 / Sbase
 
-    busses = String[]
-    for t in edges
-        push!(busses, t[1])
-        push!(busses, t[2])
-    end
-    busses = unique(busses)
+    busses = busses_from_edges(edges)
 
     if isempty(Isquared_up_bounds)
         Isquared_up_bounds = Dict(l => DEFAULT_AMP_LIMIT^2 for l in linecodes)
@@ -246,7 +241,8 @@ function Inputs(
         relaxed=true,
         extract_phase::Int=0,  # set to 1, 2, or 3,
         use_extract_phase_impedance::Bool=false,
-        enforce_tree::Bool=true
+        enforce_tree::Bool=true,
+        trim_above_substation_bus::Bool=true
     )
 
     d = dss_files_to_dict(dssfilepath)
@@ -281,6 +277,20 @@ function Inputs(
             end
             Qload = newQ
         end
+    end
+
+    if trim_above_substation_bus
+        g = make_graph(edges)
+        busses_to_delete = all_inneighbors(g, substation_bus, Vector{String}())
+        edges_to_delete = [e for e in edges if e[1] in busses_to_delete]
+        indices_to_delete = Int[]
+        for e in edges_to_delete
+            push!(indices_to_delete, indexin([e], edges)[1])
+        end
+        deleteat!(edges, indices_to_delete)
+        deleteat!(phases, indices_to_delete)
+        deleteat!(linecodes, indices_to_delete)
+        deleteat!(linelengths, indices_to_delete)
     end
 
     # TODO line limits from OpenDSS ?
