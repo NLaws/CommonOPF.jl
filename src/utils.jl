@@ -103,6 +103,9 @@ function delete_bus_j!(j::String, p::Inputs)
     if j in keys(p.Qload)
         delete!(p.Qload, j)
     end
+    if j in keys(p.phases_into_bus)
+        delete!(p.phases_into_bus, j)
+    end
     true
 end
 
