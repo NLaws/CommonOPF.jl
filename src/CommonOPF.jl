@@ -47,7 +47,11 @@ export
     get_ijlinelength,
     get_ijlinecode,
     get_ijedge,
-    info_max_Ppu_Qpu
+    info_max_Ppu_Qpu,
+    reg_busses,
+    turn_ratio,
+    has_vreg,
+    vreg
 
 
 include("graphs.jl")
