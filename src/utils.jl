@@ -134,7 +134,7 @@ function reg_busses(p::Inputs)
 end
 
 
-function turn_ratio(p::Inputs, b::String)
+function turn_ratio(p::Inputs, b::AbstractString)
     if !(b in reg_busses(p))
         throw(@error "Bus $b is not a regulated bus")
     end
@@ -146,7 +146,7 @@ function turn_ratio(p::Inputs, b::String)
 end
 
 
-function has_vreg(p::Inputs, b::String)
+function has_vreg(p::Inputs, b::AbstractString)
     for (edge_tuple, d) in p.regulators
         if edge_tuple[2] == b  && :vreg in keys(d)
             return true
@@ -156,7 +156,7 @@ function has_vreg(p::Inputs, b::String)
 end
 
 
-function vreg(p::Inputs, b::String)
+function vreg(p::Inputs, b::AbstractString)
     if !(b in reg_busses(p))
         throw(@error "Bus $b is not a regulated bus")
     end
