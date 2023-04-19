@@ -21,6 +21,7 @@ export
     Phases,
     SinglePhase,
     MultiPhase,
+    MultiPhaseVariableContainerType,
     Inputs,
     singlephase38linesInputs,
     make_graph,
