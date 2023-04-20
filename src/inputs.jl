@@ -257,6 +257,18 @@ function Inputs(
         )
     end
 
+    # hack for single phase models
+    if all(length(phs) == 1 for phs in phases)
+        new_regs = Dict()
+        for (b, d) in regulators
+            new_regs[b] = Dict(
+                k => sum(values(v)) ./ length(v)
+                for (k,v) in d
+            )
+        end
+        regulators = new_regs
+    end
+
     if isempty(Pload) && isempty(Qload)
         Pload, Qload = dss_loads(d)
         # hack for single phase models

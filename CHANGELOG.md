@@ -1,5 +1,8 @@
 # CommonOPF Changelog
 
+## v0.3.1
+- fix regulators for single phase openDSS models
+
 ## v0.3.0
 -  `delete!(p.phases_into_bus, j)` in `delete_bus_j!`
 - add phase index to regulators turn_ratio
