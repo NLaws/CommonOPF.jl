@@ -6,6 +6,10 @@ makedocs(
     format = Documenter.HTML(),
     modules = [CommonOPF],
     workdir = joinpath(@__DIR__, ".."),
+    pages = [
+        "User Documentation" => "index.md",
+        "Methods" => "methods.md"
+    ],
 )
 
 # Documenter can also automatically deploy documentation to gh-pages.
