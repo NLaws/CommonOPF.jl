@@ -101,7 +101,7 @@ end
     Bus1=684.3        Bus2=611.3
     Bus1=684.1        Bus2=652.1
     =#
-    phases = CommonOPF.extract_one_phase!(1, edges, linecodes, linelengths, phases, linecodes_dict)
+    phases, regs = CommonOPF.extract_one_phase!(1, edges, linecodes, linelengths, phases, linecodes_dict, regulators)
     @test length(edges) == 13 - 3
     @test !( ("632", "645") in edges )
     @test !( ("684", "611") in edges )
@@ -114,7 +114,7 @@ end
     edges, linecodes, linelengths, linecodes_dict, phases, Isquared_up_bounds, regulators = 
         dss_dict_to_arrays(d, CommonOPF.SBASE_DEFAULT, CommonOPF.VBASE_DEFAULT, "rg60");
     @test length(edges) == 13
-    phases = CommonOPF.extract_one_phase!(2, edges, linecodes, linelengths, phases, linecodes_dict)
+    phases, regs = CommonOPF.extract_one_phase!(2, edges, linecodes, linelengths, phases, linecodes_dict, regulators)
     @test length(edges) == 13 - 3
     @test !( ("671", "684") in edges )
     @test !( ("684", "611") in edges )
@@ -123,7 +123,7 @@ end
     edges, linecodes, linelengths, linecodes_dict, phases, Isquared_up_bounds, regulators = 
         dss_dict_to_arrays(d, CommonOPF.SBASE_DEFAULT, CommonOPF.VBASE_DEFAULT, "rg60");
     @test length(edges) == 13
-    phases = CommonOPF.extract_one_phase!(3, edges, linecodes, linelengths, phases, linecodes_dict)
+    phases, regs = CommonOPF.extract_one_phase!(3, edges, linecodes, linelengths, phases, linecodes_dict, regulators)
     @test length(edges) == 13 - 1
     @test !( ("684", "652") in edges )
 end

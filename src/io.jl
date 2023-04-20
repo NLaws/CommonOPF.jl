@@ -273,7 +273,7 @@ function dss_dict_to_arrays(d::Dict, Sbase::Real, Vbase::Real, substation_bus::S
             )
             # TODO parse turn ratios
             if linecode in trfxs_with_regs
-                regulators[(b1,b2)] = Dict(:turn_ratio => 1.0)
+                regulators[(b1,b2)] = Dict(:turn_ratio => Dict(ph => 1.0) for ph in phs)
             end
 
         catch e
@@ -332,7 +332,7 @@ function dss_dict_to_arrays(d::Dict, Sbase::Real, Vbase::Real, substation_bus::S
         )
         # TODO parse turn ratios
         if linecode in trfxs_with_regs
-            regulators[(b1,b2)] = Dict(:turn_ratio => 1.0)
+            regulators[(b1,b2)] = Dict(:turn_ratio => Dict(ph => 1.0) for ph in phs)
         end
     end
 
@@ -441,7 +441,7 @@ to convert a multiphase system into a single phase system.
 This is _not_ a positive sequence model as we take only the appropriate diagaonal elements of the 
 r and x matrices for the specified phase.
 """
-function extract_one_phase!(phs::Int, edges, linecodes, linelengths, phases, linecodes_dict;
+function extract_one_phase!(phs::Int, edges, linecodes, linelengths, phases, linecodes_dict, regulators;
         use_extract_phase_impedance=false
     )
 
@@ -487,8 +487,19 @@ function extract_one_phase!(phs::Int, edges, linecodes, linelengths, phases, lin
     for lc in lcs_to_delete
         delete!(linecodes_dict, lc)
     end
+
+    # pull out one phase from regulators
+    new_regs = Dict()
+    for (b, d) in regulators
+        new_regs[b] = Dict(
+            k => v[phs]
+            for (k,v) in d
+        )
+    end
+
+    # adjust the phases
     phases = repeat([[phs]], length(phases))
-    return phases
+    return phases, new_regs
 end
 
 

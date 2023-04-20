@@ -251,7 +251,8 @@ function Inputs(
         dss_dict_to_arrays(d, Sbase, Vbase, substation_bus; enforce_tree=enforce_tree)
 
     if extract_phase in [1,2,3]
-        phases = extract_one_phase!(extract_phase, edges, linecodes, linelengths, phases, linecodes_dict; 
+        phases, regulators = extract_one_phase!(
+            extract_phase, edges, linecodes, linelengths, phases, linecodes_dict, regulators; 
             use_extract_phase_impedance=use_extract_phase_impedance
         )
     end

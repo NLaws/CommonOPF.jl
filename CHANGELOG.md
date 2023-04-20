@@ -1,7 +1,8 @@
 # CommonOPF Changelog
 
-## dev
+## v0.3.0
 -  `delete!(p.phases_into_bus, j)` in `delete_bus_j!`
+- add phase index to regulators turn_ratio
 
 ## v0.2.2
 - add `MultiPhaseVariableContainerType`
