@@ -6,4 +6,4 @@ A module of shared scaffolding and methods for:
 
 For more information please see the documentation:
 <!-- [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://nlaws.github.io/CommonOPF.jl/stable) -->
-[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://nlaws.github.io/CommonOPF/dev)
+[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://nlaws.github.io/CommonOPF.jl/dev)
