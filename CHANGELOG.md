@@ -1,5 +1,8 @@
 # CommonOPF Changelog
 
+## v0.3.2
+- add `Inputs.shunt_susceptance` dict with defaults of zero for all busses
+
 ## v0.3.1
 - fix regulators for single phase openDSS models
 

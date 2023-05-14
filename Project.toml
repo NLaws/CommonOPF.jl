@@ -1,7 +1,7 @@
 name = "CommonOPF"
 uuid = "dad7ea18-2b21-482e-81c1-e84414cc4b03"
 authors = ["Nick Laws <laws.nick@gmail.com> and contributors"]
-version = "0.3.1"
+version = "0.3.2"
 
 [deps]
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"

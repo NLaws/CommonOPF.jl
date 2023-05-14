@@ -28,6 +28,7 @@
         relaxed::Bool
         edge_keys::Vector{String}
         regulators::Dict
+        shunt_susceptance::Dict
     end
 
 Inputs
@@ -81,6 +82,7 @@ mutable struct Inputs{T<:Phases} <: AbstractInputs
     relaxed::Bool
     edge_keys::Vector{String}
     regulators::Dict
+    shunt_susceptance::Dict
 end
 # TODO line flow limits
 
@@ -135,7 +137,8 @@ function Inputs(
         Q_lo_bound=-1e4,
         Isquared_up_bounds=Dict{String, Float64}(),
         relaxed=true,
-        regulators=Dict()
+        regulators=Dict(),
+        shunt_susceptance=Dict(),
     )
 
     Ibase = Sbase / (Vbase * sqrt(3))
@@ -160,6 +163,10 @@ function Inputs(
     end
 
     edge_keys = [string(i*"-"*j) for (i,j) in edges]
+
+    if isempty(shunt_susceptance)
+        shunt_susceptance = Dict(b => 0.0 for b in busses)
+    end
 
     Inputs{input_type}(
         edges,
@@ -189,7 +196,8 @@ function Inputs(
         phases_into_bus,
         relaxed,
         edge_keys,
-        regulators
+        regulators,
+        shunt_susceptance
     )
 end
 
