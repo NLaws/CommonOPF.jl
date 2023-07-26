@@ -52,7 +52,9 @@ export
     turn_ratio,
     has_vreg,
     vreg,
-    leaf_busses
+    leaf_busses,
+    trim_tree!,
+    trim_tree_once!
 
 
 include("graphs.jl")

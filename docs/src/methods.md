@@ -14,3 +14,8 @@ leaf_busses
 
 
 # Utils
+
+```@docs
+trim_tree!
+trim_tree_once!
+```
