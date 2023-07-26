@@ -189,13 +189,13 @@ end
 
 
 """
-    trim_tree_once!(p::Inputs{SinglePhase})
+    trim_tree_once!(p::Inputs)
 
 A support function for `trim_tree!`. When trimming the tree sometimes new leafs are created. 
 So `trim_tree!` loops over `trim_tree_once!`.
 """
-function trim_tree_once!(p::Inputs{SinglePhase})
-    trimmable_busses = setdiff(CommonOPF.leaf_busses(p), union(keys(p.Pload), keys(p.Qload)))
+function trim_tree_once!(p::Inputs)
+    trimmable_busses = setdiff(leaf_busses(p), union(keys(p.Pload), keys(p.Qload)))
     if isempty(trimmable_busses) return false end
     trimmable_edges = Tuple[]
     for j in trimmable_busses
@@ -214,13 +214,11 @@ end
 
 
 """
-    trim_tree!(p::Inputs{SinglePhase})
+    trim_tree!(p::Inputs)
 
 Trim any branches that do not contain load busses.
-
-TODO make compatible with `Inputs{MultiPhase}`
 """
-function trim_tree!(p::Inputs{SinglePhase})
+function trim_tree!(p::Inputs)
     n_edges_before = length(p.edges)
     trimming = trim_tree_once!(p)
     while trimming

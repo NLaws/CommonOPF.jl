@@ -1,5 +1,8 @@
 # CommonOPF Changelog
 
+## v0.3.4
+- `trim_tree!` compatible with Inputs (was only SinglePhase)
+
 ## v0.3.3
 - add `leaf_busses` and `trim_tree!` (moved from BranchFlowModel)
 
