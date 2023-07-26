@@ -51,7 +51,8 @@ export
     reg_busses,
     turn_ratio,
     has_vreg,
-    vreg
+    vreg,
+    leaf_busses
 
 
 include("graphs.jl")

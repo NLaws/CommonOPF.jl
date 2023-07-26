@@ -170,3 +170,21 @@ function vreg(p::Inputs, b::AbstractString)
     end
     false
 end
+
+
+"""
+    leaf_busses(p::Inputs)
+
+returns `Vector{String}` containing all of the leaf busses in `p.busses`
+"""
+function leaf_busses(p::Inputs)
+    leafs = String[]
+    for j in p.busses
+        if !isempty(i_to_j(j, p)) && isempty(j_to_k(j, p))
+            push!(leafs, j)
+        end
+    end
+    return leafs
+end
+
+
