@@ -1,5 +1,8 @@
 # CommonOPF Changelog
 
+## v0.3.3
+- add `leaf_busses` and `trim_tree!` (moved from BranchFlowModel)
+
 ## v0.3.2
 - add `Inputs.shunt_susceptance` dict with defaults of zero for all busses
 
