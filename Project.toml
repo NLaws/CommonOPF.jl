@@ -13,6 +13,7 @@ PowerModelsDistribution = "d7431456-977f-11e9-2de3-97ff7677985e"
 
 [compat]
 Graphs = "1.8"
+JuMP = "1"
 MetaGraphs = "0.7"
 PowerModelsDistribution = "0.14"
 julia = "1"
