@@ -1,6 +1,7 @@
 module CommonOPF
 
 using LinearAlgebra
+using JuMP
 using Graphs, MetaGraphs
 import MetaGraphs: inneighbors, outneighbors, induced_subgraph
 import PowerModelsDistribution: parse_dss, DELTA
@@ -54,7 +55,8 @@ export
     vreg,
     leaf_busses,
     trim_tree!,
-    trim_tree_once!
+    trim_tree_once!,
+    get_variable_values
 
 
 include("graphs.jl")
@@ -62,5 +64,6 @@ include("io.jl")
 include("types.jl")
 include("inputs.jl")
 include("utils.jl")
+include("results.jl")
 
 end

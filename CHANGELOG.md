@@ -1,5 +1,9 @@
 # CommonOPF Changelog
 
+## v0.3.5
+- add `get_variable_values(var::Symbol, m::JuMP.AbstractModel, p::Inputs{SinglePhase}; digits=8)`
+    - moved from BranchFlowModel and used in LinDistFlow v0.5
+
 ## v0.3.4
 - `trim_tree!` compatible with Inputs (was only SinglePhase)
 
