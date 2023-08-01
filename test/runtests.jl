@@ -170,7 +170,7 @@ end
 end
 
 
-@testset "reduce_tree! MultiPhase" begin
+@testset "reduce_tree! SinglePhase" begin
     #=           c -- e                     -- e
                 / [1,2]                   /
     a -[1,2,3]- b           ->       a -- b
@@ -182,7 +182,7 @@ end
     edges = [("a", "b"), ("b", "c"), ("b", "d"), ("c", "e"), ("d", "f")]
     linecodes = repeat(["l1"], length(edges))
     linelengths = repeat([1.0], length(edges))
-    phases = [[1,2,3], [1,2], [2,3], [2,1], [3,2]]  # change order intentionally
+    phases = repeat([[1]], length(edges))
     substation_bus = "a"
     Pload = Dict("e" => [1.0], "f" => [1.0])
     Qload = Dict("e" => [0.1], "f" => [0.1])

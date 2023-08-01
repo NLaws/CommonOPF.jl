@@ -1,7 +1,7 @@
 # CommonOPF Changelog
 
 ## v0.3.7
-- add `reduce_tree!` for `Inputs{MultiPhase}` and test
+- add `reduce_tree!` for `Inputs{MultiPhase}`
 
 ## v0.3.6
 - add `remove_bus!` and `reduce_tree!` from BranchFlowModel (tested there)
