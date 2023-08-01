@@ -1,5 +1,8 @@
 # CommonOPF Changelog
 
+## v0.3.7
+- add `reduce_tree!` for `Inputs{MultiPhase}` and test
+
 ## v0.3.6
 - add `remove_bus!` and `reduce_tree!` from BranchFlowModel (tested there)
 - add `SinglePhase` `rij` and `xij` from BFM and LDF

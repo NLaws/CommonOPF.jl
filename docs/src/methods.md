@@ -12,6 +12,7 @@ leaf_busses
 remove_bus!(j::String, p::Inputs{SinglePhase})
 remove_bus!(j::String, p::Inputs{MultiPhase})
 reduce_tree!(p::Inputs{SinglePhase})
+reduce_tree!(p::Inputs{MultiPhase})
 ```
 
 # Types
