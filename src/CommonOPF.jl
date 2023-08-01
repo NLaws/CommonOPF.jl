@@ -42,6 +42,8 @@ export
     delete_bus_j!,
     info_max_rpu_xpu,
     info_max_Ppu_Qpu,
+    rij,
+    xij,
     i_to_j,
     j_to_k,
     get_ij_idx,
@@ -56,7 +58,9 @@ export
     leaf_busses,
     trim_tree!,
     trim_tree_once!,
-    get_variable_values
+    get_variable_values,
+    remove_bus!,
+    reduce_tree!
 
 
 include("graphs.jl")

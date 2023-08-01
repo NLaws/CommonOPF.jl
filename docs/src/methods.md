@@ -8,14 +8,19 @@ leaf_busses
 
 
 # Inputs
-
+```@docs
+remove_bus!(j::String, p::Inputs{SinglePhase})
+remove_bus!(j::String, p::Inputs{MultiPhase})
+reduce_tree!(p::Inputs{SinglePhase})
+```
 
 # Types
 
 
 # Utils
-
 ```@docs
 trim_tree!
 trim_tree_once!
+rij(i::AbstractString, j::AbstractString, p::Inputs{SinglePhase})
+xij(i::AbstractString, j::AbstractString, p::Inputs{SinglePhase})
 ```
