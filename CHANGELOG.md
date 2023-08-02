@@ -1,5 +1,9 @@
 # CommonOPF Changelog
 
+## v0.3.8
+- bug fix `reduce_tree!` with `Inputs{MultiPhase}`
+    - mishandling of combined impedance matrices
+
 ## v0.3.7
 - add `reduce_tree!` for `Inputs{MultiPhase}`
 

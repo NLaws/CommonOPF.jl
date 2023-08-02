@@ -306,7 +306,11 @@ function remove_bus!(j::String, p::Inputs{MultiPhase})
     ij_idx, jk_idx = get_ij_idx(i, j, p), get_ij_idx(j, k, p)
     ij_len, jk_len = p.linelengths[ij_idx], p.linelengths[jk_idx]
     ij_linecode, jk_linecode = get_ijlinecode(i,j,p), get_ijlinecode(j,k,p)
-    r_ij, x_ij, r_jk, x_jk = rij(i,j,p)*p.Zbase, xij(i,j,p)*p.Zbase, rij(j,k,p)*p.Zbase, xij(j,k,p)*p.Zbase
+    # scale impedances by lengths s.t. we can make per length again using ik_len
+    r_ij, x_ij = p.Zdict[ij_linecode]["rmatrix"] * ij_len, p.Zdict[ij_linecode]["xmatrix"] * ij_len
+    r_jk, x_jk = p.Zdict[jk_linecode]["rmatrix"] * jk_len, p.Zdict[jk_linecode]["xmatrix"] * jk_len
+    # NOTE the r,x matrices can be 1D, 2D, or 3D; but we convert to 3D for use in model building
+    # (this is a vestige of OpenDSS that should be removed TODO)
     phases = p.phases[ij_idx]
     # make the new values
     r_ik = r_ij .+ r_jk
