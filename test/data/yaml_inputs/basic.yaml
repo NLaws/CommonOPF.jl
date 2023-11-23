@@ -1,5 +1,6 @@
 edges:
-  - busses: 
+  - name: cond1
+    busses: 
     - b1
     - b2
   - busses:
