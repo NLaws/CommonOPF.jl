@@ -1,10 +1,10 @@
 
 
 @testset "Edge construction" begin
-    e1 = CommonOPF.Edge(("b1", "b2"), "edge1")
-    e2 = CommonOPF.Edge(Dict(:busses => ("b1", "b2"), :name => "edge1"))
-    @test e1.name == e2.name
-    @test e1.busses == e2.busses
+    c1 = CommonOPF.Conductor(("b1", "b2"), "edge1", "")
+    c2 = CommonOPF.Conductor(Dict(:busses => ("b1", "b2"), :name => "edge1"))
+    @test c1.name == c2.name
+    @test c1.busses == c2.busses
 end
 
 @testset "basic yaml inputs" begin

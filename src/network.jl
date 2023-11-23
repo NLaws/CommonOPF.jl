@@ -41,13 +41,13 @@ busses(n::AbstractNetwork) = MetaGraphsNext.labels(n.metagraph)
 
 Check input yaml file has required top-level keys:
 - substation_bus
-- edges
+- conductors
 """
 function check_yaml(fp::String)
     d = YAML.load_file(fp; dicttype=Dict{Symbol, Any})
     missing_keys = []
     required_keys = [
-        (:edges, [:busses], true)  # bool for array values
+        (:conductors, [:busses], true)  # bool for array values
         (:network, [:substation_bus], false)
     ]
     for (rkey, subkeys, is_array) in required_keys
@@ -81,21 +81,23 @@ end
 """
     struct Edge <: AbstractEdge
 
-Interface for edges in a Network. Fieldnames can be provided via a YAML file or populated
+Interface for conductors in a Network. Fieldnames can be provided via a YAML file or populated
     manually. See `Network` for parsing YAML specifications.
 """
-struct Edge <: AbstractEdge
+struct Conductor <: AbstractEdge
     # required values
     busses::Tuple{String, String}
     # optional values
     name::String
+    template::String
 end
 
 
-function Edge(d::Dict{Symbol, Any})
+function Conductor(d::Dict{Symbol, Any})
     busses = Tuple(String.(d[:busses]))
     name = get(d, :name, "")
-    return Edge(busses, name)
+    template = get(d, :template, "")
+    return Conductor(busses, name, template)
 end
 
 
@@ -107,8 +109,8 @@ Construct a `Network` from a yaml at the file path `fp`.
 """
 function Network(fp::String)
     d = check_yaml(fp)
-    edges = Edge.(d[:edges])
-    g = make_graph(collect(e.busses for e in edges))
+    conductors = Conductor.(d[:conductors])
+    g = make_graph(collect(c.busses for c in conductors))
     return Network(g, d[:network])
 end
 
