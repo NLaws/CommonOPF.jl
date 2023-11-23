@@ -7,10 +7,8 @@ For example, `edges(network)` returns it iterator of edge tuples with bus name v
 (but if we used `Graphs.edges(MetaGraph)` we would get an iterator of Graphs.SimpleGraphs.SimpleEdge 
 with integer values).
 """
-struct Network <: AbstractNetwork
+struct Network{T<:Phases} <: AbstractNetwork
     metagraph::MetaGraphsNext.AbstractGraph
-    edges::Union{Base.Generator, AbstractVector}
-    busses::Union{Base.Generator, AbstractVector}
     substation_bus::String
     Sbase::Real
     Vbase::Real
@@ -23,15 +21,19 @@ end
 Given a MetaGraph create a Network by extracting the edges and busses from the MetaGraph
 """
 function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict) 
-    Network(
-        g, 
-        MetaGraphsNext.edge_labels(g),
-        MetaGraphsNext.labels(g),
+    # TODO MultiPhase based on inputs
+    Network{SinglePhase}(
+        g,
         ntwk[:substation_bus],
         get(ntwk, :Sbase, 1),
         get(ntwk, :Vbase, 1)
     )
 end
+
+
+edges(n::AbstractNetwork) = MetaGraphsNext.edge_labels(n.metagraph)
+
+busses(n::AbstractNetwork) = MetaGraphsNext.labels(n.metagraph)
 
 
 """

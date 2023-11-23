@@ -13,8 +13,10 @@ end
 
     fp = joinpath("data", "yaml_inputs", "basic.yaml")
     net = Network(fp)
-    @test ("b1", "b2") in net.edges && ("b2", "b3") in net.edges
-    @test "b1" in net.busses && "b2" in net.busses && "b3" in net.busses
+    es = edges(net)
+    @test ("b1", "b2") in es && ("b2", "b3") in es
+    bs = busses(net)
+    @test "b1" in bs && "b2" in bs && "b3" in bs
     @test net.substation_bus == "b1"
     @test net.Sbase == 1e6
     @test net.Vbase == 1

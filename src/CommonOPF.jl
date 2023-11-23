@@ -62,7 +62,9 @@ export
     get_variable_values,
     remove_bus!,
     reduce_tree!,
-    Network
+    Network,
+    edges,
+    busses
 
 
 include("graphs.jl")
