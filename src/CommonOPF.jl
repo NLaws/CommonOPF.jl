@@ -7,6 +7,7 @@ import MetaGraphsNext: inneighbors, outneighbors, induced_subgraph
 import PowerModelsDistribution: parse_dss, DELTA
 import Logging: SimpleLogger, Error, with_logger
 import YAML
+import Parameters: @with_kw
 
 const SBASE_DEFAULT = 1_000_000
 const VBASE_DEFAULT = 12_470
@@ -71,9 +72,9 @@ include("graphs.jl")
 include("io.jl")
 include("types.jl")
 include("inputs.jl")
+include("network.jl")
 include("utils.jl")
 include("results.jl")
 
-include("network.jl")
 
 end

@@ -56,16 +56,19 @@ julia> get_prop(g, :int_bus_map)[13]
 function make_graph(busses::AbstractVector{String}, edges::AbstractVector)
     bus_int_map = Dict(b => i for (i,b) in enumerate(busses))
     int_bus_map = Dict(i => b for (b, i) in bus_int_map)
+    dtype = Dict{Symbol, Any}
     g = MetaGraph(
         DiGraph(), 
         label_type=String,
+        vertex_data_type=dtype,
+        edge_data_type=dtype,
         graph_data=Dict(:int_bus_map => int_bus_map)
     )
     for b in busses
-        setindex!(g, nothing, b)
+        setindex!(g, dtype(), b)
     end
     for e in edges
-        setindex!(g, nothing, e[1], e[2])
+        setindex!(g, dtype(), e[1], e[2])
     end
     return g
 end
