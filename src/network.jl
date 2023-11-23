@@ -11,6 +11,7 @@ struct Network <: AbstractNetwork
     metagraph::MetaGraphsNext.AbstractGraph
     edges::Union{Base.Generator, AbstractVector}
     busses::Union{Base.Generator, AbstractVector}
+    substation_bus::String
 end
 
 
@@ -19,12 +20,36 @@ end
 
 Given a MetaGraph create a Network by extracting the edges and busses from the MetaGraph
 """
-function Network(g::MetaGraphsNext.AbstractGraph) 
+function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict) 
     Network(
         g, 
         MetaGraphsNext.edge_labels(g),
-        MetaGraphsNext.labels(g)
+        MetaGraphsNext.labels(g),
+        ntwk[:substation_bus]
     )
+end
+
+
+"""
+    function check_yaml(fp::String)
+
+Check input yaml file has required top-level keys:
+- substation_bus
+- edges
+"""
+function check_yaml(fp::String)
+    d = YAML.load_file(fp; dicttype=Dict{Symbol, Any})
+    missing_keys = []
+    required_keys = [:edges, :network]
+    for rkey in required_keys
+        if !(rkey in keys(d))
+            push!(missing_keys, rkey)
+        end
+    end
+    if length(missing_keys) > 0
+        throw(KeyError("Network yaml specification missing requried keys:\n\t$missing_keys"))
+    end
+    return d
 end
 
 
@@ -59,6 +84,6 @@ function Network(fp::String)
     d = check_yaml(fp)
     edges = Edge.(d[:edges])
     g = make_graph(collect(e.busses for e in edges))
-    return Network(g)
+    return Network(g, d[:network])
 end
 

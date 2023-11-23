@@ -541,18 +541,3 @@ function dsstxt_to_sparse_array(fp::String, first_data_row::Int = 5)
     end
     return convert(Array{Complex, 2}, Symmetric(sparse(rows, cols, complex.(real, imag)), :L))
 end
-
-
-"""
-    function check_yaml(fp::String)
-
-Check input yaml file has required top-level keys:
-- edges
-"""
-function check_yaml(fp::String)
-    d = YAML.load_file(fp; dicttype=Dict{Symbol, Any})
-    if !(:edges in keys(d))
-        throw(KeyError("Network yaml specification requires top-level edges"))
-    end
-    return d
-end
