@@ -416,7 +416,7 @@ See `remove_bus!` for how the two lines are combined.
 function reduce_tree!(p::Inputs{SinglePhase}; keep_regulator_busses=true)
     # TODO make graph once in Inputs ?
     g = make_graph(p.busses, p.edges)
-    int_bus_map = get_prop(g, :int_bus_map)
+    int_bus_map = g[][:int_bus_map]
     reducable_buses = String[]
     load_buses = Set(vcat(collect(keys(p.Pload)), collect(keys(p.Qload))))
     if keep_regulator_busses
@@ -452,7 +452,7 @@ See `remove_bus!` for how the two lines are combined.
 function reduce_tree!(p::Inputs{MultiPhase}; keep_regulator_busses=true)
     # TODO make graph once in Inputs ?
     g = make_graph(p.busses, p.edges)
-    int_bus_map = get_prop(g, :int_bus_map)
+    int_bus_map = g[][:int_bus_map]
     reducable_buses = String[]
     load_buses = Set(vcat(collect(keys(p.Pload)), collect(keys(p.Qload))))
     if keep_regulator_busses

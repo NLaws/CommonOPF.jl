@@ -23,9 +23,6 @@ with the dicts for bus => int and int => bus
 julia> g["13", :bus]
 10
 
-julia> get_prop(g, :bus_int_map)["13"]
-10
-
 julia> g[13, :bus]
 "24"
 
@@ -35,23 +32,7 @@ julia> get_prop(g, :int_bus_map)[13]
 """
 function make_graph(edges::AbstractVector)
     busses = busses_from_edges(edges)
-    bus_int_map = Dict(b => i for (i,b) in enumerate(busses))
-    int_bus_map = Dict(i => b for (b, i) in bus_int_map)
-    g = MetaDiGraph(length(busses))
-    for e in edges
-        add_edge!(g, Edge(bus_int_map[e[1]], bus_int_map[e[2]]))
-    end
-    g = MetaDiGraph(g)
-    set_prop!(g, :bus_int_map, bus_int_map)
-    set_prop!(g, :int_bus_map, int_bus_map)
-    for (bus, i) in bus_int_map
-        set_indexing_prop!(g, i, :bus, bus)
-        # this allows g[:bus][bus_string] -> bus_int
-        # and g[bus_int, :bus] -> bus_string
-        # and g[bus_string, :bus] -> bus_int
-        # to reverse use get_prop(g, i, :bus)
-    end
-    return g
+    make_graph(busses, edges)
 end
 
 
@@ -65,9 +46,6 @@ with the dicts for bus => int and int => bus
 julia> g["13", :bus]
 10
 
-julia> get_prop(g, :bus_int_map)["13"]
-10
-
 julia> g[13, :bus]
 "24"
 
@@ -78,31 +56,28 @@ julia> get_prop(g, :int_bus_map)[13]
 function make_graph(busses::AbstractVector{String}, edges::AbstractVector)
     bus_int_map = Dict(b => i for (i,b) in enumerate(busses))
     int_bus_map = Dict(i => b for (b, i) in bus_int_map)
-    g = MetaDiGraph(length(busses))
-    for e in edges
-        add_edge!(g, Edge(bus_int_map[e[1]], bus_int_map[e[2]]))
+    g = MetaGraph(
+        DiGraph(), 
+        label_type=String,
+        graph_data=Dict(:int_bus_map => int_bus_map)
+    )
+    for b in busses
+        setindex!(g, nothing, b)
     end
-    g = MetaDiGraph(g)
-    set_prop!(g, :bus_int_map, bus_int_map)
-    set_prop!(g, :int_bus_map, int_bus_map)
-    for (bus, i) in bus_int_map
-        set_indexing_prop!(g, i, :bus, bus)
-        # this allows g[:bus][bus_string] -> bus_int
-        # and g[bus_int, :bus] -> bus_string
-        # and g[bus_string, :bus] -> bus_int
-        # to reverse use get_prop(g, i, :bus)
+    for e in edges
+        setindex!(g, nothing, e[1], e[2])
     end
     return g
 end
 
 
-function outneighbors(g::MetaGraphs.MetaDiGraph, j::String)
-    ks = outneighbors(g, g[:bus][j])  # ks::Vector{Int64}
-    return [g[k, :bus] for k in ks]
+function outneighbors(g::MetaGraphsNext.MetaGraph, j::String)
+    ks = outneighbors(g, MetaGraphsNext.code_for(g, j))  # ks::Vector{Int64}
+    return [MetaGraphsNext.label_for(g, k) for k in ks]
 end
 
 
-function all_outneighbors(g::MetaGraphs.MetaDiGraph, j::String, outies::Vector{String}, except_busses::Vector{String})
+function all_outneighbors(g::MetaGraphsNext.MetaGraph, j::String, outies::Vector{String}, except_busses::Vector{String})
     bs = setdiff(outneighbors(g, j), except_busses)
     for b in bs
         push!(outies, b)
@@ -112,13 +87,13 @@ function all_outneighbors(g::MetaGraphs.MetaDiGraph, j::String, outies::Vector{S
 end
 
 
-function inneighbors(g::MetaGraphs.MetaDiGraph, j::String)
-    ks = inneighbors(g, g[:bus][j])  # ks::Vector{Int64}
-    return [g[k, :bus] for k in ks]
+function inneighbors(g::MetaGraphsNext.MetaGraph, j::String)
+    ks = inneighbors(g, MetaGraphsNext.code_for(g, j))  # ks::Vector{Int64}
+    return [MetaGraphsNext.label_for(g, k) for k in ks]
 end
 
 
-function all_inneighbors(g::MetaGraphs.MetaDiGraph, j::String, innies::Vector{String})
+function all_inneighbors(g::MetaGraphsNext.MetaGraph, j::String, innies::Vector{String})
     bs = inneighbors(g, j)
     for b in bs
         push!(innies, b)
@@ -130,14 +105,14 @@ function all_inneighbors(g::MetaGraphs.MetaDiGraph, j::String, innies::Vector{St
 end
 
 
-function induced_subgraph(g::MetaGraphs.MetaDiGraph, vlist::Vector{String})
-    ivlist = [collect(filter_vertices(g, :bus, b))[1] for b in vlist]
+function induced_subgraph(g::MetaGraphsNext.MetaGraph, vlist::Vector{String})
+    ivlist = [MetaGraphsNext.code_for(g, b) for b in vlist]
     subg, vmap = induced_subgraph(g, ivlist)
     # vmap is Vector{Int} where vmap[int_in_subg] -> int_in_g
     # but we want the string busses as well as the edge tuples with strings
-    sub_busses = [g[vmap[i], :bus] for i in 1:length(vmap)]
+    sub_busses = [label_for(g, vmap[i]) for i in 1:length(vmap)]
     sub_edges = [
-        ( g[vmap[e.src], :bus], g[vmap[e.dst], :bus] ) 
+        ( label_for(g, vmap[e.src]), label_for(g, vmap[e.dst]) ) 
         for e in edges(subg)
     ]
     return sub_busses, sub_edges
@@ -146,11 +121,11 @@ end
 
 
 """
-    busses_from_deepest_to_source(g::MetaDiGraph, source::String)
+    busses_from_deepest_to_source(g::MetaGraph, source::String)
 
 return the busses and their integer depths in order from deepest from shallowest
 """
-function busses_from_deepest_to_source(g::MetaDiGraph, source::String)
+function busses_from_deepest_to_source(g::MetaGraph, source::String)
     depths = Int64[0]  # 1:1 with nms
     nms = String[source]
     depth = 0
@@ -182,7 +157,7 @@ function busses_from_deepest_to_source(g::MetaDiGraph, source::String)
 end
 
 
-function vertices_from_deepest_to_source(g::MetaDiGraph, source::Int64)
+function vertices_from_deepest_to_source(g::Graphs.AbstractGraph, source::Int64)
     depths = Int64[0]  # 1:1 with vs
     vs = Int64[source]
     depth = 0
@@ -215,15 +190,15 @@ end
 
 
 """
-    busses_with_multiple_inneighbors(g::MetaDiGraph)
+    busses_with_multiple_inneighbors(g::MetaGraph)
 
 Find all the busses in `g` with indegree > 1
 """
-function busses_with_multiple_inneighbors(g::MetaDiGraph)
+function busses_with_multiple_inneighbors(g::MetaGraph)
     bs = String[]
     for v in vertices(g)
         if indegree(g, v) > 1
-            push!(bs, get_prop(g, v, :bus))
+            push!(bs, MetaGraphsNext.label_for(g, v))
         end
     end
     return bs
@@ -231,13 +206,13 @@ end
 
 
 """
-    next_bus_above_with_outdegree_more_than_one(g::MetaDiGraph, b::String)
+    next_bus_above_with_outdegree_more_than_one(g::MetaGraph, b::String)
 
 Find the next bus above `b` with outdegree more than one.
 If none are found than `nothing` is returned.
 Throws an error if a bus with indegree > 1 is found above `b`.
 """
-function next_bus_above_with_outdegree_more_than_one(g::MetaDiGraph, b::String)
+function next_bus_above_with_outdegree_more_than_one(g::MetaGraph, b::String)
     ins = inneighbors(g, b)
     check_ins(ins) = length(ins) > 1 ? error("Found more than one in neighbor for vertex $b") : nothing
     check_ins(ins)
@@ -255,7 +230,7 @@ function next_bus_above_with_outdegree_more_than_one(g::MetaDiGraph, b::String)
 end
 
 
-function paths_between(g::MetaDiGraph, b1, b2)
+function paths_between(g::MetaGraph, b1, b2)
     outs = outneighbors(g, b1)
     paths = [[o] for o in outs]
     check_nxtbs(bs) = length(bs) == 1 ? true : error("The paths between $b1 and $b2 diverge.")

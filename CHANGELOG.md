@@ -1,5 +1,11 @@
 # CommonOPF Changelog
 
+## Next
+- Conductor.yaml
+
+## dev
+- change dependency MetaGraphs to MetaGraphsNext
+
 ## v0.3.8
 - bug fix `reduce_tree!` with `Inputs{MultiPhase}`
     - mishandling of combined impedance matrices
