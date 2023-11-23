@@ -9,11 +9,13 @@ end
 
 @testset "basic yaml inputs" begin
     fp = joinpath("data", "yaml_inputs", "bad.yaml")
-    @test_throws KeyError Network(fp)
+    @test_throws "missing requried keys" Network(fp)
 
     fp = joinpath("data", "yaml_inputs", "basic.yaml")
     net = Network(fp)
     @test ("b1", "b2") in net.edges && ("b2", "b3") in net.edges
     @test "b1" in net.busses && "b2" in net.busses && "b3" in net.busses
     @test net.substation_bus == "b1"
+    @test net.Sbase == 1e6
+    @test net.Vbase == 1
 end

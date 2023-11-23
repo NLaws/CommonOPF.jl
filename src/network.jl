@@ -12,6 +12,8 @@ struct Network <: AbstractNetwork
     edges::Union{Base.Generator, AbstractVector}
     busses::Union{Base.Generator, AbstractVector}
     substation_bus::String
+    Sbase::Real
+    Vbase::Real
 end
 
 
@@ -25,7 +27,9 @@ function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict)
         g, 
         MetaGraphsNext.edge_labels(g),
         MetaGraphsNext.labels(g),
-        ntwk[:substation_bus]
+        ntwk[:substation_bus],
+        get(ntwk, :Sbase, 1),
+        get(ntwk, :Vbase, 1)
     )
 end
 
@@ -40,14 +44,33 @@ Check input yaml file has required top-level keys:
 function check_yaml(fp::String)
     d = YAML.load_file(fp; dicttype=Dict{Symbol, Any})
     missing_keys = []
-    required_keys = [:edges, :network]
-    for rkey in required_keys
+    required_keys = [
+        (:edges, [:busses], true)  # bool for array values
+        (:network, [:substation_bus], false)
+    ]
+    for (rkey, subkeys, is_array) in required_keys
         if !(rkey in keys(d))
             push!(missing_keys, rkey)
+        else
+            if is_array
+                for sub_dict in d[rkey]
+                    for skey in subkeys
+                        if !(skey in keys(sub_dict))
+                            push!(missing_keys, skey)
+                        end
+                    end
+                end
+            else
+                for skey in subkeys
+                    if !(skey in keys(d[rkey]))
+                        push!(missing_keys, skey)
+                    end
+                end
+            end
         end
     end
     if length(missing_keys) > 0
-        throw(KeyError("Network yaml specification missing requried keys:\n\t$missing_keys"))
+        throw(ErrorException("Network yaml specification missing requried keys: $(missing_keys)"))
     end
     return d
 end
