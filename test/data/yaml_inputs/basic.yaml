@@ -1,0 +1,7 @@
+edges:
+  - busses: 
+    - b1
+    - b2
+  - busses:
+    - b2
+    - b3

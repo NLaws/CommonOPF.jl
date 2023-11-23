@@ -10,6 +10,8 @@ using Test
 
 @testset "CommonOPF.jl" begin
 
+include("test_yaml.jl")
+
 @testset "merge parallel single phase lines" begin
     #= 
            c -- e                   
