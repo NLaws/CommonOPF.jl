@@ -17,6 +17,7 @@ Graphs = "1.8"
 JuMP = "1"
 MetaGraphsNext = "0.6"
 PowerModelsDistribution = "0.14"
+YAML = "0.4"
 julia = "1"
 
 [extras]
