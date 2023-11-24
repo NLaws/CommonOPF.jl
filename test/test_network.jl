@@ -24,9 +24,9 @@ end
     @test net.Sbase == 1e6
     @test net.Vbase == 1
 
-    @test net.graph["b1", "b2"][:Conductor][:r0] == 0.766
+    @test net.graph["b1", "b2"][:Conductor][:r1] == 0.301
     for edge_data in conductors(net)
-        @test haskey(edge_data, :r0) || haskey(edge_data, :template)
+        @test haskey(edge_data, :r1) || haskey(edge_data, :template)
     end
 
     @test net.graph["b1", "b2"] == net[("b1", "b2")]

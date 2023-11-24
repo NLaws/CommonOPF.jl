@@ -7,8 +7,6 @@ conductors:
     busses: 
       - b1
       - b2
-    r0: 0.766
-    x0: 1.944
     r1: 0.301
     x1: 0.627
     length: 100

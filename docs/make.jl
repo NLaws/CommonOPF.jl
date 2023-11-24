@@ -10,7 +10,8 @@ makedocs(
         "User Documentation" => "index.md",
         "Inputs" => "inputs.md",
         "The Network Model" => "network.md",
-        "Methods" => "methods.md"
+        "Methods" => "methods.md",
+        "Math" => "math.md"
     ],
     warnonly = true,  # TODO rm this and fix all the docs
 )

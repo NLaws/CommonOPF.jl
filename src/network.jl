@@ -71,8 +71,7 @@ Interface for conductors in a Network. Fieldnames can be provided via a YAML fil
     length**, and a length value. 
 
 # Single phase models
-
-A single phase conductor looks like
+The minimum inputs for a single phase conductor look like:
 ```yaml
 conductors:
   - busses: 
@@ -113,7 +112,8 @@ scaled by the `length` of 200 and normalized by `Zbase`.
 
 Multi-phase conductors can be modeled as symmetrical or asymmetrical components. Similar to OpenDSS,
 line impedances can be specified via the zero and positive sequence impedances, `(r0, x0)` and `(r1,
-x1)` respectively; or via the lower-diagaonal portion of the phase-impedance matrix.
+x1)` respectively; or via the lower-diagaonal portion of the phase-impedance matrix. In the prior
+case we determine the phase-impedance matrix via the math in [Symmetrical Mutliphase Conductors](@ref)
 
 Using the Multi-phase models require specifing `phases` (as integers) and  the zero and positive
 sequence impedances like:
@@ -151,27 +151,6 @@ conductors:
     length: 100
 ```
 
-# Symmetrical Mutliphase Conductors
-Often we only have the zero and positive sequence impedances of conductors. In these cases we
-construct the phase impedance matrix as:
-```math
-z_{abc} = \\begin{bmatrix} 
-        z_s   & z_m  & z_m ;
-        \\ z_m   & z_s  & z_m ;
-        \\ z_m   & z_m  & z_s  
-\\end{bmatrix}
-```
-where
-```math
-\\begin{aligned}
-z_s &= \\frac{1}{3} z_0 + \\frac{2}{3} z_1 
-\\end{aligned}  
-```
-```math
-\\begin{aligned}
-z_m &= \\frac{1}{3} (z_0- z_1)
-\\end{aligned}  
-```
 """
 @with_kw struct Conductor <: AbstractEdge
     # required values
