@@ -3,7 +3,7 @@ network:
   Sbase: 1e6
 
 conductors:
-  - name: cond1
+  - name: cond1-symmetric
     busses: 
       - b1
       - b2
@@ -12,12 +12,15 @@ conductors:
     r1: 0.301
     x1: 0.627
     length: 100
-  - busses:
+    phases: [1, 2, 3]
+  - name: cond2-copy-cond1
+    busses:
       - b2
       - b3
     template: cond1
     length: 200
-  - name: cond3
+    phases: [1, 2, 3]
+  - name: cond3-assymetric
     busses: 
       - b3
       - b4
@@ -29,6 +32,21 @@ conductors:
       - [1.01]
       - [0.5, 1.05]
       - [0.4, 0.3, 1.03]
+    length: 100
+    phases: [1, 2, 3]
+  - name: cond4-two-phase-asymmetric
+    busses: 
+      - b4
+      - b5
+    phases:
+      - 2
+      - 3
+    rmatrix: 
+      - [0.31]
+      - [0.15, 0.32]
+    xmatrix:
+      - [1.01]
+      - [0.5, 1.05]
     length: 100
 
 loads:

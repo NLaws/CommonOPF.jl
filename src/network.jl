@@ -112,11 +112,10 @@ scaled by the `length` of 200 and normalized by `Zbase`.
 
 Multi-phase conductors can be modeled as symmetrical or asymmetrical components. Similar to OpenDSS,
 line impedances can be specified via the zero and positive sequence impedances, `(r0, x0)` and `(r1,
-x1)` respectively; or via the lower-diagaonal portion of the phase-impedance matrix. In the prior
-case we determine the phase-impedance matrix via the math in [Symmetrical Mutliphase Conductors](@ref)
+x1)` respectively; or via the lower-diagaonal portion of the phase-impedance matrix. 
 
-Using the Multi-phase models require specifing `phases` (as integers) and  the zero and positive
-sequence impedances like:
+Using the Multi-phase models require specifing `phases` (and the zero and positive sequence
+impedances) like:
 ```yaml
 conductors:
   - busses: 
@@ -131,45 +130,169 @@ conductors:
     x1: 0.627
     length: 100
 ```
-or by specifying the `rmatrix` and `zmatrix` like:
+When the sequence impedances are provided the phase-impedance matrix is determined using the math in
+[Symmetrical Mutliphase Conductors](@ref).
+
+
+Alternatively one can specify the `rmatrix` and `xmatrix` like:
 ```yaml
 conductors:
   - busses: 
       - b1
       - b2
     phases:
-      - 2
+      - 1
       - 3
     rmatrix: 
       - [0.31]
       - [0.15, 0.32]
-      - [0.15, 0.15, 0.33]
     xmatrix:
       - [1.01]
       - [0.5, 1.05]
-      - [0.4, 0.3, 1.03]
     length: 100
 ```
-
+!!! warning
+    The order of the `phases` is assumed to match the order of the `rmatrix` and `xmatrix`. For
+    example using the example just above the 3x3 `rmatrix` looks like 
+    ``[0.31, 0, 0.15; 0, 0, 0; 0.15, 0, 0.32]``
 """
-@with_kw struct Conductor <: AbstractEdge
+@with_kw mutable struct Conductor <: AbstractEdge
+    # mutable because we set the rmatrix and xmatrix later in some cases
     # required values
     busses::Tuple{String, String}
     # optional values
-    phases::Union{Set{Int}, Missing} = missing
+    phases::Union{Vector{Int}, Missing} = missing
     name::Union{String, Missing} = missing
     template::Union{String, Missing} = missing
     r0::Union{Real, Missing} = missing
     x0::Union{Real, Missing} = missing
     r1::Union{Real, Missing} = missing
     x1::Union{Real, Missing} = missing
+    rmatrix::Union{AbstractArray, Missing} = missing
+    xmatrix::Union{AbstractArray, Missing} = missing
     length::Union{Real, Missing} = missing
     amps_limit::Union{Real, Missing} = missing
     @assert !(
         all(ismissing.([template, length])) &&
         all(ismissing.([x1, r1, length]))
-     ) "Got insufficent values to define conductor impedance"
+     ) "Got insufficent values to define single phase conductor impedance"
+     # multiphase checks require more than we can do here. See validate_multiphase_conductors!
 end
+
+
+"""
+    function fill_conductor_impedance!(cond::Conductor)
+
+Use zero and positive sequence impedances to create phase-impedance matrix.
+"""
+function fill_conductor_impedance!(cond::Conductor)
+    # TODO use symmetric matrices s.t. can reduce memory footprint?
+    rself = 1/3 * cond.r0 + 2/3 * cond.r1
+    rmutual = 1/3 * (cond.r0 - cond.r1)
+    xself = 1/3 * cond.x0 + 2/3 * cond.x1
+    xmutual = 1/3 * (cond.x0 - cond.x1)
+    # fill the matrices
+    rmatrix = zeros(3,3)
+    xmatrix = zeros(3,3)
+    for phs1 in cond.phases, phs2 in cond.phases
+        if phs1 == phs2  # diagaonal
+            rmatrix[phs1, phs1] = rself
+            xmatrix[phs1, phs1] = xself
+        else  # off-diagonal
+            rmatrix[phs1, phs2] = rmutual
+            xmatrix[phs1, phs2] = xmutual
+        end
+    end
+    cond.rmatrix = rmatrix
+    cond.xmatrix = xmatrix
+    nothing
+end
+
+
+"""
+    function unpack_input_matrices!(cond::Conductor)
+
+Convert lower diagonal impedance matrices loaded in from YAML or JSON to 3x3 matrices.
+The "matrices" come in as Vector{Vector} and look like:
+```
+julia> d[:conductors][3][:rmatrix]
+3-element Vector{Vector{Float64}}:
+ [0.31]
+ [0.15, 0.32]
+ [0.15, 0.15, 0.33]
+```
+"""
+function unpack_input_matrices!(cond::Conductor)
+    rmatrix = zeros(3,3)
+    xmatrix = zeros(3,3)
+    for (i, phs1) in enumerate(cond.phases), (j, phs2) in enumerate(cond.phases)
+        if i >= j # in lower triangle
+            rmatrix[phs1, phs2] = cond.rmatrix[i][j]
+            xmatrix[phs1, phs2] = cond.xmatrix[i][j]
+        else  # flip i,j to mirror in to upper triangle
+            rmatrix[phs1, phs2] = cond.rmatrix[j][i]
+            xmatrix[phs1, phs2] = cond.xmatrix[j][i]
+        end
+    end
+    cond.rmatrix = rmatrix
+    cond.xmatrix = xmatrix
+    nothing
+end
+
+
+"""
+
+Check for any conductors that do not have inputs required to define impedance.
+We only warn to allow user to fill in missing values as they wish.
+"""
+function validate_multiphase_conductors!(conds::AbstractVector{Conductor})
+    n_no_phases = 0
+    n_no_impedance = 0
+    bad_names = String[]
+    templates = String[]
+    for c in conds
+        if ismissing(c.phases)
+            n_no_phases += 1
+        elseif (
+            all(ismissing.([c.template, c.length])) &&
+            all(ismissing.([c.r0, c.x0, c.r1, c.x1, c.length])) &&
+            all(ismissing.([c.rmatrix, c.xmatrix, c.length]))
+        ) # if all of these are true then we cannot define impedance
+            n_no_impedance += 1
+            if !ismissing(c.name)
+                push!(bad_names, c.name)
+            end
+        else  # we have everything we need to define rmatrix, xmatrix
+            if !ismissing(c.rmatrix) 
+                # unpack the Vector{Vector} (lower diagaonal portion of matrix)
+                unpack_input_matrices!(c)
+            elseif !ismissing(c.template)  
+                # defer template copying in case the template requires calculating matrices
+                push!(templates, c.template)
+            else  # use zero and positive sequence impedances
+                fill_conductor_impedance!(c)
+            end
+        end
+    end
+
+    # TODO copy template values
+
+    good = true
+    if n_no_phases > 0
+        @warn "$(n_no_phases) conductors are missing phases."
+        good = false
+    end
+
+    if n_no_impedance > 0
+        @warn "$(n_no_impedance) conductors do not have sufficient parameters to define the impedance."
+        if length(bad_names) > 0
+            @warn "The bad conductors with name defined are: $(bad_names)"
+        end
+        good = false
+    end
+    return good
+end
+
 
 
 """
@@ -256,6 +379,11 @@ Construct a `Network` from a yaml at the file path `fp`.
 function Network(fp::String)
     d = check_yaml(fp)
     conductors = Conductor[Conductor(;cd...) for cd in d[:conductors]]
+    # check multiphase conductors
+    if any((!ismissing(c.phases) for c in conductors))
+        validate_multiphase_conductors!(conductors)
+    end
+    # make the graph
     edge_tuples = collect(c.busses for c in conductors)
     g = make_graph(edge_tuples)
     fill_edge_attributes!(g, conductors)

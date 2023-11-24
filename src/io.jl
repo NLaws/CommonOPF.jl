@@ -554,12 +554,12 @@ Convert busses to Tuple (comes in as Vector)
 """
 function check_yaml(fp::String)
     d = YAML.load_file(fp; dicttype=Dict{Symbol, Any})
-    check_input_dict(d)
+    format_input_dict(d)
 end
 
 
 """
-    function check_input_dict(d::Dict)::Dict
+    function format_input_dict(d::Dict)::Dict
 
 Check dict has required top-level keys:
 - network
@@ -567,33 +567,31 @@ Check dict has required top-level keys:
 
 Convert busses to Tuple
 """
-function check_input_dict(d::Dict)::Dict
+function format_input_dict(d::Dict)::Dict
     missing_keys = []
-    required_keys = [
-        (:conductors, [:busses], true)  # bool for array values
-        (:network, [:substation_bus], false)
+    keys_to_format = [
+        (:conductors, [:busses], true),  # bool for array values
+        # (:network, [:substation_bus], false),
     ]
-    for (rkey, subkeys, is_array) in required_keys
+    for (rkey, subkeys, is_array) in keys_to_format
         if !(rkey in keys(d))
             push!(missing_keys, rkey)
         else
-            if is_array
+            if is_array  # arrays require another level of iteration
                 for sub_dict in d[rkey]
                     for skey in subkeys
-                        if !(skey in keys(sub_dict))
-                            push!(missing_keys, skey)
-                        elseif skey == :busses
+                        if skey == :busses
                             # convert Vector{String} to Tuple{String, String}
                             sub_dict[:busses] = Tuple(String.(sub_dict[:busses]))
                         end
                     end
                 end
-            else
-                for skey in subkeys
-                    if !(skey in keys(d[rkey]))
-                        push!(missing_keys, skey)
-                    end
-                end
+            # else  # non-array types
+            #     for skey in subkeys
+            #         if !(skey in keys(d[rkey]))
+            #             push!(missing_keys, skey)
+            #         end
+            #     end
             end
         end
     end
