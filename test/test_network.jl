@@ -14,7 +14,7 @@ end
     fp = joinpath("data", "yaml_inputs", "no_conductors.yaml")
     @test_throws "missing requried keys" Network(fp)
 
-    fp = joinpath("data", "yaml_inputs", "basic.yaml")
+    fp = joinpath("data", "yaml_inputs", "basic_single_phase.yaml")
     net = Network(fp)
     es = edges(net)
     @test ("b1", "b2") in es && ("b2", "b3") in es
@@ -24,7 +24,7 @@ end
     @test net.Sbase == 1e6
     @test net.Vbase == 1
 
-    @test net.graph["b1", "b2"][:Conductor][:r0] == 0.1
+    @test net.graph["b1", "b2"][:Conductor][:r0] == 0.766
     for edge_data in conductors(net)
         @test haskey(edge_data, :r0) || haskey(edge_data, :template)
     end

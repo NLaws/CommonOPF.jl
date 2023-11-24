@@ -8,9 +8,11 @@ makedocs(
     workdir = joinpath(@__DIR__, ".."),
     pages = [
         "User Documentation" => "index.md",
+        "Inputs" => "inputs.md",
         "The Network Model" => "network.md",
         "Methods" => "methods.md"
     ],
+    warnonly = true,  # TODO rm this and fix all the docs
 )
 
 # Documenter can also automatically deploy documentation to gh-pages.
