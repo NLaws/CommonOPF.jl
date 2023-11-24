@@ -3,13 +3,20 @@ The `Network` struct in CommonOPF is used to abstract the power system network i
 required to create power flow and optimal power flow models. Underlying the Network model is a
 `MetaGraphsNext.MetaGraph` that stores the edge and node data in the network. 
 
-## Graph Edges
-The edges of the network model include all power transfer elements, i.e. the devices in the power 
+## Edges
+The edges of the Network model include all power transfer elements, i.e. the devices in the power 
 system that move power from one place to another and therefore have two or more busses.
 Edges include:
 - conductors
 
-Within the graph model edges are indexed via two-tuples of bus names.
+Within the network model edges are indexed via two-tuples of bus names (strings) like
+```julia
+using CommonOPF
+# TODO code that runs using a test file
+net = Network("yaml/filepath")
+bus = collect(busses(net))[1]
+net[bus]
+```
 
 ### Conductors
 Conductors are specified via two busses, the **impedance in ohms per-unit length**, and a length value.
