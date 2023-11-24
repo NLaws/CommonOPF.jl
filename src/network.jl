@@ -377,7 +377,7 @@ end
 Construct a `Network` from a yaml at the file path `fp`.
 """
 function Network(fp::String)
-    d = check_yaml(fp)
+    d = load_yaml(fp)
     conductors = Conductor[Conductor(;cd...) for cd in d[:conductors]]
     # check multiphase conductors
     if any((!ismissing(c.phases) for c in conductors))

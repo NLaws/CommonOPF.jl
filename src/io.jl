@@ -9,6 +9,7 @@ end
 
 
 function dss_files_to_dict(dssfilepath::String)
+    # TODO change to use OpenDSSDirect.jl and convert to same dict that comes from load_yaml
     d = let d
         with_logger(SimpleLogger(Error)) do  # lots of info from parse_dss
             open(dssfilepath) do io
@@ -544,7 +545,7 @@ end
 
 
 """
-    function check_yaml(fp::String)
+    function load_yaml(fp::String)
 
 Check input yaml file has required top-level keys:
 - network
@@ -552,9 +553,14 @@ Check input yaml file has required top-level keys:
 
 Convert busses to Tuple (comes in as Vector)
 """
-function check_yaml(fp::String)
+function load_yaml(fp::String)
     d = YAML.load_file(fp; dicttype=Dict{Symbol, Any})
     format_input_dict(d)
+end
+
+
+function load_json(fp::String)
+    throw("Unimplemented")
 end
 
 

@@ -11,6 +11,7 @@
 end
 
 @testset "Network single phase" begin
+    # TODO make/test JSON
     fp = joinpath("data", "yaml_inputs", "no_conductors.yaml")
     @test_throws "missing requried keys" Network(fp)
 
@@ -35,7 +36,7 @@ end
     fp = joinpath("data", "yaml_inputs", "missing_vals.yaml")
     net = Network(fp)
     @test_throws "No conductor template" zij("b2", "b3", net)
-    @test_throws "Missing at least one of r0" zij("b1", "b2", net)
+    @test_throws "Missing at least one of r1" zij("b1", "b2", net)
     @test_warn "Missing templates" CommonOPF.check_missing_templates(net)
     add_edge!(net, "b2", "b4")  # o.w. get key error for net[("b2", "b4")]
     @test_throws "No conductor found" zij("b2", "b4", net)
@@ -43,12 +44,30 @@ end
 end
 
 @testset "Network multi-phase" begin
+    # TODO make/test JSON
     fp = joinpath("data", "yaml_inputs", "basic_multi_phase.yaml")
     net = Network(fp)
 
     # test the different ways to define impedance
     # 1. z0 and z1
-    cdict = net[("b1", "b2")][:Conductor]
+    cond = net[("b1", "b2")][:Conductor]
+    # diagonal values
+    rself = 1/3 * cond[:r0] + 2/3 * cond[:r1]
+    xself = 1/3 * cond[:x0] + 2/3 * cond[:x1]
+    for phs in cond[:phases]
+        @test cond[:rmatrix][phs, phs] == rself
+        @test cond[:xmatrix][phs, phs] == xself
+    end
+    # off-diagonal values
+    rmutual = 1/3 * (cond[:r0] - cond[:r1])
+    xmutual = 1/3 * (cond[:x0] - cond[:x1])
+    for phs1 in cond[:phases], phs2 in cond[:phases]
+        if phs1 != phs2
+            @test cond[:rmatrix][phs1, phs2] == rmutual
+            @test cond[:xmatrix][phs1, phs2] == xmutual
+        end
+    end
+
     # 2. template (TODO in validate_multiphase_conductors!)
 
     # 3. lower diagaonal matrices
