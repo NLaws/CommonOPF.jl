@@ -541,3 +541,64 @@ function dsstxt_to_sparse_array(fp::String, first_data_row::Int = 5)
     end
     return convert(Array{Complex, 2}, Symmetric(sparse(rows, cols, complex.(real, imag)), :L))
 end
+
+
+"""
+    function check_yaml(fp::String)
+
+Check input yaml file has required top-level keys:
+- network
+- conductors
+
+Convert busses to Tuple (comes in as Vector)
+"""
+function check_yaml(fp::String)
+    d = YAML.load_file(fp; dicttype=Dict{Symbol, Any})
+    check_input_dict(d)
+end
+
+
+"""
+    function check_input_dict(d::Dict)::Dict
+
+Check dict has required top-level keys:
+- network
+- conductors
+
+Convert busses to Tuple
+"""
+function check_input_dict(d::Dict)::Dict
+    missing_keys = []
+    required_keys = [
+        (:conductors, [:busses], true)  # bool for array values
+        (:network, [:substation_bus], false)
+    ]
+    for (rkey, subkeys, is_array) in required_keys
+        if !(rkey in keys(d))
+            push!(missing_keys, rkey)
+        else
+            if is_array
+                for sub_dict in d[rkey]
+                    for skey in subkeys
+                        if !(skey in keys(sub_dict))
+                            push!(missing_keys, skey)
+                        elseif skey == :busses
+                            # convert Vector{String} to Tuple{String, String}
+                            sub_dict[:busses] = Tuple(String.(sub_dict[:busses]))
+                        end
+                    end
+                end
+            else
+                for skey in subkeys
+                    if !(skey in keys(d[rkey]))
+                        push!(missing_keys, skey)
+                    end
+                end
+            end
+        end
+    end
+    if length(missing_keys) > 0
+        throw(ErrorException("Network yaml specification missing requried keys: $(missing_keys)"))
+    end
+    return d
+end

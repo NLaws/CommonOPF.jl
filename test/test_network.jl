@@ -31,6 +31,7 @@ end
 
     @test net.graph["b1", "b2"] == net[("b1", "b2")]
 
+    # missing input values for conductors
     fp = joinpath("data", "yaml_inputs", "missing_vals.yaml")
     net = Network(fp)
     @test_throws "No conductor template" zij("b2", "b3", net)

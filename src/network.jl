@@ -36,12 +36,12 @@ function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict)
 end
 
 # make it so Network[edge_tup] returns the data dict
-Base.getindex(n::Network, idx::Tuple{String, String}) = n.graph[idx[1], idx[2]]
+Base.getindex(net::Network, idx::Tuple{String, String}) = net.graph[idx[1], idx[2]]
 
 # make it so Network[node_string] returns the data dict
-Base.getindex(n::Network, idx::String) = n.graph[idx]
+Base.getindex(net::Network, idx::String) = net.graph[idx]
 
-Graphs.edges(n::AbstractNetwork) = MetaGraphsNext.edge_labels(n.graph)
+Graphs.edges(net::AbstractNetwork) = MetaGraphsNext.edge_labels(net.graph)
 
 function MetaGraphsNext.add_edge!(net::CommonOPF.AbstractNetwork, b1::String, b2::String; data=Dict())
     MetaGraphsNext.add_vertex!(net.graph, b1, Dict())
@@ -49,73 +49,11 @@ function MetaGraphsNext.add_edge!(net::CommonOPF.AbstractNetwork, b1::String, b2
     @assert MetaGraphsNext.add_edge!(net.graph, b1, b2, data) == true
 end
 
-busses(n::AbstractNetwork) = MetaGraphsNext.labels(n.graph)
+busses(net::AbstractNetwork) = MetaGraphsNext.labels(net.graph)
 
-edges_with_data(n::AbstractNetwork) = ( (edge_tup, n[edge_tup]) for edge_tup in edges(n))
+edges_with_data(net::AbstractNetwork) = ( (edge_tup, net[edge_tup]) for edge_tup in edges(net))
 
-conductors(n::AbstractNetwork) = ( edge_data[:Conductor] for (_, edge_data) in edges_with_data(n) if haskey(edge_data, :Conductor))
-
-
-
-"""
-    function check_yaml(fp::String)
-
-Check input yaml file has required top-level keys:
-- network
-- conductors
-
-Convert busses to Tuple (comes in as Vector)
-"""
-function check_yaml(fp::String)
-    d = YAML.load_file(fp; dicttype=Dict{Symbol, Any})
-    check_input_dict(d)
-end
-
-
-"""
-    function check_input_dict(d::Dict)::Dict
-
-Check dict has required top-level keys:
-- network
-- conductors
-
-Convert busses to Tuple
-"""
-function check_input_dict(d::Dict)::Dict
-    missing_keys = []
-    required_keys = [
-        (:conductors, [:busses], true)  # bool for array values
-        (:network, [:substation_bus], false)
-    ]
-    for (rkey, subkeys, is_array) in required_keys
-        if !(rkey in keys(d))
-            push!(missing_keys, rkey)
-        else
-            if is_array
-                for sub_dict in d[rkey]
-                    for skey in subkeys
-                        if !(skey in keys(sub_dict))
-                            push!(missing_keys, skey)
-                        elseif skey == :busses
-                            # convert Vector{String} to Tuple{String, String}
-                            sub_dict[:busses] = Tuple(String.(sub_dict[:busses]))
-                        end
-                    end
-                end
-            else
-                for skey in subkeys
-                    if !(skey in keys(d[rkey]))
-                        push!(missing_keys, skey)
-                    end
-                end
-            end
-        end
-    end
-    if length(missing_keys) > 0
-        throw(ErrorException("Network yaml specification missing requried keys: $(missing_keys)"))
-    end
-    return d
-end
+conductors(net::AbstractNetwork) = ( edge_data[:Conductor] for (_, edge_data) in edges_with_data(net) if haskey(edge_data, :Conductor))
 
 
 """
