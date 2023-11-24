@@ -35,6 +35,7 @@ end
     net = Network(fp)
     @test_throws "No conductor template" zij("b2", "b3", net)
     @test_throws "Missing at least one of r0" zij("b1", "b2", net)
+    @test_warn "Missing templates" CommonOPF.check_missing_templates(net)
     add_edge!(net, "b2", "b4")  # o.w. get key error for net[("b2", "b4")]
     @test_throws "No conductor found" zij("b2", "b4", net)
 

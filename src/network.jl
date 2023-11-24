@@ -68,6 +68,20 @@ Convert busses to Tuple (comes in as Vector)
 """
 function check_yaml(fp::String)
     d = YAML.load_file(fp; dicttype=Dict{Symbol, Any})
+    check_input_dict(d)
+end
+
+
+"""
+    function check_input_dict(d::Dict)::Dict
+
+Check dict has required top-level keys:
+- network
+- conductors
+
+Convert busses to Tuple
+"""
+function check_input_dict(d::Dict)::Dict
     missing_keys = []
     required_keys = [
         (:conductors, [:busses], true)  # bool for array values
@@ -165,3 +179,22 @@ function Network(fp::String)
     return Network(g, d[:network])
 end
 
+
+function check_missing_templates(net::Network) 
+    conds = collect(conductors(net))
+    missing_templates = String[]
+    for c in conds
+        template = get(c, :template, missing)
+        if !ismissing(template)
+            results = filter(c -> haskey(c, :name) && c[:name] == template, conds)
+            if length(results) == 0
+                push!(missing_templates, template)
+            end
+        end
+    end
+    if length(missing_templates) > 0
+        @warn "Missing templates: $missing_templates"
+        return false
+    end
+    return true
+end
