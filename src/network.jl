@@ -12,6 +12,7 @@ struct Network{T<:Phases} <: AbstractNetwork
     substation_bus::String
     Sbase::Real
     Vbase::Real
+    Zbase::Real
 end
 
 
@@ -22,18 +23,38 @@ Given a MetaGraph create a Network by extracting the edges and busses from the M
 """
 function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict) 
     # TODO MultiPhase based on inputs
+    Sbase = get(ntwk, :Sbase, 1)
+    Vbase = get(ntwk, :Vbase, 1)
+    Zbase = Vbase^2 / Sbase
     Network{SinglePhase}(
         g,
         ntwk[:substation_bus],
-        get(ntwk, :Sbase, 1),
-        get(ntwk, :Vbase, 1)
+        Sbase,
+        Vbase,
+        Zbase
     )
 end
 
+# make it so Network[edge_tup] returns the data dict
+Base.getindex(n::Network, idx::Tuple{String, String}) = n.graph[idx[1], idx[2]]
 
-edges(n::AbstractNetwork) = MetaGraphsNext.edge_labels(n.graph)
+# make it so Network[node_string] returns the data dict
+Base.getindex(n::Network, idx::String) = n.graph[idx]
+
+Graphs.edges(n::AbstractNetwork) = MetaGraphsNext.edge_labels(n.graph)
+
+function MetaGraphsNext.add_edge!(net::CommonOPF.AbstractNetwork, b1::String, b2::String; data=Dict())
+    MetaGraphsNext.add_vertex!(net.graph, b1, Dict())
+    MetaGraphsNext.add_vertex!(net.graph, b2, Dict())
+    @assert MetaGraphsNext.add_edge!(net.graph, b1, b2, data) == true
+end
 
 busses(n::AbstractNetwork) = MetaGraphsNext.labels(n.graph)
+
+edges_with_data(n::AbstractNetwork) = ( (edge_tup, n[edge_tup]) for edge_tup in edges(n))
+
+conductors(n::AbstractNetwork) = ( edge_data[:Conductor] for (_, edge_data) in edges_with_data(n) if haskey(edge_data, :Conductor))
+
 
 
 """
@@ -99,12 +120,22 @@ Interface for conductors in a Network. Fieldnames can be provided via a YAML fil
     x0::Union{Real, Missing} = missing
     length::Union{Real, Missing} = missing
     @assert !(
-        ismissing(template) &&
-        all(ismissing(val) for val in [x0, r0, length])
-     ) "Got insufficent values to define a conductor"
+        all(ismissing.([template, length])) &&
+        all(ismissing.([x0, r0, length]))
+     ) "Got insufficent values to define conductor impedance"
 end
 
 
+"""
+    function fill_edge_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractEdge})
+
+For each edge in `vals` fill in the graph `g` edge attributes for all fieldnames in the edge (except busses).
+The outer edge key is set to the edge type, for example after this process is run Conductor attributes
+that are not missing can be accessed via:
+```julia
+graph["b1", "b2"][:Conductor][:r0]
+```
+"""
 function fill_edge_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractEdge})
     edge_fieldnames = filter(fn -> fn != :busses, fieldnames(typeof(vals[1])))
     type = split(string(typeof(vals[1])), ".")[end]  # e.g. "CommonOPF.Conductor" -> "Conductor"

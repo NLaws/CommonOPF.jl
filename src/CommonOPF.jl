@@ -65,7 +65,11 @@ export
     reduce_tree!,
     Network,
     edges,
-    busses
+    edges_with_data,
+    busses,
+    conductors,
+    zij,
+    add_edge!
 
 
 include("graphs.jl")

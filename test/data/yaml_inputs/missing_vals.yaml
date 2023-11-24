@@ -1,0 +1,16 @@
+network:
+  substation_bus: b1
+  Sbase: 1e6
+
+conductors:
+  - name: cond1
+    busses: 
+    - b1
+    - b2
+    x0: 0.1
+    length: 100
+  - busses:
+    - b2
+    - b3
+    template: cond2
+    length: 200

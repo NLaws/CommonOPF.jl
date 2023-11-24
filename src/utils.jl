@@ -12,6 +12,33 @@ function rij(i::AbstractString, j::AbstractString, p::Inputs{SinglePhase})
 end
 
 
+function zij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})::Tuple{Real, Real}
+    # only have Conductor edges now, later add impedances of other devices
+    conductor = get(net[(i, j)], :Conductor, missing)
+    if ismissing(conductor)
+        throw(ErrorException("No conductor found for edge ($i, $j)"))
+    end
+    # check for template 
+    template = get(conductor, :template, missing)
+    if !ismissing(template)
+        conds = collect(conductors(net))
+        results = filter(c -> haskey(c, :name) && c[:name] == template, conds)
+        if length(results) == 0
+            throw(ErrorException("No conductor template with name $template found."))
+        end
+        template_conductor = results[1]
+        r0, x0 = get(template_conductor, :r0, missing), get(template_conductor, :x0, missing)
+    else  # get impedance from the conductor
+        r0, x0 = get(conductor, :r0, missing), get(conductor, :x0, missing)
+    end
+    if ismissing(r0) || ismissing(x0)
+        throw(ErrorException("Missing at least one of r0 or x0 for edge ($i, $j)"))
+    end
+    L = conductor[:length]
+    return (r0 * L / net.Zbase, x0 * L / net.Zbase)
+end
+
+
 """
     xij(i::AbstractString, j::AbstractString, p::Inputs{SinglePhase})
 
