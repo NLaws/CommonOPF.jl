@@ -35,7 +35,6 @@ end
     @test net["b3"][:Load][:kws1] == [5.6]
     @test net["b2"][:Load][:kvars1] == [1.2]
 
-
     # missing input values for conductors
     fp = joinpath("data", "yaml_inputs", "missing_vals.yaml")
     net = Network(fp)
@@ -47,6 +46,12 @@ end
     add_edge!(net, "b2", "b4")  # o.w. get key error for net[("b2", "b4")]
     @test_throws "No conductor found" zij("b2", "b4", net)
 
+    # extra values
+    fp = joinpath("data", "yaml_inputs", "extra_conductor_field.yaml")
+    @test_throws "got unsupported keyword argument" net = Network(fp)
+    fp = joinpath("data", "yaml_inputs", "bus_not_in_conductors.yaml")
+    net = Network(fp)
+    @test occursin("not in the graph after adding edges", test_logger.logs[end].message)
 end
 
 @testset "Network multi-phase" begin
@@ -106,8 +111,7 @@ end
     @test cond[:rmatrix][2,2] == 0.32
     @test cond[:rmatrix][3,3] == 0.33
 
-    # clear the log
-    deleteat!(test_logger.logs, 1:length(test_logger.logs))
+    clear_log!(test_logger)
     # test warnings for missing, required inputs
     fp = joinpath("data", "yaml_inputs", "multi_phase_missing_vals.yaml")
     expected_msgs = [

@@ -7,7 +7,7 @@ The minimum required inputs include several options. All require a `bus` to plac
 single phase models provide one of the following sets of values:
 - `bus`, `kws1`
 - `bus`, `kws1`, `kvars1`
-- `bus`, `kws1`, `powerfactor`
+- `bus`, `kws1`, `q_to_p`
 - `bus`, `csv` 
 where `csv` is a path to a two column CSV file with a single line header like "kws1,kvars1". If only
 `bus` and `kws1` are provided then the reactive load will be zero in the power flow model.
@@ -41,7 +41,7 @@ bus, phase, time
     kvars2::Union{AbstractVector{<:Real}, Missing} = missing
     kws3::Union{AbstractVector{<:Real}, Missing} = missing
     kvars3::Union{AbstractVector{<:Real}, Missing} = missing
-    powerfactor::Union{Real, Missing} = missing
+    q_to_p::Union{Real, Missing} = missing
     csv::Union{String, Missing} = missing
 end
 

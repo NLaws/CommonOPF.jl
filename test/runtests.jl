@@ -10,8 +10,17 @@ test_logger = TestLogger()
 # using CommonOPF
 # Pkg.activate(".")
 
+function clear_log!(logger)
+    deleteat!(logger.logs, 1:length(logger.logs))
+end
 
+@warn "Logging messages are silenced!"
 with_logger(test_logger) do
+# wrapping all tests with the test_logger means that we cannot use @test_warn,
+# (but can still use @test_throws). all @warn messages go into test_logger.logs,
+# which is a vector of [LogRecord](https://docs.julialang.org/en/v1/stdlib/Test/#Test.LogRecord)
+# so we use `occursin` to test for strings in the LogRecord.message
+
 @testset "CommonOPF.jl" begin
 
 include("test_network.jl")

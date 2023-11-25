@@ -1,0 +1,19 @@
+network:
+  substation_bus: b1
+  Sbase: 1e6
+
+conductors:
+  - name: cond1
+    busses: 
+      - b1
+      - b2
+    r1: 0.301
+    x1: 0.627
+    length: 100
+
+loads:
+  - bus: not-in-conductors
+    kws1: 
+      - 5.6
+    kvars1: 
+      - 1.2

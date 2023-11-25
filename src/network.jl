@@ -129,6 +129,12 @@ function fill_node_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVe
     node_fieldnames = fieldnames(typeof(vals[1]))
     type = split(string(typeof(vals[1])), ".")[end]  # e.g. "CommonOPF.Load" -> "Load"
     for node in vals
+        if !(node.bus in labels(g))
+            @warn "Bus $(node.bus) is not in the graph after adding edges but has attributes:\n"*
+                "$node\n"*
+                "You will have to manually add bus $(node.bus) if you want it in the graph."
+            continue
+        end
         if !isempty(g[node.bus])
             @warn "Filling in node $(node.bus) with existing attributes $(g[node.bus])"
         end
