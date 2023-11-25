@@ -206,3 +206,9 @@ function check_missing_templates(net::Network)
     end
     return true
 end
+
+
+function is_connected(net::Network)::Bool
+    length(Graphs.weakly_connected_components(net.graph)) == 1
+    # TODO undirected graphs, strongly_connected_components
+end

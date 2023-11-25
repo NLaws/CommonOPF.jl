@@ -144,4 +144,6 @@ end
 @testset "IEEE 13 bus" begin
     fp = joinpath("data", "yaml_inputs", "ieee13.yaml")
     net = Network(fp)
+    @test is_connected(net)
+    # TODO Bus 634 is not in the graph after adding edges
 end

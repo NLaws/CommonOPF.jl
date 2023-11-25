@@ -71,7 +71,8 @@ export
     zij,
     add_edge!,
     conductors_with_attribute_value,
-    load_busses
+    load_busses,
+    is_connected
 
 
 include("graphs.jl")
