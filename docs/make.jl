@@ -11,7 +11,8 @@ makedocs(
         "Inputs" => "inputs.md",
         "The Network Model" => "network.md",
         "Methods" => "methods.md",
-        "Math" => "math.md"
+        "Math" => "math.md",
+        "Developer" => "developer.md"
     ],
     warnonly = true,  # TODO rm this and fix all the docs
 )
