@@ -95,7 +95,7 @@ If the `"busname"` exists and has a `:Load` dict, but the load (e.g. `:kvars2`) 
 function Base.getindex(net::Network, bus::String, kws_kvars::Symbol, phase::Int)
     load_key = Symbol(kws_kvars, Symbol(phase))
     if !(load_key in LOAD_KEYS)
-        error("To get a Load use :kws or :kvars and a phase in [1,2,3]")
+        throw(KeyError("To get a Load use :kws or :kvars and a phase in [1,2,3]"))
     end
     try
         return net[bus][:Load][load_key]

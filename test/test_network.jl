@@ -34,6 +34,13 @@ end
     # loads
     @test net["b3"][:Load][:kws1] == [5.6]
     @test net["b2"][:Load][:kvars1] == [1.2]
+    @test net["b3", :kws, 1] == [5.6]
+    @test net["b3", :kvars, 1] == [1.2]
+    @test net["b3", :kws, 2] == [0]
+    @test net["b3", :kvars, 2] == [0]
+    @test_throws KeyError net["notabus", :kws, 2]
+    @test_throws KeyError net["b3", :bad, 2]
+    @test_throws KeyError net["b3", :kvar, 4]
 
     # missing input values for conductors
     fp = joinpath("data", "yaml_inputs", "missing_vals.yaml")
