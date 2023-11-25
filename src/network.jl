@@ -41,7 +41,7 @@ function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict)
     Ntimesteps = get(ntwk, :Ntimesteps, 1)
     Network{SinglePhase}(
         g,
-        ntwk[:substation_bus],
+        string(ntwk[:substation_bus]),
         Sbase,
         Vbase,
         Zbase,

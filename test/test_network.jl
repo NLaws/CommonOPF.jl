@@ -9,6 +9,7 @@
     @test c1.busses == c2.busses
 end
 
+
 @testset "Network single phase" begin
     # TODO make/test JSON
     fp = joinpath("data", "yaml_inputs", "no_conductors.yaml")
@@ -60,6 +61,7 @@ end
     net = Network(fp)
     @test occursin("not in the graph after adding edges", test_logger.logs[end].message)
 end
+
 
 @testset "Network multi-phase" begin
     # TODO make/test JSON
@@ -136,4 +138,10 @@ end
         @test any(( occursin(msg, log.message) for msg in expected_msgs ))
     end
 
+end
+
+
+@testset "IEEE 13 bus" begin
+    fp = joinpath("data", "yaml_inputs", "ieee13.yaml")
+    net = Network(fp)
 end

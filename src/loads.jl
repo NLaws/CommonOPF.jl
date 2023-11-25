@@ -12,10 +12,6 @@ single phase models provide one of the following sets of values:
 where `csv` is a path to a two column CSV file with a single line header like "kws1,kvars1". If only
 `bus` and `kws1` are provided then the reactive load will be zero in the power flow model.
 
-For multiphase models any of the single phase options above can be used and the load will be split
-evenly across the phases (the `Network.graph` nodes will get attributes for `kws2`, `kvars2`, etc.
-as appropriate). Note that bus phases are inferred from the conductors.
-
 For unbalanced multiphase models one must provide one of:
 - `bus`, [`kws1`, `kvars1`], [`kws2`, `kvars2`], [`kws3`, `kvars3`] <-- brackets imply optional
   pairs, depending on the phases at the load bus
@@ -55,6 +51,10 @@ LOAD_KEYS = [:kws1, :kvars1, :kws2, :kvars2, :kws3, :kvars3]
 function build_loads(d::Dict)::AbstractVector{Load}
     if !(:loads in keys(d))
         return Load[]
+    end
+    # String(int) does not work, have to use string(int) :/
+    for ld in d[:loads]
+        ld[:bus] = string(ld[:bus])
     end
     loads = Load[Load(;ld...) for ld in d[:loads]]
     check_loads!(loads)

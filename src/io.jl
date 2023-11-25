@@ -588,7 +588,7 @@ function format_input_dict(d::Dict)::Dict
                     for skey in subkeys
                         if skey == :busses
                             # convert Vector{String} to Tuple{String, String}
-                            sub_dict[:busses] = Tuple(String.(sub_dict[:busses]))
+                            sub_dict[:busses] = Tuple(string.(sub_dict[:busses]))
                         end
                     end
                 end
