@@ -38,10 +38,12 @@ end
 
     # missing input values for conductors
     fp = joinpath("data", "yaml_inputs", "missing_vals.yaml")
-    @test_warn "For single phase conductors you must provide " net = Network(fp)
+    net = Network(fp)
+    @test occursin("For single phase conductors you must provide ", test_logger.logs[end].message)
     @test_throws "No conductor template" zij("b2", "b3", net)
     @test_throws "Missing at least one of r1" zij("b1", "b2", net)
-    @test_warn "Missing templates" CommonOPF.check_missing_templates(net)
+    CommonOPF.check_missing_templates(net)
+    @test occursin("Missing templates", test_logger.logs[end].message)
     add_edge!(net, "b2", "b4")  # o.w. get key error for net[("b2", "b4")]
     @test_throws "No conductor found" zij("b2", "b4", net)
 
@@ -104,13 +106,19 @@ end
     @test cond[:rmatrix][2,2] == 0.32
     @test cond[:rmatrix][3,3] == 0.33
 
+    # clear the log
+    deleteat!(test_logger.logs, 1:length(test_logger.logs))
     # test warnings for missing, required inputs
     fp = joinpath("data", "yaml_inputs", "multi_phase_missing_vals.yaml")
-    @test_warn [
+    expected_msgs = [
         "Unable to process impedance",
         "Missing templates: [\"cond1-symmetric\"]", 
         "1 conductors do not have", 
         "1 conductors are missing phases"
-    ] net = Network(fp)
+    ]
+    net = Network(fp)
+    for log in test_logger.logs
+        @test any(( occursin(msg, log.message) for msg in expected_msgs ))
+    end
 
 end

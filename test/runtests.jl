@@ -1,5 +1,8 @@
 using CommonOPF
 using Test
+import Logging: with_logger
+
+test_logger = TestLogger()
 
 # # hack for local testing
 # using Pkg
@@ -8,6 +11,7 @@ using Test
 # Pkg.activate(".")
 
 
+with_logger(test_logger) do
 @testset "CommonOPF.jl" begin
 
 include("test_network.jl")
@@ -228,3 +232,4 @@ end
 end
 
 end
+end # with_logger
