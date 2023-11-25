@@ -178,11 +178,27 @@ conductors:
     xmatrix::Union{AbstractArray, Missing} = missing
     length::Union{Real, Missing} = missing
     amps_limit::Union{Real, Missing} = missing
-    @assert !(
-        all(ismissing.([template, length])) &&
-        all(ismissing.([x1, r1, length]))
-     ) "Got insufficent values to define single phase conductor impedance"
-     # multiphase checks require more than we can do here. See validate_multiphase_conductors!
+end
+
+
+function warn_singlephase_conductors(conds::AbstractVector{Conductor})
+    n_cannot_define_impedance = 0
+    for cond in conds
+        if (
+            any(ismissing.([cond.template, cond.length])) &&
+            any(ismissing.([cond.x1, cond.r1, cond.length]))
+        )
+            n_cannot_define_impedance += 1
+        end
+    end
+
+    good = true
+    if n_cannot_define_impedance > 0
+        @warn "$(n_cannot_define_impedance) conductors are missing inputs to define impedance.\n"*
+              "For single phase conductors you must provide either (template, length) or (r1, x1, length)."
+        good = false
+    end
+    return good
 end
 
 
@@ -260,9 +276,9 @@ function validate_multiphase_conductors!(conds::AbstractVector{Conductor})
         if ismissing(c.phases)
             n_no_phases += 1
         elseif (
-            all(ismissing.([c.template, c.length])) &&
-            all(ismissing.([c.r0, c.x0, c.r1, c.x1, c.length])) &&
-            all(ismissing.([c.rmatrix, c.xmatrix, c.length]))
+            any(ismissing.([c.template, c.length])) &&
+            any(ismissing.([c.r0, c.x0, c.r1, c.x1, c.length])) &&
+            any(ismissing.([c.rmatrix, c.xmatrix, c.length]))
         ) # if all of these are true then we cannot define impedance
             n_no_impedance += 1
             if !ismissing(c.name)
@@ -406,6 +422,8 @@ function Network(fp::String)
     # check multiphase conductors
     if any((!ismissing(c.phases) for c in conductors))
         validate_multiphase_conductors!(conductors)
+    else
+        warn_singlephase_conductors(conductors)
     end
     # make the graph
     edge_tuples = collect(c.busses for c in conductors)

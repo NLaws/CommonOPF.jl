@@ -1,10 +1,9 @@
 
 
 @testset "Conductor single phase construction" begin
-    @test_throws "Got insufficent values to define single phase conductor impedance" CommonOPF.Conductor(; busses=("b1", "b2"), name="edge1")
     c1 = CommonOPF.Conductor(; busses=("b1", "b2"), name="edge1", template="edge2", length=1.2)
     c2 = CommonOPF.Conductor(;
-        Dict(:busses => ("b1", "b2"), :name => "edge1", :r0 => 0.1, :x0 => 0.2, :length => 20)...
+        Dict(:busses => ("b1", "b2"), :name => "edge1", :r1 => 0.1, :x1 => 0.2, :length => 20)...
     )
     @test c1.name == c2.name
     @test c1.busses == c2.busses
@@ -34,7 +33,7 @@ end
 
     # missing input values for conductors
     fp = joinpath("data", "yaml_inputs", "missing_vals.yaml")
-    net = Network(fp)
+    @test_warn "For single phase conductors you must provide " net = Network(fp)
     @test_throws "No conductor template" zij("b2", "b3", net)
     @test_throws "Missing at least one of r1" zij("b1", "b2", net)
     @test_warn "Missing templates" CommonOPF.check_missing_templates(net)
@@ -101,5 +100,7 @@ end
     @test cond[:rmatrix][3,3] == 0.33
 
     # test warnings for missing, required inputs
+    fp = joinpath("data", "yaml_inputs", "multi_phase_missing_vals.yaml")
+    net = Network(fp)
 
 end

@@ -3,11 +3,11 @@ network:
   Sbase: 1e6
 
 conductors:
-  - name: cond1-symmetric
+  - name: cond1-missing-r1
     busses: 
       - b1
       - b2
-    r0: 0.766
+    # r0: 0.766
     x0: 1.944
     r1: 0.301
     x1: 0.627
@@ -39,8 +39,8 @@ conductors:
       - b4
       - b5
     phases:
-      - 2
       - 3
+      - 2
     rmatrix: 
       - [0.32]
       - [0.15, 0.33]
