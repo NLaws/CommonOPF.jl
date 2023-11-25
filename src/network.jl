@@ -248,12 +248,19 @@ function unpack_input_matrices!(cond::Conductor)
     rmatrix = zeros(3,3)
     xmatrix = zeros(3,3)
     for (i, phs1) in enumerate(cond.phases), (j, phs2) in enumerate(cond.phases)
-        if i >= j # in lower triangle
-            rmatrix[phs1, phs2] = cond.rmatrix[i][j]
-            xmatrix[phs1, phs2] = cond.xmatrix[i][j]
-        else  # flip i,j to mirror in to upper triangle
-            rmatrix[phs1, phs2] = cond.rmatrix[j][i]
-            xmatrix[phs1, phs2] = cond.xmatrix[j][i]
+        try
+            if i >= j # in lower triangle
+                rmatrix[phs1, phs2] = cond.rmatrix[i][j]
+                xmatrix[phs1, phs2] = cond.xmatrix[i][j]
+            else  # flip i,j to mirror in to upper triangle
+                rmatrix[phs1, phs2] = cond.rmatrix[j][i]
+                xmatrix[phs1, phs2] = cond.xmatrix[j][i]
+            end
+        catch BoundsError
+            @warn "Unable to process impedance matrices for conductor:\n"*
+                "$cond\n"*
+                "Probably because the phases do not align with one or both of the rmatrix and xmatrix."
+            return
         end
     end
     cond.rmatrix = rmatrix
@@ -270,7 +277,6 @@ We only warn to allow user to fill in missing values as they wish.
 function validate_multiphase_conductors!(conds::AbstractVector{Conductor})
     n_no_phases = 0
     n_no_impedance = 0
-    bad_names = String[]
     templates = String[]
     for c in conds
         if ismissing(c.phases)
@@ -281,9 +287,6 @@ function validate_multiphase_conductors!(conds::AbstractVector{Conductor})
             any(ismissing.([c.rmatrix, c.xmatrix, c.length]))
         ) # if all of these are true then we cannot define impedance
             n_no_impedance += 1
-            if !ismissing(c.name)
-                push!(bad_names, c.name)
-            end
         else  # we have everything we need to define rmatrix, xmatrix
             if !ismissing(c.rmatrix) 
                 # unpack the Vector{Vector} (lower diagaonal portion of matrix)
@@ -324,10 +327,8 @@ function validate_multiphase_conductors!(conds::AbstractVector{Conductor})
     end
 
     if n_no_impedance > 0
-        @warn "$(n_no_impedance) conductors do not have sufficient parameters to define the impedance."
-        if length(bad_names) > 0
-            @warn "The bad conductors with name defined are: $(bad_names)"
-        end
+        @warn "$(n_no_impedance) conductors do not have sufficient parameters to define the impedance.\n"*
+            "see https://nlaws.github.io/CommonOPF.jl/dev/inputs/#CommonOPF.Conductor"
         good = false
     end
     return good
@@ -397,7 +398,7 @@ graph["b1", "b2"][:Conductor][:r0]
 ```
 """
 function fill_edge_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractEdge})
-    edge_fieldnames = filter(fn -> fn != :busses, fieldnames(typeof(vals[1])))
+    edge_fieldnames = fieldnames(typeof(vals[1]))
     type = split(string(typeof(vals[1])), ".")[end]  # e.g. "CommonOPF.Conductor" -> "Conductor"
     for edge in vals
         b1, b2 = edge.busses

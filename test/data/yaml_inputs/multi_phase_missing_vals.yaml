@@ -20,7 +20,7 @@ conductors:
     template: cond1-symmetric
     length: 200
     phases: [1, 2, 3]
-  - name: cond3-assymetric
+  - name: cond3-bad-xmatrix
     busses: 
       - b3
       - b4
@@ -30,17 +30,13 @@ conductors:
       - [0.16, 0.17, 0.33]
     xmatrix:
       - [1.01]
-      - [0.5, 1.05]
       - [0.4, 0.3, 1.03]
     length: 100
     phases: [1, 2, 3]
-  - name: cond4-two-phase-asymmetric
+  - name: cond4-missing-phases
     busses: 
       - b4
       - b5
-    phases:
-      - 3
-      - 2
     rmatrix: 
       - [0.32]
       - [0.15, 0.33]

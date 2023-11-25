@@ -101,6 +101,11 @@ end
 
     # test warnings for missing, required inputs
     fp = joinpath("data", "yaml_inputs", "multi_phase_missing_vals.yaml")
-    net = Network(fp)
+    @test_warn [
+        "Unable to process impedance",
+        "Missing templates: [\"cond1-symmetric\"]", 
+        "1 conductors do not have", 
+        "1 conductors are missing phases"
+    ] net = Network(fp)
 
 end
