@@ -24,4 +24,5 @@ trim_tree!
 trim_tree_once!
 rij(i::AbstractString, j::AbstractString, p::Inputs{SinglePhase})
 xij(i::AbstractString, j::AbstractString, p::Inputs{SinglePhase})
+zij
 ```

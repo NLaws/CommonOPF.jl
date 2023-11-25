@@ -54,18 +54,15 @@ Construct a `Network` from a yaml at the file path `fp`.
 """
 function Network(fp::String)
     d = load_yaml(fp)
-    conductors = Conductor[Conductor(;cd...) for cd in d[:conductors]]
-    # check multiphase conductors
-    if any((!ismissing(c.phases) for c in conductors))
-        validate_multiphase_conductors!(conductors)
-    else
-        warn_singlephase_conductors(conductors)
-    end
+    conductors = build_conductors(d)
+    loads = build_loads(d)
     # make the graph
     edge_tuples = collect(c.busses for c in conductors)
     g = make_graph(edge_tuples)
     fill_edge_attributes!(g, conductors)
-    # fill_node_attributes!(g, loads)
+    if length(loads) > 0
+        fill_node_attributes!(g, loads)
+    end
     return Network(g, d[:network])
 end
 
@@ -123,6 +120,20 @@ function fill_edge_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVe
         end
         g[b1, b2][Symbol(type)] = Dict(
             fn => getfield(edge, fn) for fn in edge_fieldnames if !ismissing(getfield(edge, fn))
+        )
+    end
+end
+
+
+function fill_node_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractBus})
+    node_fieldnames = fieldnames(typeof(vals[1]))
+    type = split(string(typeof(vals[1])), ".")[end]  # e.g. "CommonOPF.Load" -> "Load"
+    for node in vals
+        if !isempty(g[node.bus])
+            @warn "Filling in node $(node.bus) with existing attributes $(g[node.bus])"
+        end
+        g[node.bus][Symbol(type)] = Dict(
+            fn => getfield(node, fn) for fn in node_fieldnames if !ismissing(getfield(node, fn))
         )
     end
 end

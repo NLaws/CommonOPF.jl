@@ -15,7 +15,10 @@ end
 """
     function zij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})::Tuple{Real, Real}
 
-TODO use rmatrix, xmatrix ?
+Impedance for single phase models. 
+
+Returns `(r1, x1) * length / net.Zbase` for the `Conductor` at `net[(i, j)]`.
+
 TODO test
 TODO MultiPhase
 """

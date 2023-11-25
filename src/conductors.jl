@@ -110,6 +110,18 @@ conductors:
 end
 
 
+function build_conductors(d::Dict)::AbstractVector{Conductor}
+    conductors = Conductor[Conductor(;cd...) for cd in d[:conductors]]
+    # check multiphase conductors
+    if any((!ismissing(c.phases) for c in conductors))
+        validate_multiphase_conductors!(conductors)
+    else
+        warn_singlephase_conductors(conductors)
+    end
+    return conductors
+end
+
+
 function warn_singlephase_conductors(conds::AbstractVector{Conductor})
     n_cannot_define_impedance = 0
     for cond in conds
@@ -199,9 +211,10 @@ end
 
 
 """
+    validate_multiphase_conductors!(conds::AbstractVector{Conductor})
 
-Check for any conductors that do not have inputs required to define impedance.
-We only warn to allow user to fill in missing values as they wish.
+Fill in impedance matrices and `@warn` for any conductors that do not have inputs required to define
+impedance.
 """
 function validate_multiphase_conductors!(conds::AbstractVector{Conductor})
     n_no_phases = 0

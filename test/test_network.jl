@@ -22,14 +22,19 @@ end
     @test "b1" in bs && "b2" in bs && "b3" in bs
     @test net.substation_bus == "b1"
     @test net.Sbase == 1e6
-    @test net.Vbase == 1
+    @test net.Vbase == 1    
+    @test net.graph["b1", "b2"] == net[("b1", "b2")]
 
+    # conductors
     @test net.graph["b1", "b2"][:Conductor][:r1] == 0.301
     for edge_data in conductors(net)
         @test haskey(edge_data, :r1) || haskey(edge_data, :template)
     end
 
-    @test net.graph["b1", "b2"] == net[("b1", "b2")]
+    # loads
+    @test net["b3"][:Load][:kws1] == [5.6]
+    @test net["b2"][:Load][:kvars1] == [1.2]
+
 
     # missing input values for conductors
     fp = joinpath("data", "yaml_inputs", "missing_vals.yaml")

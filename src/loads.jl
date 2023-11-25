@@ -5,10 +5,12 @@ A Load input specifier, mapped from YAML, JSON, or manually populated.
 
 The minimum required inputs include several options. All require a `bus` to place the load. For
 single phase models provide one of the following sets of values:
+- `bus`, `kws1`
 - `bus`, `kws1`, `kvars1`
 - `bus`, `kws1`, `powerfactor`
 - `bus`, `csv` 
-where `csv` is a path to a two column CSV file with a single line header like "kws1,kvars1".
+where `csv` is a path to a two column CSV file with a single line header like "kws1,kvars1". If only
+`bus` and `kws1` are provided then the reactive load will be zero in the power flow model.
 
 For multiphase models any of the single phase options above can be used and the load will be split
 evenly across the phases (the `Network.graph` nodes will get attributes for `kws2`, `kvars2`, etc.
@@ -41,9 +43,39 @@ bus, phase, time
     kvars3::Union{AbstractVector{<:Real}, Missing} = missing
     powerfactor::Union{Real, Missing} = missing
     csv::Union{String, Missing} = missing
-    @assert !(
-        any(ismissing.([kws1, kvars1])) &&
-        any(ismissing.([kws1, powerfactor])) &&
-        any(ismissing.([csv]))
-     ) "Got insufficent values to define Load"
+end
+
+
+function build_loads(d::Dict)::AbstractVector{Load}
+    if !(:loads in keys(d))
+        return Load[]
+    end
+    loads = Load[Load(;ld...) for ld in d[:loads]]
+    check_loads!(loads)
+    return loads
+end
+
+
+function check_loads!(loads::AbstractVector{Load})
+    indices_to_delete = Int[]
+    for (idx, load) in enumerate(loads)
+        if all(ismissing.((
+            load.kws1, load.kvars1, 
+            load.kws2, load.kvars2, 
+            load.kws3, load.kvars3, 
+            load.csv,
+        )))
+            push!(indices_to_delete, idx)
+            @warn "Load at bus $(load.bus) does not have enough values to define a multi-phase load.\n"*
+            "It has been removed from the model.\n"*
+            "See https://nlaws.github.io/CommonOPF.jl/dev/inputs/#Loads for required inputs."
+        end
+    end
+    deleteat!(loads, indices_to_delete)
+    nothing
+end
+
+
+function load_from_csv(load::Load)
+    throw("NotImplementedError")
 end
