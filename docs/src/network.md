@@ -1,7 +1,8 @@
 # Network Model
-The `Network` model in CommonOPF is used to store all the inputs required to create power flow and
-optimal power flow models. Underlying the Network model is a `MetaGraphsNext.MetaGraph` that stores
-the edge and node data in the network. 
+```@docs
+Network
+Network(fp::String)
+```
 
 ## Edges
 The edges of the Network model include all power transfer elements, i.e. the devices in the power
