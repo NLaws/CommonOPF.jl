@@ -80,6 +80,25 @@ end
     @test cond[:xmatrix] == cond_template[:xmatrix]
 
     # 3. lower diagaonal matrices
+    conds = conductors_with_attribute_value(net, :name, "cond3-assymetric")
+    @test length(conds) == 1
+    cond = conds[1]
+    @test cond[:rmatrix][1,2] == cond[:rmatrix][2,1] == 0.15
+    @test cond[:rmatrix][3,1] == cond[:rmatrix][1,3] == 0.16
+    @test cond[:rmatrix][3,2] == cond[:rmatrix][2,3] == 0.17
+    @test cond[:rmatrix][1,1] == 0.31
+    @test cond[:rmatrix][2,2] == 0.32
+    @test cond[:rmatrix][3,3] == 0.33
+
+    conds = conductors_with_attribute_value(net, :name, "cond4-two-phase-asymmetric")
+    @test length(conds) == 1
+    cond = conds[1]
+    @test cond[:rmatrix][1,2] == cond[:rmatrix][2,1] == 0
+    @test cond[:rmatrix][3,1] == cond[:rmatrix][1,3] == 0
+    @test cond[:rmatrix][3,2] == cond[:rmatrix][2,3] == 0.15
+    @test cond[:rmatrix][1,1] == 0
+    @test cond[:rmatrix][2,2] == 0.32
+    @test cond[:rmatrix][3,3] == 0.33
 
     # test warnings for missing, required inputs
 
