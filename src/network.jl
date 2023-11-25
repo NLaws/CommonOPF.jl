@@ -62,6 +62,12 @@ edges_with_data(net::AbstractNetwork) = ( (edge_tup, net[edge_tup]) for edge_tup
 
 conductors(net::AbstractNetwork) = ( edge_data[:Conductor] for (_, edge_data) in edges_with_data(net) if haskey(edge_data, :Conductor))
 
+function conductors_with_attribute_value(net::AbstractNetwork, attr::Symbol, val::Any)::AbstractVector{Dict}
+    collect(
+        filter(c -> haskey(c, attr) && c[attr] == val, collect(conductors(net)))
+    )
+end
+
 
 """
     struct Conductor <: AbstractEdge
@@ -275,11 +281,29 @@ function validate_multiphase_conductors!(conds::AbstractVector{Conductor})
         end
     end
 
-    # TODO copy template values
+    # copy template values
+    missing_templates = String[]
+    for template_name in templates
+        template_index = findfirst(c -> !ismissing(c.name) && c.name == template_name, conds)
+        if isnothing(template_index)
+            push!(missing_templates, template_name)
+            continue
+        end
+        template_cond = conds[template_index]
+        for c in filter(c -> !ismissing(c.template) && c.template == template_name, conds)
+            c.xmatrix = template_cond.xmatrix
+            c.rmatrix = template_cond.rmatrix
+        end
+    end
 
     good = true
     if n_no_phases > 0
         @warn "$(n_no_phases) conductors are missing phases."
+        good = false
+    end
+
+    if length(missing_templates) > 0
+        @warn "Missing templates: $(missing_templates)."
         good = false
     end
 

@@ -69,7 +69,8 @@ export
     busses,
     conductors,
     zij,
-    add_edge!
+    add_edge!,
+    conductors_with_attribute_value
 
 
 include("graphs.jl")

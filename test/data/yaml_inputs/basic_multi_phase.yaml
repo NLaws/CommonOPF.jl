@@ -17,7 +17,7 @@ conductors:
     busses:
       - b2
       - b3
-    template: cond1
+    template: cond1-symmetric
     length: 200
     phases: [1, 2, 3]
   - name: cond3-assymetric

@@ -49,8 +49,11 @@ end
     net = Network(fp)
 
     # test the different ways to define impedance
+
     # 1. z0 and z1
-    cond = net[("b1", "b2")][:Conductor]
+    conds = conductors_with_attribute_value(net, :name, "cond1-symmetric")
+    @test length(conds) == 1
+    cond = conds[1]
     # diagonal values
     rself = 1/3 * cond[:r0] + 2/3 * cond[:r1]
     xself = 1/3 * cond[:x0] + 2/3 * cond[:x1]
@@ -68,7 +71,13 @@ end
         end
     end
 
-    # 2. template (TODO in validate_multiphase_conductors!)
+    # 2. template
+    cond_template = cond
+    conds = conductors_with_attribute_value(net, :name, "cond2-copy-cond1")
+    @test length(conds) == 1
+    cond = conds[1]
+    @test cond[:rmatrix] == cond_template[:rmatrix]
+    @test cond[:xmatrix] == cond_template[:xmatrix]
 
     # 3. lower diagaonal matrices
 
