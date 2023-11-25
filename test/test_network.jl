@@ -111,8 +111,12 @@ end
     @test cond[:rmatrix][2,2] == 0.32
     @test cond[:rmatrix][3,3] == 0.33
 
-    clear_log!(test_logger)
+    # test load definitions
+    lbs = collect(load_busses(net))
+    @test "b3" in lbs && "b5" in lbs
+
     # test warnings for missing, required inputs
+    clear_log!(test_logger)
     fp = joinpath("data", "yaml_inputs", "multi_phase_missing_vals.yaml")
     expected_msgs = [
         "Unable to process impedance",

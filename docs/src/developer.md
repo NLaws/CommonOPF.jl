@@ -21,4 +21,10 @@ The `fill_{edge,node}_attributes!` methods are used in the `Network` builder to 
 attributes of `YourType` in the `Network.graph`.  The `Network.graph` is used to build the power
 flow models -- so you also will probably need to modify `BranchFlowModel.jl` to account for your new
 type. (But in the future we might be able to handle abstract edge or bus models that implement a
-certain set of attributes) 
+certain set of attributes).
+
+You might also want to extend the `Network` interface for your type. For example, when adding the
+`Load` type we added:
+```julia
+load_busses(net::AbstractNetwork) = (b for b in busses(net) if haskey(net[b], :Load))
+```

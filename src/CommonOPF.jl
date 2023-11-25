@@ -70,7 +70,8 @@ export
     conductors,
     zij,
     add_edge!,
-    conductors_with_attribute_value
+    conductors_with_attribute_value,
+    load_busses
 
 
 include("graphs.jl")

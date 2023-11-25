@@ -24,6 +24,7 @@ struct Network{T<:Phases} <: AbstractNetwork
     Sbase::Real
     Vbase::Real
     Zbase::Real
+    Ntimesteps::Int
 end
 
 
@@ -37,12 +38,14 @@ function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict)
     Sbase = get(ntwk, :Sbase, 1)
     Vbase = get(ntwk, :Vbase, 1)
     Zbase = Vbase^2 / Sbase
+    Ntimesteps = get(ntwk, :Ntimesteps, 1)
     Network{SinglePhase}(
         g,
         ntwk[:substation_bus],
         Sbase,
         Vbase,
-        Zbase
+        Zbase,
+        Ntimesteps
     )
 end
 
@@ -53,6 +56,7 @@ end
 Construct a `Network` from a yaml at the file path `fp`.
 """
 function Network(fp::String)
+    # parse inputs
     d = load_yaml(fp)
     conductors = build_conductors(d)
     loads = build_loads(d)
@@ -75,6 +79,41 @@ Base.getindex(net::Network, idx::Tuple{String, String}) = net.graph[idx[1], idx[
 Base.getindex(net::Network, idx::String) = net.graph[idx]
 
 
+"""
+    function Base.getindex(net::Network, bus::String, kws_kvars::Symbol, phase::Int)
+
+Load getter for `Network`. Use like:
+```julia
+net["busname", :kws, 2]
+
+net["busname", :kvars, 3]
+```
+The second argument must be one of `:kws` or `:kvars`. The third arbument must be one of `[1,2,3]`.
+If the `"busname"` exists and has a `:Load` dict, but the load (e.g. `:kvars2`) is not defined then
+`zeros(net.Ntimesteps)` is returned.
+"""
+function Base.getindex(net::Network, bus::String, kws_kvars::Symbol, phase::Int)
+    load_key = Symbol(kws_kvars, Symbol(phase))
+    if !(load_key in LOAD_KEYS)
+        error("To get a Load use :kws or :kvars and a phase in [1,2,3]")
+    end
+    try
+        return net[bus][:Load][load_key]
+    catch e
+        # if the key error is from the bus or :Load we throw it
+        if typeof(e) == KeyError 
+            if e.key == :Load
+                throw(KeyError("There is no Load at bus $bus"))
+            elseif e.key == bus
+                throw(e)
+            end
+        end
+        # else we return zeros
+        return zeros(net.Ntimesteps)
+    end
+end
+
+
 Graphs.edges(net::AbstractNetwork) = MetaGraphsNext.edge_labels(net.graph)
 
 
@@ -88,10 +127,14 @@ end
 busses(net::AbstractNetwork) = MetaGraphsNext.labels(net.graph)
 
 
+load_busses(net::AbstractNetwork) = (b for b in busses(net) if haskey(net[b], :Load))
+
+
 edges_with_data(net::AbstractNetwork) = ( (edge_tup, net[edge_tup]) for edge_tup in edges(net))
 
 
 conductors(net::AbstractNetwork) = ( edge_data[:Conductor] for (_, edge_data) in edges_with_data(net) if haskey(edge_data, :Conductor))
+
 
 function conductors_with_attribute_value(net::AbstractNetwork, attr::Symbol, val::Any)::AbstractVector{Dict}
     collect(

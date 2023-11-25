@@ -23,13 +23,17 @@ For unbalanced multiphase models one must provide one of:
 where the `csv` has 2, 4, or 6 columns with a single line header like
 "kws1,kvars1,kws2,kvars2,kws3,kvars3" or "kws2,kvars2,kws3,kvars3".
 
-
 !!! note 
     The `kws` and `kvars` inputs are plural because we always put the loads in vectors, even with
     one timestep. We do this so that the modeling packages that build on CommonOPF do not have to
     account for both scalar values and vector values.
 
-bus, phase, time
+Once the `net::Network` is defined a load can be accessed like:
+```julia
+ld_busses = collect(load_busses(net))
+lb = ld_busses[1]  # bus keys are strings in the network
+net[lb, :kws, 1]  # last index is phase integer
+```
 """
 @with_kw struct Load <: AbstractBus
     # required values
@@ -45,6 +49,8 @@ bus, phase, time
     csv::Union{String, Missing} = missing
 end
 
+
+LOAD_KEYS = [:kws1, :kvars1, :kws2, :kvars2, :kws3, :kvars3]
 
 function build_loads(d::Dict)::AbstractVector{Load}
     if !(:loads in keys(d))
@@ -71,8 +77,20 @@ function check_loads!(loads::AbstractVector{Load})
             "See https://nlaws.github.io/CommonOPF.jl/dev/inputs/#Loads for required inputs."
         end
     end
+    # TODO check all time-series have same lengths
     deleteat!(loads, indices_to_delete)
     nothing
+end
+
+
+"""
+
+Rules:
+1. If `q_to_p` is defined and a `kwN` value is defined then we fill the `kvarN` values.
+2. 
+"""
+function fill_load(load::Load)
+
 end
 
 

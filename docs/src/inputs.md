@@ -13,5 +13,6 @@ CommonOPF.Conductor
 ## Loads
 ```@docs
 CommonOPF.Load
+Base.getindex(net::Network, bus::String, kws_kvars::Symbol, phase::Int)
 ```
 
