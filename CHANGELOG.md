@@ -1,10 +1,8 @@
 # CommonOPF Changelog
 
-## Next
-- Conductor.yaml
-
-## dev
+## v0.4.0
 - change dependency MetaGraphs to MetaGraphsNext
+- add `Network` (which will replace `Inputs` eventually)
 
 ## v0.3.8
 - bug fix `reduce_tree!` with `Inputs{MultiPhase}`
