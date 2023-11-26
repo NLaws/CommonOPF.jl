@@ -13,7 +13,7 @@ end
 
 
 function rij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-    net[(i,j)][:Conductor][:r1]
+    net[(i,j)][:Conductor][:r1] * net[(i,j)][:Conductor][:length] / net.Zbase
 end
 
 
@@ -69,7 +69,7 @@ end
 
 
 function xij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-    net[(i,j)][:Conductor][:x1]
+    net[(i,j)][:Conductor][:x1] * net[(i,j)][:Conductor][:length] / net.Zbase
 end
 
 

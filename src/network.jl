@@ -18,7 +18,7 @@ with integer values).
 
 A Network can be created directly or via a filepath.
 """
-struct Network{T<:Phases} <: AbstractNetwork
+mutable struct Network{T<:Phases} <: AbstractNetwork
     graph::MetaGraphsNext.AbstractGraph
     substation_bus::String
     Sbase::Real
