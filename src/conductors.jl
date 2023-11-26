@@ -42,6 +42,9 @@ scaled by the `length` of 200 and normalized by `Zbase`.
     The `name` field is optional unless a `conductor.name` is also the `template` of another
     conductor.
     
+!!! warning 
+    If any `phases` properties are set in the `conductors` then it is assumed that the model is 
+    multi-phase.
 
 # Multi-phase models
 
@@ -122,14 +125,38 @@ function build_conductors(d::Dict)::AbstractVector{Conductor}
 end
 
 
+"""
+
+Warn there is no way to define a load.
+Copy template r1 and x1 values.
+"""
 function warn_singlephase_conductors(conds::AbstractVector{Conductor})
     n_cannot_define_impedance = 0
+    templates = String[]
     for cond in conds
         if (
             any(ismissing.([cond.template, cond.length])) &&
             any(ismissing.([cond.x1, cond.r1, cond.length]))
         )
             n_cannot_define_impedance += 1
+        end
+        if !ismissing(cond.template)
+            push!(templates, cond.template)
+        end
+    end
+
+    # copy template values
+    missing_templates = String[]
+    for template_name in templates
+        template_index = findfirst(c -> !ismissing(c.name) && c.name == template_name, conds)
+        if isnothing(template_index)
+            push!(missing_templates, template_name)
+            continue
+        end
+        template_cond = conds[template_index]
+        for c in filter(c -> !ismissing(c.template) && c.template == template_name, conds)
+            c.r1 = template_cond.r1
+            c.x1 = template_cond.x1
         end
     end
 
@@ -139,16 +166,20 @@ function warn_singlephase_conductors(conds::AbstractVector{Conductor})
               "For single phase conductors you must provide either (template, length) or (r1, x1, length)."
         good = false
     end
+    if length(missing_templates) > 0
+        @warn "Missing templates: $(missing_templates)."
+        good = false
+    end
     return good
 end
 
 
 """
-    function fill_conductor_impedance!(cond::Conductor)
+    function fill_impedance_matrices!(cond::Conductor)
 
 Use zero and positive sequence impedances to create phase-impedance matrix.
 """
-function fill_conductor_impedance!(cond::Conductor)
+function fill_impedance_matrices!(cond::Conductor)
     # TODO use symmetric matrices s.t. can reduce memory footprint?
     rself = 1/3 * cond.r0 + 2/3 * cond.r1
     rmutual = 1/3 * (cond.r0 - cond.r1)
@@ -237,7 +268,7 @@ function validate_multiphase_conductors!(conds::AbstractVector{Conductor})
                 # defer template copying in case the template requires calculating matrices
                 push!(templates, c.template)
             else  # use zero and positive sequence impedances
-                fill_conductor_impedance!(c)
+                fill_impedance_matrices!(c)
             end
         end
     end

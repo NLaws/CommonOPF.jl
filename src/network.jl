@@ -35,7 +35,7 @@ end
 
 Given a MetaGraph create a Network by extracting the edges and busses from the MetaGraph
 """
-function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict) 
+function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict, net_type::Type) 
     # TODO MultiPhase based on inputs
     Sbase = get(ntwk, :Sbase, 1)
     Vbase = get(ntwk, :Vbase, 1)
@@ -43,7 +43,7 @@ function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict)
     v0 = get(ntwk, :v0, 1)
     Ntimesteps = get(ntwk, :Ntimesteps, 1)
     v_lolim = get(ntwk, :v_lolim, 0)
-    Network{SinglePhase}(
+    Network{net_type}(
         g,
         string(ntwk[:substation_bus]),
         Sbase,
@@ -65,6 +65,10 @@ function Network(fp::String)
     # parse inputs
     d = load_yaml(fp)
     conductors = build_conductors(d)
+    net_type = SinglePhase
+    if any((!ismissing(c.phases) for c in conductors))
+        net_type = MultiPhase
+    end
     loads = build_loads(d)
     # make the graph
     edge_tuples = collect(c.busses for c in conductors)
@@ -73,7 +77,7 @@ function Network(fp::String)
     if length(loads) > 0
         fill_node_attributes!(g, loads)
     end
-    return Network(g, d[:network])
+    return Network(g, d[:network], net_type)
 end
 
 

@@ -45,8 +45,15 @@ end
 
     # missing input values for conductors
     fp = joinpath("data", "yaml_inputs", "missing_vals.yaml")
+    clear_log!(test_logger)
+    expected_msgs = [
+        "For single phase conductors you must provide",
+        "Missing templates: [\"cond2\"]."
+    ]
     net = Network(fp)
-    @test occursin("For single phase conductors you must provide ", test_logger.logs[end].message)
+    for log in test_logger.logs
+        @test any(( occursin(msg, log.message) for msg in expected_msgs ))
+    end
     @test_throws "No conductor template" zij("b2", "b3", net)
     @test_throws "Missing at least one of r1" zij("b1", "b2", net)
     CommonOPF.check_missing_templates(net)
