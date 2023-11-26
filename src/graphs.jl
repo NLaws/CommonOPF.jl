@@ -53,12 +53,26 @@ julia> get_prop(g, :int_bus_map)[13]
 "24"
 ```
 """
-function make_graph(busses::AbstractVector{String}, edges::AbstractVector)
+function make_graph(
+        busses::AbstractVector{String}, 
+        edges::AbstractVector; 
+        directed::Union{Bool,Missing}=missing
+    )
     bus_int_map = Dict(b => i for (i,b) in enumerate(busses))
     int_bus_map = Dict(i => b for (b, i) in bus_int_map)
     dtype = Dict{Symbol, Any}
+    if ismissing(directed)  # infer from number of edges and busses
+        directed = false
+        if length(edges) + 1 == length(busses)  # assume radial, directed graph
+            directed = true
+        end
+    end
+    graph_template = Graphs.DiGraph()
+    if !directed
+        graph_template = Graphs.Graph()
+    end
     g = MetaGraph(
-        DiGraph(), 
+        graph_template, 
         label_type=String,
         vertex_data_type=dtype,
         edge_data_type=dtype,

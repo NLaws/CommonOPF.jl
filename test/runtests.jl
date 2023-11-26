@@ -52,7 +52,7 @@ include("test_network.jl")
         push!(busses, t[2])
     end
     busses = unique(busses)
-    g = make_graph(busses, edges)
+    g = make_graph(busses, edges; directed=true)
     end_bs = busses_with_multiple_inneighbors(g)  # ["g"]
 
     # @test_throws "Found more than one" next_bus_above_with_outdegree_more_than_one(g, "g")

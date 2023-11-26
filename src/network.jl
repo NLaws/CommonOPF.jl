@@ -57,13 +57,13 @@ end
 
 
 """
-    function Network(fp::String)
+    function Network(d::Dict)
 
-Construct a `Network` from a yaml at the file path `fp`.
+Construct a `Network` from a dictionary that has at least keys for:
+1. `:conductors`, a vector of dicts with `Conductor` specs
+2. `:network`, a dict with at least `:substation_bus`
 """
-function Network(fp::String)
-    # parse inputs
-    d = load_yaml(fp)
+function Network(d::Dict)
     conductors = build_conductors(d)
     net_type = SinglePhase
     if any((!ismissing(c.phases) for c in conductors))
@@ -78,6 +78,18 @@ function Network(fp::String)
         fill_node_attributes!(g, loads)
     end
     return Network(g, d[:network], net_type)
+end
+
+
+"""
+    function Network(fp::String)
+
+Construct a `Network` from a yaml at the file path `fp`.
+"""
+function Network(fp::String)
+    # parse inputs
+    d = load_yaml(fp)
+    Network(d)
 end
 
 
@@ -148,10 +160,10 @@ busses(net::AbstractNetwork) = MetaGraphsNext.labels(net.graph)
 load_busses(net::AbstractNetwork) = (b for b in busses(net) if haskey(net[b], :Load))
 
 
-real_load_busses(net::Network{SinglePhase}) = (b for b in load_busses(net) if !(ismissing(net[b][:Load][:kws1])))
+real_load_busses(net::Network{SinglePhase}) = (b for b in load_busses(net) if haskey(net[b][:Load], :kws1))
 
 
-reactive_load_busses(net::Network{SinglePhase}) = (b for b in load_busses(net) if !(ismissing(net[b][:Load][:kvars1])))
+reactive_load_busses(net::Network{SinglePhase}) = (b for b in load_busses(net) if haskey(net[b][:Load], :kvars1))
 
 
 edges_with_data(net::AbstractNetwork) = ( (edge_tup, net[edge_tup]) for edge_tup in edges(net))
