@@ -146,4 +146,6 @@ end
     net = Network(fp)
     @test is_connected(net)
     # TODO Bus 634 is not in the graph after adding edges
+    @test i_to_j("671", net) == ["670"]
+    # TODO 670 can be reduced out to make 632 --> 670
 end

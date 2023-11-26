@@ -24,7 +24,9 @@ struct Network{T<:Phases} <: AbstractNetwork
     Sbase::Real
     Vbase::Real
     Zbase::Real
+    v0::Union{Real, AbstractVecOrMat{<:Number}}
     Ntimesteps::Int
+    v_lolim::Real
 end
 
 
@@ -38,14 +40,18 @@ function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict)
     Sbase = get(ntwk, :Sbase, 1)
     Vbase = get(ntwk, :Vbase, 1)
     Zbase = Vbase^2 / Sbase
+    v0 = get(ntwk, :v0, 1)
     Ntimesteps = get(ntwk, :Ntimesteps, 1)
+    v_lolim = get(ntwk, :v_lolim, 0)
     Network{SinglePhase}(
         g,
         string(ntwk[:substation_bus]),
         Sbase,
         Vbase,
         Zbase,
-        Ntimesteps
+        v0,
+        Ntimesteps,
+        v_lolim
     )
 end
 
@@ -117,6 +123,14 @@ end
 Graphs.edges(net::AbstractNetwork) = MetaGraphsNext.edge_labels(net.graph)
 
 
+Graphs.inneighbors(net::Network, bus::String) = MetaGraphsNext.inneighbor_labels(net.graph, bus)
+Graphs.outneighbors(net::Network, bus::String) = MetaGraphsNext.outneighbor_labels(net.graph, bus)
+
+
+i_to_j(j::String, net::Network) = collect(inneighbors(net::Network, j::String))
+j_to_k(j::String, net::Network) = collect(outneighbors(net::Network, j::String))
+
+
 function MetaGraphsNext.add_edge!(net::CommonOPF.AbstractNetwork, b1::String, b2::String; data=Dict())
     MetaGraphsNext.add_vertex!(net.graph, b1, Dict())
     MetaGraphsNext.add_vertex!(net.graph, b2, Dict())
@@ -128,6 +142,12 @@ busses(net::AbstractNetwork) = MetaGraphsNext.labels(net.graph)
 
 
 load_busses(net::AbstractNetwork) = (b for b in busses(net) if haskey(net[b], :Load))
+
+
+real_load_busses(net::Network{SinglePhase}) = (b for b in load_busses(net) if !(ismissing(net[b][:Load][:kws1])))
+
+
+reactive_load_busses(net::Network{SinglePhase}) = (b for b in load_busses(net) if !(ismissing(net[b][:Load][:kvars1])))
 
 
 edges_with_data(net::AbstractNetwork) = ( (edge_tup, net[edge_tup]) for edge_tup in edges(net))

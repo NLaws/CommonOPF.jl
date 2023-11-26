@@ -72,7 +72,9 @@ export
     add_edge!,
     conductors_with_attribute_value,
     load_busses,
-    is_connected
+    is_connected,
+    real_load_busses,
+    reactive_load_busses
 
 
 include("graphs.jl")

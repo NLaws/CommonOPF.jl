@@ -12,6 +12,12 @@ function rij(i::AbstractString, j::AbstractString, p::Inputs{SinglePhase})
 end
 
 
+function rij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
+    net[(i,j)][:Conductor][:r1]
+end
+
+
+
 """
     function zij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})::Tuple{Real, Real}
 
@@ -59,6 +65,11 @@ function xij(i::AbstractString, j::AbstractString, p::Inputs{SinglePhase})
     linelength = get_ijlinelength(i, j, p)
     xmatrix = p.Zdict[linecode]["xmatrix"] * linelength / p.Zbase
     return xmatrix[1]  # 1 index b/c single phase
+end
+
+
+function xij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
+    net[(i,j)][:Conductor][:x1]
 end
 
 
