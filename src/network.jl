@@ -60,6 +60,11 @@ REQUIRED_EDGE_SYMBOLS_TYPES = Dict(
     :conductors => Conductor
 )
 
+OPTIONAL_EDGE_SYMBOLS_TYPES = Dict(
+    :voltage_regulators => VoltageRegulator
+)
+
+
 """
     function Network(d::Dict)
 
@@ -70,8 +75,12 @@ Construct a `Network` from a dictionary that has at least keys for:
 function Network(d::Dict)
     edges = AbstractEdge[]
     for (edge_symbol, EdgeType) in REQUIRED_EDGE_SYMBOLS_TYPES
-        edicts = d[edge_symbol]
-        edges = vcat(edges, build_edges(edicts, EdgeType))
+        edges = vcat(edges, build_edges(d[edge_symbol], EdgeType))
+    end
+    for (edge_symbol, EdgeType) in OPTIONAL_EDGE_SYMBOLS_TYPES
+        if edge_symbol in keys(d)
+            edges = vcat(edges, build_edges(d[edge_symbol], EdgeType))
+        end
     end
     net_type = SinglePhase
     if any((!ismissing(e.phases) for e in edges))
