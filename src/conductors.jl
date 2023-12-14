@@ -113,15 +113,14 @@ conductors:
 end
 
 
-function build_conductors(d::Dict)::AbstractVector{Conductor}
-    conductors = Conductor[Conductor(;cd...) for cd in d[:conductors]]
+function check_edges!(conductors::AbstractVector{Conductor})
     # check multiphase conductors
     if any((!ismissing(c.phases) for c in conductors))
         validate_multiphase_conductors!(conductors)
     else
         warn_singlephase_conductors(conductors)
     end
-    return conductors
+    return nothing
 end
 
 

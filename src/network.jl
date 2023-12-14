@@ -56,6 +56,10 @@ function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict, net_type::Type)
 end
 
 
+REQUIRED_EDGE_SYMBOLS_TYPES = Dict(
+    :conductors => Conductor
+)
+
 """
     function Network(d::Dict)
 
@@ -64,16 +68,20 @@ Construct a `Network` from a dictionary that has at least keys for:
 2. `:network`, a dict with at least `:substation_bus`
 """
 function Network(d::Dict)
-    conductors = build_conductors(d)
+    edges = AbstractEdge[]
+    for (edge_symbol, EdgeType) in REQUIRED_EDGE_SYMBOLS_TYPES
+        edicts = d[edge_symbol]
+        edges = vcat(edges, build_edges(edicts, EdgeType))
+    end
     net_type = SinglePhase
-    if any((!ismissing(c.phases) for c in conductors))
+    if any((!ismissing(e.phases) for e in edges))
         net_type = MultiPhase
     end
     loads = build_loads(d)
     # make the graph
-    edge_tuples = collect(c.busses for c in conductors)
+    edge_tuples = collect(e.busses for e in edges)
     g = make_graph(edge_tuples)
-    fill_edge_attributes!(g, conductors)
+    fill_edge_attributes!(g, edges)
     if length(loads) > 0
         fill_node_attributes!(g, loads)
     end
@@ -190,13 +198,14 @@ graph["b1", "b2"][:Conductor][:r0]
 ```
 """
 function fill_edge_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractEdge})
-    edge_fieldnames = fieldnames(typeof(vals[1]))
-    type = split(string(typeof(vals[1])), ".")[end]  # e.g. "CommonOPF.Conductor" -> "Conductor"
     for edge in vals
         b1, b2 = edge.busses
         if !isempty(g[b1, b2])
             @warn "Filling in edge $(edge.busses) with existing attributes $(g[b1, b2])"
         end
+        # TODO memoize next two lines or make more efficient some other way
+        edge_fieldnames = fieldnames(typeof(edge))
+        type = split(string(typeof(edge)), ".")[end]  # e.g. "CommonOPF.Conductor" -> "Conductor"
         g[b1, b2][Symbol(type)] = Dict(
             fn => getfield(edge, fn) for fn in edge_fieldnames if !ismissing(getfield(edge, fn))
         )
