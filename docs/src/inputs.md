@@ -6,28 +6,28 @@ CommmonOPF provides three ways to construct the [Network Model](@ref) model:
 
 Only `conductors` are required to build the `Network`
 
-## Conductors
+## Conductor
 ```@docs
 CommonOPF.Conductor
 ```
 
-## Loads
+## Load
 ```@docs
 CommonOPF.Load
 Base.getindex(net::Network, bus::String, kws_kvars::Symbol, phase::Int)
 ```
 
-## Voltage Regulators
+## VoltageRegulator
 ```@docs
 CommonOPF.VoltageRegulator
 ```
 
-## Shunt Impedances
+## ShuntImpedance
 ```@docs
 CommonOPF.ShuntImpedance
 ```
 
-## Shunt Admittances
+## ShuntAdmittance
 ```@docs
 CommonOPF.ShuntAdmittance
 ```

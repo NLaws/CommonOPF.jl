@@ -75,7 +75,7 @@ OPTIONAL_BUS_SYMBOLS_TYPES = Dict(
     function Network(d::Dict)
 
 Construct a `Network` from a dictionary that has at least keys for:
-1. `:conductors`, a vector of dicts with `Conductor` specs
+1. `:conductors`, a vector of dicts with [Conductor](@ref) specs
 2. `:network`, a dict with at least `:substation_bus`
 """
 function Network(d::Dict)
