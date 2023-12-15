@@ -75,7 +75,9 @@ export
     voltage_regulator_busses,
     is_connected,
     real_load_busses,
-    reactive_load_busses
+    reactive_load_busses,
+    # test Networks
+    Network_IEEE13_SinglePhase
 
 
 include("graphs.jl")

@@ -279,3 +279,13 @@ function is_connected(net::Network)::Bool
     length(Graphs.weakly_connected_components(net.graph)) == 1
     # TODO undirected graphs, strongly_connected_components
 end
+
+
+# some test networks for use in BranchFlowModel.jl, etc.
+
+function Network_IEEE13_SinglePhase()
+    fp = joinpath(dirname(@__FILE__), 
+        "..", "test", "data", "yaml_inputs", "ieee13_single_phase.yaml"
+    )
+    return Network(fp)
+end
