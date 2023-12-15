@@ -48,21 +48,8 @@ end
 
 LOAD_KEYS = [:kws1, :kvars1, :kws2, :kvars2, :kws3, :kvars3]
 
-function build_loads(d::Dict)::AbstractVector{Load}
-    if !(:loads in keys(d))
-        return Load[]
-    end
-    # String(int) does not work, have to use string(int) :/
-    for ld in d[:loads]
-        ld[:bus] = string(ld[:bus])
-    end
-    loads = Load[Load(;ld...) for ld in d[:loads]]
-    check_loads!(loads)
-    return loads
-end
 
-
-function check_loads!(loads::AbstractVector{Load})
+function check_busses!(loads::AbstractVector{Load})
     indices_to_delete = Int[]
     for (idx, load) in enumerate(loads)
         if all(ismissing.((

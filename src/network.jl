@@ -61,6 +61,10 @@ REQUIRED_EDGE_SYMBOLS_TYPES = Dict(
 )
 
 OPTIONAL_EDGE_SYMBOLS_TYPES = Dict(
+)
+
+OPTIONAL_BUS_SYMBOLS_TYPES = Dict(
+    :loads => Load,
     :voltage_regulators => VoltageRegulator
 )
 
@@ -82,17 +86,24 @@ function Network(d::Dict)
             edges = vcat(edges, build_edges(d[edge_symbol], EdgeType))
         end
     end
+    # Single vs. MultiPhase is determined by edge.phases
     net_type = SinglePhase
     if any((!ismissing(e.phases) for e in edges))
         net_type = MultiPhase
     end
-    loads = build_loads(d)
+    busses = AbstractBus[]
+    for (bus_symbol, BusType) in OPTIONAL_BUS_SYMBOLS_TYPES
+        if bus_symbol in keys(d)
+            busses = vcat(busses, build_busses(d[bus_symbol], BusType))
+        end
+    end
+
     # make the graph
     edge_tuples = collect(e.busses for e in edges)
     g = make_graph(edge_tuples)
     fill_edge_attributes!(g, edges)
-    if length(loads) > 0
-        fill_node_attributes!(g, loads)
+    if length(busses) > 0
+        fill_node_attributes!(g, busses)
     end
     return Network(g, d[:network], net_type)
 end
@@ -223,8 +234,6 @@ end
 
 
 function fill_node_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractBus})
-    node_fieldnames = fieldnames(typeof(vals[1]))
-    type = split(string(typeof(vals[1])), ".")[end]  # e.g. "CommonOPF.Load" -> "Load"
     for node in vals
         if !(node.bus in labels(g))
             @warn "Bus $(node.bus) is not in the graph after adding edges but has attributes:\n"*
@@ -235,6 +244,8 @@ function fill_node_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVe
         if !isempty(g[node.bus])
             @warn "Filling in node $(node.bus) with existing attributes $(g[node.bus])"
         end
+        node_fieldnames = fieldnames(typeof(node))
+        type = split(string(typeof(node)), ".")[end]  # e.g. "CommonOPF.Load" -> "Load"
         g[node.bus][Symbol(type)] = Dict(
             fn => getfield(node, fn) for fn in node_fieldnames if !ismissing(getfield(node, fn))
         )

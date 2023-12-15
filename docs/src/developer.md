@@ -1,20 +1,29 @@
-# Pattern for Edge and Bus models
-1. make a `mutable struct` using `with_kw` (for ease of parameter validation) for `YourType`
-    - subtype either `AbstractEdge` or `AbstractBus`
+# Creating a `Network`
+The `Network` struct is used to build models in BranchFlowModel.jl, LoadFlow.jl, and LinDistFlow.jl.
+CommonOPF.jl parses input files into a `Dict{Symbol, Vector{Dict}}` for each input type. Input types
+all subtype either `CommonOPF.AbstractEdge` or `CommonOPF.AbstractBus`. Concrete edge and bus
+models/structs get stored in `Network.graph`, which is a subtype of `MetaGraphsNext.AbstractGraph`.
+One can then easily extend `MetaGraphsNext` and `Graphs` methods using the `Network.graph` like so:
+```julia
+Graphs.edges(net::AbstractNetwork) = MetaGraphsNext.edge_labels(net.graph)
+```
+
+# Adding a Bus device
+1. add `:your_symbol => YourType` to the `OPTIONAL_BUS_SYMBOLS_TYPES`
+    - `:your_symbol` is used to look for inputs in user provided files
+2. create `YourType` that has at a minimum:
+    ```julia
+    @with_kw struct YourType <: AbstractBus
+        bus::String
+    end
+    ```
     - any required fields should have no default
     - any optional fields should have default of `missing`
-2. Define a constructor `function build_{your_types}` for your new edge or bus that takes a `dict`
-   as the only argument
-    - the `dict` is parsed from `yaml` or `json` file(s). For example, the `build_loads` function
-      requires a `:loads` key in the `dict`
-    - replace any `missing` fields that must be derived from user inputs (i.e. things needed in the
-      power flow model)
-        - for example, in a `Load` the reactive power can be derived using the `q_to_p` value
-    - the constructor function must return a subtype of `AbstractVector{YourType}`
-3. Ensure commptibilty with the `MetaGraph`
-    - If you subtyped `AbstractEdge` make sure the `AbstractVector{YourType}` returned from your
-   constructor is compatible with `fill_edge_attributes!`. 
-    - If you subtyped `AbstractBus` make sure the `AbstractVector{YourType}` returned from your
+4. OPTIONALLY define a `check_busses!(busses::AbstractVector{YourType})` method
+    - `check_busses!` is used in the `Network` builder after unpacking user input dicts into `YourType`
+    constructor
+3. Ensure compatibility with the `MetaGraph`
+    - make sure the `AbstractVector{YourType}` returned from your
    constructor is compatible with `fill_node_attributes!`.
 
 The `fill_{edge,node}_attributes!` methods are used in the `Network` builder to store all the
@@ -28,3 +37,20 @@ You might also want to extend the `Network` interface for your type. For example
 ```julia
 load_busses(net::AbstractNetwork) = (b for b in busses(net) if haskey(net[b], :Load))
 ```
+
+# Adding an Edge device
+1. add `:your_symbol => YourType` to the `OPTIONAL_EDGE_SYMBOLS_TYPES` or `REQUIRED_EDGE_SYMBOLS_TYPES`
+    - `:your_symbol` is used to look for inputs in user provided files
+2. create `YourType` that has at a minimum:
+    ```julia
+    @with_kw mutable struct YourType <: AbstractEdge
+        busses::Tuple{String, String}
+        phases::Union{Vector{Int}, Missing} = missing
+    end
+    ```
+4. OPTIONALLY define a `check_edges!(edges::AbstractVector{YourType})` method
+    - `check_edges!` is used in the `Network` builder after unpacking user input dicts into `YourType`
+    constructor
+5. Ensure compatibility with the `MetaGraph`
+    - make sure the `AbstractVector{YourType}` returned from your
+   constructor is compatible with `fill_edge_attributes!`. 

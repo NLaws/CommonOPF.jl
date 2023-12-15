@@ -1,5 +1,8 @@
 # CommonOPF Changelog
 
+## dev
+- add `:voltage_regulators => VoltageRegulator` as a new bus input
+
 ## v0.4.0
 - change dependency MetaGraphs to MetaGraphsNext
 - add `Network` (which will replace `Inputs` eventually)

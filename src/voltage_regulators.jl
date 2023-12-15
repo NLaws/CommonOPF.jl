@@ -3,9 +3,9 @@
 """
     struct VoltageRegulator <: AbstractBus
 """
-@with_kw struct VoltageRegulator <: AbstractEdge
+@with_kw struct VoltageRegulator <: AbstractBus
     # required values
-    busses::Tuple{String, String}
+    bus::String
     vreg_pu::Real
     # optional values
     phases::Union{Vector{Int}, Missing} = missing
