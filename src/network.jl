@@ -65,7 +65,9 @@ OPTIONAL_EDGE_SYMBOLS_TYPES = Dict(
 
 OPTIONAL_BUS_SYMBOLS_TYPES = Dict(
     :loads => Load,
-    :voltage_regulators => VoltageRegulator
+    :voltage_regulators => VoltageRegulator,
+    :shunt_impedances => ShuntImpedance,
+    :shunt_admittances => ShuntAdmittance
 )
 
 
@@ -281,11 +283,22 @@ function is_connected(net::Network)::Bool
 end
 
 
+##############################################################################
+##############################################################################
+##############################################################################
 # some test networks for use in BranchFlowModel.jl, etc.
 
 function Network_IEEE13_SinglePhase()
     fp = joinpath(dirname(@__FILE__), 
         "..", "test", "data", "yaml_inputs", "ieee13_single_phase.yaml"
+    )
+    return Network(fp)
+end
+
+
+function Network_Papavasiliou_2018()
+    fp = joinpath(dirname(@__FILE__), 
+        "..", "test", "data", "yaml_inputs", "Papavasiliou_2018_with_shunts.yaml"
     )
     return Network(fp)
 end

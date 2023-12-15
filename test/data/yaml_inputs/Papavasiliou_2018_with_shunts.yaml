@@ -1,0 +1,239 @@
+network:
+  substation_bus: 0
+  Sbase: 1
+
+conductors:
+
+  - busses: 
+      - 0
+      - 1
+    r1: 0.001
+    x1: 0.12
+    length: 1
+
+  - busses:
+      - 1
+      - 2
+    r1: 0.0883
+    x1: 0.1262
+    length: 1
+
+  - busses:
+      - 2
+      - 3
+    r1: 0.1384
+    x1: 0.1978
+    length: 1
+
+  - busses:
+      - 3
+      - 4
+    r1: 0.0191
+    x1: 0.0273
+    length: 1
+
+  - busses:
+      - 4
+      - 5
+    r1: 0.0175
+    x1: 0.0251
+    length: 1
+
+  - busses:
+      - 5
+      - 6
+    r1: 0.0482
+    x1: 0.0689
+    length: 1
+
+  - busses:
+      - 3
+      - 7
+    r1: 0.0523
+    x1: 0.0747
+    length: 1
+
+  - busses:
+      - 7
+      - 8
+    r1: 0.0407
+    x1: 0.0582
+    length: 1
+
+  - busses:
+      - 7
+      - 9
+    r1: 0.01
+    x1: 0.0143
+    length: 1
+
+  - busses:
+      - 9
+      - 10
+    r1: 0.0241
+    x1: 0.0345
+    length: 1
+
+  - busses:
+      - 10
+      - 11
+    r1: 0.0103
+    x1: 0.0148
+    length: 1
+
+  - busses:
+      - 0
+      - 12
+    r1: 0.001
+    x1: 0.12
+    length: 1
+
+  - busses:
+      - 12
+      - 13
+    r1: 0.1559
+    x1: 0.1119
+    length: 1
+
+  - busses:
+      - 13
+      - 14
+    r1: 0.0953
+    x1: 0.0684
+    length: 1
+
+loads:
+  - bus: 1
+    kws1: 
+      - 0.7936
+    kvars1: 
+      - 0.01855
+
+  - bus: 3
+    kws1: 
+      - 0.0201
+    kvars1: 
+      - 0.0084
+      
+  - bus: 4
+    kws1: 
+      - 0.0173
+    kvars1: 
+      - 0.0043
+      
+  - bus: 5
+    kws1: 
+      - 0.0291
+    kvars1: 
+      - 0.0073
+      
+  - bus: 6
+    kws1: 
+      - 0.0219
+    kvars1: 
+      - 0.0055
+      
+  - bus: 7
+    kws1: 
+      - -0.1969  # uncontrolled generator
+    kvars1: 
+      - 0.0019
+      
+  - bus: 8
+    kws1: 
+      - 0.0235
+    kvars1: 
+      - 0.0059
+      
+  - bus: 9
+    kws1: 
+      - 0.0229
+    kvars1: 
+      - 0.0142
+      
+  - bus: 10
+    kws1: 
+      - 0.0217
+    kvars1: 
+      - 0.0065
+      
+  - bus: 11
+    kws1: 
+      - 0.0132
+    kvars1: 
+      - 0.0033
+      
+  - bus: 12
+    kws1: 
+      - 0.6219
+    kvars1: 
+      - 0.1291
+      
+  - bus: 13
+    kws1: 
+      - 0.0014
+    kvars1: 
+      - 0.0008
+      
+  - bus: 14
+    kws1: 
+      - 0.0224
+    kvars1: 
+      - 0.0083
+      
+shunt_admittances:
+  - bus: 1
+    g: 0
+    b: 1.1
+
+  - bus: 2
+    g: 0
+    b: 2.8
+
+  - bus: 3
+    g: 0
+    b: 2.4
+
+  - bus: 4
+    g: 0
+    b: 2.4
+
+  - bus: 5
+    g: 0
+    b: 0.8
+
+  - bus: 6
+    g: 0
+    b: 0.6
+
+  - bus: 7
+    g: 0
+    b: 0.6
+
+  - bus: 8
+    g: 0
+    b: 1.2
+
+  - bus: 9
+    g: 0
+    b: 0.4
+
+  - bus: 10
+    g: 0
+    b: 0.4
+
+  - bus: 11
+    g: 0
+    b: 0.1
+
+  - bus: 12
+    g: 0
+    b: 0.1
+
+  - bus: 13
+    g: 0
+    b: 0.2
+
+  - bus: 14
+    g: 0
+    b: 0.1

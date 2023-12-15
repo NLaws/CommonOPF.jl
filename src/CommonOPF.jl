@@ -77,19 +77,25 @@ export
     real_load_busses,
     reactive_load_busses,
     # test Networks
-    Network_IEEE13_SinglePhase
+    Network_IEEE13_SinglePhase,
+    Network_Papavasiliou_2018
 
 
 include("graphs.jl")
 include("io.jl")
 include("types.jl")
 include("inputs.jl")
+
 include("busses.jl")
+include("loads.jl")
+include("shunts.jl")
+include("voltage_regulators.jl")
+
 include("edges.jl")
 include("conductors.jl")
-include("voltage_regulators.jl")
-include("loads.jl")
+
 include("network.jl")
+
 include("utils.jl")
 include("results.jl")
 
