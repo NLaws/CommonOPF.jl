@@ -187,6 +187,8 @@ busses(net::AbstractNetwork) = MetaGraphsNext.labels(net.graph)
 
 load_busses(net::AbstractNetwork) = (b for b in busses(net) if haskey(net[b], :Load))
 
+voltage_regulator_busses(net::AbstractNetwork) = (b for b in busses(net) if haskey(net[b], :VoltageRegulator))
+
 
 real_load_busses(net::Network{SinglePhase}) = (b for b in load_busses(net) if haskey(net[b][:Load], :kws1))
 
@@ -219,13 +221,13 @@ graph["b1", "b2"][:Conductor][:r0]
 """
 function fill_edge_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractEdge})
     for edge in vals
-        b1, b2 = edge.busses
-        if !isempty(g[b1, b2])
-            @warn "Filling in edge $(edge.busses) with existing attributes $(g[b1, b2])"
-        end
         # TODO memoize next two lines or make more efficient some other way
         edge_fieldnames = fieldnames(typeof(edge))
         type = split(string(typeof(edge)), ".")[end]  # e.g. "CommonOPF.Conductor" -> "Conductor"
+        b1, b2 = edge.busses
+        if !isempty( get(g[b1, b2], Symbol(type), []) )
+            @warn "Replacing existing attributes $(g[b1, b2][Symbol(type)]) in edge $(edge.busses)"
+        end
         g[b1, b2][Symbol(type)] = Dict(
             fn => getfield(edge, fn) for fn in edge_fieldnames if !ismissing(getfield(edge, fn))
         )
@@ -241,11 +243,11 @@ function fill_node_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVe
                 "You will have to manually add bus $(node.bus) if you want it in the graph."
             continue
         end
-        if !isempty(g[node.bus])
-            @warn "Filling in node $(node.bus) with existing attributes $(g[node.bus])"
-        end
         node_fieldnames = fieldnames(typeof(node))
         type = split(string(typeof(node)), ".")[end]  # e.g. "CommonOPF.Load" -> "Load"
+        if !isempty( get(g[node.bus], Symbol(type), []) )
+            @warn "Replacing existing attributes $(g[node.bus][Symbol(type)]) in node $(node.bus)"
+        end
         g[node.bus][Symbol(type)] = Dict(
             fn => getfield(node, fn) for fn in node_fieldnames if !ismissing(getfield(node, fn))
         )

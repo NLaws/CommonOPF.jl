@@ -72,6 +72,7 @@ export
     add_edge!,
     conductors_with_attribute_value,
     load_busses,
+    voltage_regulator_busses,
     is_connected,
     real_load_busses,
     reactive_load_busses
