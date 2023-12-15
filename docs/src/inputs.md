@@ -10,6 +10,7 @@ Only `conductors` are required to build the `Network`
 ```@docs
 CommonOPF.Conductor
 ```
+
 ## Loads
 ```@docs
 CommonOPF.Load
@@ -19,5 +20,15 @@ Base.getindex(net::Network, bus::String, kws_kvars::Symbol, phase::Int)
 ## Voltage Regulators
 ```@docs
 CommonOPF.VoltageRegulator
+```
+
+## Shunt Impedances
+```@docs
+CommonOPF.ShuntImpedance
+```
+
+## Shunt Admittances
+```@docs
+CommonOPF.ShuntAdmittance
 ```
 
