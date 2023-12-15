@@ -2,6 +2,7 @@
 ```@docs
 Network
 Network(fp::String)
+Network(d::Dict)
 ```
 
 ## Edges

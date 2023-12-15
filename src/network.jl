@@ -16,7 +16,7 @@ For example, `edges(network)` returns it iterator of edge tuples with bus name v
 (but if we used `Graphs.edges(MetaGraph)` we would get an iterator of Graphs.SimpleGraphs.SimpleEdge 
 with integer values).
 
-A Network can be created directly or via a filepath.
+A Network can be created directly, via a `Dict`, or a filepath.
 """
 mutable struct Network{T<:Phases} <: AbstractNetwork
     graph::MetaGraphsNext.AbstractGraph

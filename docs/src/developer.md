@@ -9,7 +9,15 @@ Graphs.edges(net::AbstractNetwork) = MetaGraphsNext.edge_labels(net.graph)
 ```
 
 # Adding a Bus device
-1. add `:your_symbol => YourType` to the `OPTIONAL_BUS_SYMBOLS_TYPES`
+The current Bus devices are:
+```@eval
+using CommonOPF
+import InteractiveUtils: subtypes
+
+subtypes(CommonOPF.AbstractBus)
+```
+To add a new Bus device:
+1. add `:your_symbol => YourType` to the `OPTIONAL_BUS_SYMBOLS_TYPES` 
     - `:your_symbol` is used to look for inputs in user provided files
 2. create `YourType` that has at a minimum:
     ```julia
@@ -39,6 +47,14 @@ load_busses(net::AbstractNetwork) = (b for b in busses(net) if haskey(net[b], :L
 ```
 
 # Adding an Edge device
+The current Edge devices are:
+```@eval
+using CommonOPF
+import InteractiveUtils: subtypes
+
+subtypes(CommonOPF.AbstractEdge)
+```
+To add a new Edge device:
 1. add `:your_symbol => YourType` to the `OPTIONAL_EDGE_SYMBOLS_TYPES` or `REQUIRED_EDGE_SYMBOLS_TYPES`
     - `:your_symbol` is used to look for inputs in user provided files
 2. create `YourType` that has at a minimum:
