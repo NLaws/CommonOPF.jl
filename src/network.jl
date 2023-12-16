@@ -5,6 +5,9 @@
         Sbase::Real
         Vbase::Real
         Zbase::Real
+        v0::Union{Real, AbstractVecOrMat{<:Number}}
+        Ntimesteps::Int
+        v_lolim::Real
     end
 
 The `Network` model is used to store all the inputs required to create power flow and

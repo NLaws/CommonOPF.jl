@@ -4,8 +4,39 @@ CommmonOPF provides three ways to construct the [Network Model](@ref) model:
 2. JSON file(s)
 3. Julia code (manual)
 
-Only `Conductor`s are required to build the `Network`. Note that the input keys are, singular,
-CamelCase words to align with the data type names.
+Only `Network` and `Conductor` are required to build the `Network`. Note that the input keys are, singular,
+CamelCase words to align with the data type names. For example a single phase, single time step
+model looks like:
+```yaml
+Network:
+  substation_bus: b1
+
+Conductor:
+  - name: cond1
+    busses: 
+      - b1
+      - b2
+    r1: 0.301  # impedance has units of ohm/per-unit-length
+    x1: 0.627
+    length: 100
+  - busses:
+      - b2
+      - b3
+    template: cond1  # <- reuse impedance of cond1
+    length: 200
+
+Load:
+  - bus: b2
+    kws1: 
+      - 5.6  # you can specify more loads at each bus to add time steps
+    kvars1: 
+      - 1.2
+  - bus: b3
+    kws1: 
+      - 5.6
+    kvars1: 
+      - 1.2
+```
 
 ## Conductor
 ```@docs
