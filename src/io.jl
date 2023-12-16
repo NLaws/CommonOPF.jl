@@ -574,35 +574,24 @@ Check dict has required top-level keys:
 Convert busses to Tuple
 """
 function format_input_dict(d::Dict)::Dict
-    missing_keys = []
     keys_to_format = [
-        (:conductors, [:busses], true),  # bool for array values
+        (:Conductor, [:busses], true),  # bool for array values
         # (:network, [:substation_bus], false),
     ]
     for (rkey, subkeys, is_array) in keys_to_format
         if !(rkey in keys(d))
-            push!(missing_keys, rkey)
-        else
-            if is_array  # arrays require another level of iteration
-                for sub_dict in d[rkey]
-                    for skey in subkeys
-                        if skey == :busses
-                            # convert Vector{String} to Tuple{String, String}
-                            sub_dict[:busses] = Tuple(string.(sub_dict[:busses]))
-                        end
+            continue
+        end
+        if is_array  # arrays require another level of iteration
+            for sub_dict in d[rkey]
+                for skey in subkeys
+                    if skey == :busses
+                        # convert Vector{String} to Tuple{String, String}
+                        sub_dict[:busses] = Tuple(string.(sub_dict[:busses]))
                     end
                 end
-            # else  # non-array types
-            #     for skey in subkeys
-            #         if !(skey in keys(d[rkey]))
-            #             push!(missing_keys, skey)
-            #         end
-            #     end
             end
         end
-    end
-    if length(missing_keys) > 0
-        throw(ErrorException("Network yaml specification missing requried keys: $(missing_keys)"))
     end
     return d
 end

@@ -17,9 +17,7 @@ import InteractiveUtils: subtypes
 subtypes(CommonOPF.AbstractBus)
 ```
 To add a new Bus device:
-1. add `:your_symbol => YourType` to the `OPTIONAL_BUS_SYMBOLS_TYPES` 
-    - `:your_symbol` is used to look for inputs in user provided files
-2. create `YourType` that has at a minimum:
+1. create `YourType` that has at a minimum:
     ```julia
     @with_kw struct YourType <: AbstractBus
         bus::String
@@ -27,7 +25,7 @@ To add a new Bus device:
     ```
     - any required fields should have no default
     - any optional fields should have default of `missing`
-4. OPTIONALLY define a `check_busses!(busses::AbstractVector{YourType})` method
+2. OPTIONALLY define a `check_busses!(busses::AbstractVector{YourType})` method
     - `check_busses!` is used in the `Network` builder after unpacking user input dicts into `YourType`
     constructor
 3. Ensure compatibility with the `MetaGraph`
@@ -55,18 +53,16 @@ import InteractiveUtils: subtypes
 subtypes(CommonOPF.AbstractEdge)
 ```
 To add a new Edge device:
-1. add `:your_symbol => YourType` to the `OPTIONAL_EDGE_SYMBOLS_TYPES` or `REQUIRED_EDGE_SYMBOLS_TYPES`
-    - `:your_symbol` is used to look for inputs in user provided files
-2. create `YourType` that has at a minimum:
+1. create `YourType` that has at a minimum:
     ```julia
     @with_kw mutable struct YourType <: AbstractEdge
         busses::Tuple{String, String}
         phases::Union{Vector{Int}, Missing} = missing
     end
     ```
-4. OPTIONALLY define a `check_edges!(edges::AbstractVector{YourType})` method
+2. OPTIONALLY define a `check_edges!(edges::AbstractVector{YourType})` method
     - `check_edges!` is used in the `Network` builder after unpacking user input dicts into `YourType`
     constructor
-5. Ensure compatibility with the `MetaGraph`
+3. Ensure compatibility with the `MetaGraph`
     - make sure the `AbstractVector{YourType}` returned from your
    constructor is compatible with `fill_edge_attributes!`. 

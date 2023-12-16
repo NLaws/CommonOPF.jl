@@ -56,36 +56,24 @@ function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict, net_type::Type)
 end
 
 
-REQUIRED_EDGE_SYMBOLS_TYPES = Dict(
-    :conductors => Conductor
-)
-
-OPTIONAL_EDGE_SYMBOLS_TYPES = Dict(
-)
-
-OPTIONAL_BUS_SYMBOLS_TYPES = Dict(
-    :loads => Load,
-    :voltage_regulators => VoltageRegulator,
-    :shunt_impedances => ShuntImpedance,
-    :shunt_admittances => ShuntAdmittance
-)
+REQUIRED_EDGES = [Conductor]
 
 
 """
     function Network(d::Dict)
 
 Construct a `Network` from a dictionary that has at least keys for:
-1. `:conductors`, a vector of dicts with [Conductor](@ref) specs
-2. `:network`, a dict with at least `:substation_bus`
+1. `:Conductor`, a vector of dicts with [Conductor](@ref) specs
+2. `:Network`, a dict with at least `:substation_bus`
 """
 function Network(d::Dict)
     edges = AbstractEdge[]
-    for (edge_symbol, EdgeType) in REQUIRED_EDGE_SYMBOLS_TYPES
-        edges = vcat(edges, build_edges(d[edge_symbol], EdgeType))
-    end
-    for (edge_symbol, EdgeType) in OPTIONAL_EDGE_SYMBOLS_TYPES
-        if edge_symbol in keys(d)
-            edges = vcat(edges, build_edges(d[edge_symbol], EdgeType))
+    for EdgeType in subtypes(AbstractEdge)
+        dkey = Symbol(split(string(EdgeType), ".")[end])  # left-strip CommonOPF.
+        if dkey in keys(d)
+            edges = vcat(edges, build_edges(d[dkey], EdgeType))
+        elseif EdgeType in REQUIRED_EDGES
+            throw(error("Missing required input $(string(dkey))"))
         end
     end
     # Single vs. MultiPhase is determined by edge.phases
@@ -94,11 +82,13 @@ function Network(d::Dict)
         net_type = MultiPhase
     end
     busses = AbstractBus[]
-    for (bus_symbol, BusType) in OPTIONAL_BUS_SYMBOLS_TYPES
-        if bus_symbol in keys(d)
-            busses = vcat(busses, build_busses(d[bus_symbol], BusType))
+    for BusType in subtypes(AbstractBus)
+        dkey = Symbol(split(string(BusType), ".")[end])   # left-strip CommonOPF.
+        if dkey in keys(d)
+            busses = vcat(busses, build_busses(d[dkey], BusType))
         end
     end
+    # NEXT all tests, examples need new keys to match type names
 
     # make the graph
     edge_tuples = collect(e.busses for e in edges)
@@ -107,7 +97,7 @@ function Network(d::Dict)
     if length(busses) > 0
         fill_node_attributes!(g, busses)
     end
-    return Network(g, d[:network], net_type)
+    return Network(g, d[:Network], net_type)
 end
 
 

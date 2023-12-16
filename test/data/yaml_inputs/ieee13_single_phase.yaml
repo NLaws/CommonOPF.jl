@@ -1,9 +1,9 @@
-network:
+Network:
   substation_bus: 650
   Sbase: 5000000
   Vbase: 2400  # 4160/sqrt(3), low side of substation trfx
 
-conductors:
+Conductor:
   - name: mtx601
     busses: 
       - 650
@@ -102,7 +102,7 @@ conductors:
 # openDSS Manual says "Always use the kVA base of the first winding for entering impedances. 
 # Impedance values are entered in percent."
 
-loads:
+Load:
   - bus: 671
     kws1: 
       - 385

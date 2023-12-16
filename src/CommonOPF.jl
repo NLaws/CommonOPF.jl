@@ -8,6 +8,7 @@ import PowerModelsDistribution: parse_dss, DELTA
 import Logging: SimpleLogger, Error, with_logger
 import YAML
 import Parameters: @with_kw
+import InteractiveUtils: subtypes
 
 const SBASE_DEFAULT = 1_000_000
 const VBASE_DEFAULT = 12_470

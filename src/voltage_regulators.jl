@@ -25,14 +25,14 @@ netdict = Dict(
 ```
 ## YAML file
 ```yaml
-network:
+Network:
   substation_bus: 0
   Sbase: 1
 
-conductors:
+Conductor:
     ...
 
-voltage_regulators:
+VoltageRegulator:
   bus: 2
   vreg_pu: 1.05
 ```

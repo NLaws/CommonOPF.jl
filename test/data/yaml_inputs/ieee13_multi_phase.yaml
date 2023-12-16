@@ -1,9 +1,9 @@
-network:
+Network:
   substation_bus: 650
   Sbase: 5000000
   Vbase: 2400  # 4160/sqrt(3), low side of substation trfx
 
-conductors:
+Conductor:
   - name: mtx601
     busses: 
       - 650
@@ -129,7 +129,7 @@ conductors:
     r0: 0.0001
     x0: 0
 
-loads:
+Load:
   - bus: 671
     kws1: 
       - 385

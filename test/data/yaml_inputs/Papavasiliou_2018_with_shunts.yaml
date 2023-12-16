@@ -1,8 +1,8 @@
-network:
+Network:
   substation_bus: 0
   Sbase: 1
 
-conductors:
+Conductor:
 
   - busses: 
       - 0
@@ -102,7 +102,7 @@ conductors:
     x1: 0.0684
     length: 1
 
-loads:
+Load:
   - bus: 1
     kws1: 
       - 0.7936
@@ -181,7 +181,7 @@ loads:
     kvars1: 
       - 0.0083
       
-shunt_admittances:
+ShuntAdmittance:
   - bus: 1
     g: 0
     b: 1.1

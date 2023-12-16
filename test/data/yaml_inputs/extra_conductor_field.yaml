@@ -1,8 +1,8 @@
-network:
+Network:
   substation_bus: b1
   Sbase: 1e6
 
-conductors:
+Conductor:
   - name: cond1
     busses: 
       - b1

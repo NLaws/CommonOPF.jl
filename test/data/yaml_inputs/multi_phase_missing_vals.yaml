@@ -1,8 +1,8 @@
-network:
+Network:
   substation_bus: b1
   Sbase: 1e6
 
-conductors:
+Conductor:
   - name: cond1-missing-r1
     busses: 
       - b1
@@ -45,7 +45,7 @@ conductors:
       - [0.5, 1.05]
     length: 100
 
-loads:
+Load:
   - bus: b3
     kws1: 
       - 5.6

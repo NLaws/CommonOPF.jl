@@ -8,7 +8,7 @@ Interface for conductors in a Network. Fieldnames can be provided via a YAML fil
 # Single phase models
 The minimum inputs for a single phase conductor look like:
 ```yaml
-conductors:
+Conductor:
   - busses: 
       - b1
       - b2
@@ -21,7 +21,7 @@ Note that the order of the items in the YAML file does not matter.
 A conductor can also leverage a `template`, i.e. another conductor with a `name` that matches the
 `template` value so that we can re-use the impedance values:
 ```yaml
-conductors:
+Conductor:
   - name: cond1
     busses: 
       - b1
@@ -55,7 +55,7 @@ x1)` respectively; or via the lower-diagaonal portion of the phase-impedance mat
 Using the Multi-phase models require specifing `phases` (and the zero and positive sequence
 impedances) like:
 ```yaml
-conductors:
+Conductor:
   - busses: 
       - b1
       - b2
@@ -74,7 +74,7 @@ When the sequence impedances are provided the phase-impedance matrix is determin
 
 Alternatively one can specify the `rmatrix` and `xmatrix` like:
 ```yaml
-conductors:
+Conductor:
   - busses: 
       - b1
       - b2
