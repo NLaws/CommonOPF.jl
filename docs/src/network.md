@@ -9,7 +9,7 @@ Network(d::Dict)
 The edges of the Network model include all power transfer elements, i.e. the devices in the power
 system that move power from one place to another and therefore have two or more busses. Edges
 include:
-- [Conductors](@ref)
+- [Conductor](@ref)
 
 Within the network model edges are indexed via two-tuples of bus names (strings) like
 ```julia
@@ -27,4 +27,7 @@ terminals, where each phase-wire connects. Busses are implicitly specified in th
 edge specifications.
 
 Nodes contain:
-- [Loads](@ref)
+- [Load](@ref)
+- [ShuntAdmittance](@ref)
+- [ShuntImpedance](@ref)
+- [VoltageRegulator](@ref)
