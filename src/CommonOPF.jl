@@ -13,6 +13,17 @@ import InteractiveUtils: subtypes
 const SBASE_DEFAULT = 1_000_000
 const VBASE_DEFAULT = 12_470
 const DEFAULT_AMP_LIMIT = 1000.0
+const VARIABLE_NAMES = String[
+    "net_real_power_injection",
+    "net_reactive_power_injection",
+    "sending_end_real_power_flow",
+    "sending_end_reactive_power_flow",
+    "voltage_magnitude",
+    "voltage_magnitude_squared",
+    "voltage_angle",
+    "current_magnitude",
+    "current_magnitude_squared",
+]
 
 export 
     heads,
