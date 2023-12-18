@@ -24,6 +24,7 @@ const VARIABLE_NAMES = String[
     "current_magnitude",
     "current_magnitude_squared",
 ]
+VariableContainer = Dict{Int, Dict{String, Any}}
 
 export 
     heads,
@@ -90,7 +91,9 @@ export
     reactive_load_busses,
     # test Networks
     Network_IEEE13_SinglePhase,
-    Network_Papavasiliou_2018
+    Network_Papavasiliou_2018,
+    VARIABLE_NAMES,
+    VariableContainer
 
 
 include("graphs.jl")
