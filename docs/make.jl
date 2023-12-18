@@ -10,6 +10,7 @@ makedocs(
         "User Documentation" => "index.md",
         "Inputs" => "inputs.md",
         "The Network Model" => "network.md",
+        "Results" => "results.md",
         "Methods" => "methods.md",
         "Math" => "math.md",
         "Developer" => "developer.md"

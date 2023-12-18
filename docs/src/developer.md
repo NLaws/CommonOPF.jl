@@ -26,11 +26,9 @@ To add a new Bus device:
     - any required fields should have no default
     - any optional fields should have default of `missing`
 2. OPTIONALLY define a `check_busses!(busses::AbstractVector{YourType})` method
-    - `check_busses!` is used in the `Network` builder after unpacking user input dicts into `YourType`
-    constructor
+    - `check_busses!` is used in the `Network` builder after unpacking user input dicts into `YourType` constructor
 3. Ensure compatibility with the `MetaGraph`
-    - make sure the `AbstractVector{YourType}` returned from your
-   constructor is compatible with `fill_node_attributes!`.
+    - make sure the `AbstractVector{YourType}` returned from your constructor is compatible with `fill_node_attributes!`.
 
 The `fill_{edge,node}_attributes!` methods are used in the `Network` builder to store all the
 attributes of `YourType` in the `Network.graph`.  The `Network.graph` is used to build the power
@@ -61,11 +59,9 @@ To add a new Edge device:
     end
     ```
 2. OPTIONALLY define a `check_edges!(edges::AbstractVector{YourType})` method
-    - `check_edges!` is used in the `Network` builder after unpacking user input dicts into `YourType`
-    constructor
+    - `check_edges!` is used in the `Network` builder after unpacking user input dicts into `YourType` constructor
 3. Ensure compatibility with the `MetaGraph`
-    - make sure the `AbstractVector{YourType}` returned from your
-   constructor is compatible with `fill_edge_attributes!`. 
+    - make sure the `AbstractVector{YourType}` returned from your constructor is compatible with `fill_edge_attributes!`. 
 
 
 # JuMP Model Variables
