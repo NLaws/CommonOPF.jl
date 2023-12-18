@@ -1,7 +1,8 @@
 # CommonOPF Changelog
 
 ## dev
-- add `:voltage_regulators => VoltageRegulator` as a new bus input
+- add `VoltageRegulator`, `ShuntImpedance`, and `ShuntAdmittance` as a new bus inputs
+- add `Network.var_name_map` for parsing results
 
 ## v0.4.0
 - change dependency MetaGraphs to MetaGraphsNext

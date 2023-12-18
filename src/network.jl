@@ -8,18 +8,21 @@
         v0::Union{Real, AbstractVecOrMat{<:Number}}
         Ntimesteps::Int
         v_lolim::Real
+        var_name_map::Dict{String, Any}
     end
 
-The `Network` model is used to store all the inputs required to create power flow and
-optimal power flow models. Underlying the Network model is a `MetaGraphsNext.MetaGraph` that stores
-the edge and node data in the network. 
+The `Network` model is used to store all the inputs required to create power flow and optimal power
+flow models. Underlying the Network model is a `MetaGraphsNext.MetaGraph` that stores the edge and
+node data in the network. 
 
-We leverage the `AbstractNetwork` type to make an intuitive interface for the Network model. 
-For example, `edges(network)` returns it iterator of edge tuples with bus name values; 
-(but if we used `Graphs.edges(MetaGraph)` we would get an iterator of Graphs.SimpleGraphs.SimpleEdge 
-with integer values).
+We leverage the `AbstractNetwork` type to make an intuitive interface for the Network model. For
+example, `edges(network)` returns an iterator of edge tuples with bus name values; (but if we used
+`Graphs.edges(MetaGraph)` we would get an iterator of Graphs.SimpleGraphs.SimpleEdge with integer
+values).
 
-A Network can be created directly, via a `Dict`, or a filepath.
+A Network can be created directly, via a `Dict`, or a filepath. The minimum inputs must have a
+vector of [Conductor](@ref) specifications and a `Network` key containing at least the
+`substation_bus`. See [Input Formats](@ref) for more details.
 """
 mutable struct Network{T<:Phases} <: AbstractNetwork
     graph::MetaGraphsNext.AbstractGraph
@@ -30,6 +33,7 @@ mutable struct Network{T<:Phases} <: AbstractNetwork
     v0::Union{Real, AbstractVecOrMat{<:Number}}
     Ntimesteps::Int
     v_lolim::Real
+    var_name_map::Dict{String, Any}
 end
 
 
@@ -54,7 +58,8 @@ function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict, net_type::Type)
         Zbase,
         v0,
         Ntimesteps,
-        v_lolim
+        v_lolim,
+        Dict{String, Any}()
     )
 end
 
@@ -111,7 +116,12 @@ Construct a `Network` from a yaml at the file path `fp`.
 """
 function Network(fp::String)
     # parse inputs
-    d = load_yaml(fp)
+    if endswith(lowercase(fp), "yaml") ||  endswith(lowercase(fp), "yml")
+        d = load_yaml(fp)
+    else
+        # TODO json
+        throw(error("Only parsing yaml (or yml) files so far."))
+    end
     Network(d)
 end
 
