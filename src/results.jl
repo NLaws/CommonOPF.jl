@@ -1,3 +1,14 @@
+function get_variable_values(model_key::Any, m::JuMP.AbstractModel; digits=8)
+    # collect vectors of time for each bus or edge
+    # TODO how to handle matrix variables?
+    # TODO this will only work for SinglePhase?
+    return Dict(
+        bus_or_edge_string => round.(value.(m[model_key][bus_or_edge_string]), digits=digits)
+        for bus_or_edge_string in keys(m[model_key])
+    )
+end
+
+
 """
     get_variable_values(var::Symbol, m::JuMP.AbstractModel, p::Inputs{SinglePhase}; digits=6)
 

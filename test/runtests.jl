@@ -1,5 +1,6 @@
 using CommonOPF
 using Test
+using JuMP
 import Logging: with_logger
 
 test_logger = TestLogger()
@@ -24,6 +25,8 @@ with_logger(test_logger) do
 @testset "CommonOPF.jl" begin
 
 include("test_network.jl")
+
+include("test_results.jl")
 
 @testset "merge parallel single phase lines" begin
     #= 
