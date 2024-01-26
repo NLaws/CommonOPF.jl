@@ -24,7 +24,7 @@ const VARIABLE_NAMES = String[
     "current_magnitude",
     "current_magnitude_squared",
 ]
-VariableContainer = Dict{Int, Dict{String, Any}}
+VariableContainer = Dict{String, Dict{Int, Any}}  # edge/bus String, time step Int, variable(s)
 
 export 
     heads,
