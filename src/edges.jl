@@ -2,7 +2,7 @@
 
 
 """
-    function build_edges(dicts::AbstractVector{Dict}, Edge::DataType) where T <: AbstractEdge
+    function build_edges(dicts::AbstractVector{Dict}, Edge::DataType)
 
 unpack each dict in `dicts` into `Edge` and pass the results to `check_edges!`.
 returns `Vector{T}`

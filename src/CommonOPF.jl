@@ -93,7 +93,8 @@ export
     Network_IEEE13_SinglePhase,
     Network_Papavasiliou_2018,
     VARIABLE_NAMES,
-    VariableContainer
+    VariableContainer,
+    add_time_vector_variables!
 
 
 include("graphs.jl")
@@ -112,6 +113,7 @@ include("conductors.jl")
 include("network.jl")
 
 include("utils.jl")
+include("variables.jl")
 include("results.jl")
 
 
