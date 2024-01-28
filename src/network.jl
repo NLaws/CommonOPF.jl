@@ -8,6 +8,7 @@
         v0::Union{Real, AbstractVecOrMat{<:Number}}
         Ntimesteps::Int
         v_lolim::Real
+        v_uplim::Real
         var_name_map::Dict{String, Any}
     end
 
@@ -33,6 +34,7 @@ mutable struct Network{T<:Phases} <: AbstractNetwork
     v0::Union{Real, AbstractVecOrMat{<:Number}}
     Ntimesteps::Int
     v_lolim::Real
+    v_uplim::Real
     var_name_map::Dict{String, Any}
 end
 
@@ -46,10 +48,11 @@ function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict, net_type::Type)
     # TODO MultiPhase based on inputs
     Sbase = get(ntwk, :Sbase, 1)
     Vbase = get(ntwk, :Vbase, 1)
-    Zbase = Vbase^2 / Sbase
+    Zbase = get(ntwk, :Zbase, Vbase^2 / Sbase)
     v0 = get(ntwk, :v0, 1)
     Ntimesteps = get(ntwk, :Ntimesteps, 1)
     v_lolim = get(ntwk, :v_lolim, 0)
+    v_uplim = get(ntwk, :v_uplim, 2)
     Network{net_type}(
         g,
         string(ntwk[:substation_bus]),
@@ -59,6 +62,7 @@ function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict, net_type::Type)
         v0,
         Ntimesteps,
         v_lolim,
+        v_uplim,
         Dict{String, Any}()
     )
 end
