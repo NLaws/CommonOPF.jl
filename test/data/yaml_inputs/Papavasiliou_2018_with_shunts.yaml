@@ -1,6 +1,9 @@
 Network:
   substation_bus: 0
-  Sbase: 1
+  Sbase: 1000
+  Zbase: 1
+  v_uplim: 1.1
+  v_lolim: 0.9
 
 Conductor:
 
@@ -184,56 +187,56 @@ Load:
 ShuntAdmittance:
   - bus: 1
     g: 0
-    b: 1.1
+    b: 0.0011
 
   - bus: 2
     g: 0
-    b: 2.8
+    b: 0.0028
 
   - bus: 3
     g: 0
-    b: 2.4
+    b: 0.0024
 
   - bus: 4
     g: 0
-    b: 2.4
+    b: 0.0004
 
   - bus: 5
     g: 0
-    b: 0.8
+    b: 0.0008
 
   - bus: 6
     g: 0
-    b: 0.6
+    b: 0.0006
 
   - bus: 7
     g: 0
-    b: 0.6
+    b: 0.0006
 
   - bus: 8
     g: 0
-    b: 1.2
+    b: 0.0012
 
   - bus: 9
     g: 0
-    b: 0.4
+    b: 0.0004
 
   - bus: 10
     g: 0
-    b: 0.4
+    b: 0.0004
 
   - bus: 11
     g: 0
-    b: 0.1
+    b: 0.0001
 
   - bus: 12
     g: 0
-    b: 0.1
+    b: 0.0001
 
   - bus: 13
     g: 0
-    b: 0.2
+    b: 0.0002
 
   - bus: 14
     g: 0
-    b: 0.1
+    b: 0.0001
