@@ -37,7 +37,7 @@ end
 
 
 """
-    make_graph(busses::AbstractVector{String}, edges::AbstractVector)
+    make_graph(busses::AbstractVector{String}, edges::AbstractVector; directed::Union{Bool,Missing}=missing)
 
 return SimpleDiGraph
 with the dicts for bus => int and int => bus
