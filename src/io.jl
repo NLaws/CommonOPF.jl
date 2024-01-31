@@ -21,7 +21,18 @@ function dss_files_to_dict(dssfilepath::String)
 end
 
 
-strip_phases(bus::AbstractString) = chop(bus, tail=length(bus)-findfirst('.', bus)+1)
+"""
+    strip_phases(bus::AbstractString)
+
+strip off phases in a bus string that use the OpenDSS convention of dots like "bus_name.1.2"
+"""
+function strip_phases(bus::AbstractString)::AbstractString
+    if !occursin(".", bus)
+        return bus
+    end
+    string(chop(bus, tail=length(bus)-findfirst('.', bus)+1))
+end
+
 
 get_phases(bus::AbstractString) = sort!(collect(parse(Int,ph) for ph in split(bus[findfirst('.', bus)+1:end], ".")))
 
@@ -418,6 +429,11 @@ function dss_loads(d::Dict)
 end
 
 
+"""
+    pos_seq(z::AbstractArray)
+
+Given a 2x2 or 3x3 matrix, return the positive sequence impedadance
+"""
 function pos_seq(z::AbstractArray)
     m, n = size(z,1), size(z,2)  # can't use size alone b/c of single phase lines
     if !(m == n)
@@ -594,4 +610,85 @@ function format_input_dict(d::Dict)::Dict
         end
     end
     return d
+end
+
+
+function dss_to_Network(dssfilepath::AbstractString)::Network
+    
+    # OpenDSS changes the working directory, so we need to change it back
+    work_dir = pwd()
+    OpenDSS.dss("""
+        clear
+        compile $dssfilepath
+    """)
+    cd(work_dir)
+    
+    net_dict = Dict{Symbol, Any}(
+        :Network => Dict(
+            :substation_bus => opendss_source_bus(),
+            :Vbase => OpenDSS.Vsources.BasekV() * 1e3,  # NOTE BaseKV relies on calls in opendss_source_bus
+        ),
+        :Conductor => opendss_lines(),
+    )
+
+    Network(net_dict)
+end
+
+
+function opendss_lines()::Vector{Dict{Symbol, Any}}
+    conductor_dicts = Dict{Symbol, Any}[]
+    line_number = OpenDSS.Lines.First()
+    while line_number > 0
+        bus1 = OpenDSS.Lines.Bus1()
+        bus2 = OpenDSS.Lines.Bus2()
+        # impedance can be defined in several different ways in OpenDSS.
+        # We take the phase impedance matrices and let OpenDSS handle all the ways.
+        # Note that we have to extract phases from bus names. If no phases are specified then we
+        # look at the Nphases and assume that 1 phases means phase 1, 2 phases means phases 1 and 2,
+        # in that order for the impedance matrices.
+
+        b1 = strip_phases(bus1)
+        b2 = strip_phases(bus2)
+        if occursin(".", bus1)
+            phases = get_phases(bus1)
+        elseif occursin(".", bus2)
+            phases = get_phases(bus2)
+        else  # no phases in bus names, infer phases from number of phases
+            phases = collect(1:OpenDSS.Lines.Phases())
+        end
+
+        # The Conductor validator is expecting Vector{Vector{Float64}} for R and X like 
+        # :xmatrix => [[1.0179], [0.5017, 1.0478], [0.4236, 0.3849, 1.0348]] 
+        # (We could define Conductors directly using the struct but we should use the Network
+        # constructor to take advantage of the validation therein.)
+
+        # TODO serialize Network to yaml? s.t. don't have to parse dss every time
+        push!(conductor_dicts, Dict(
+            :busses => (b1, b2),
+            :phases => phases,
+            :rmatrix => OpenDSS.Lines.RMatrix(),
+            :xmatrix => OpenDSS.Lines.XMatrix(),
+            :length => OpenDSS.Lines.Length()
+        ))
+        
+        line_number = OpenDSS.Lines.Next()
+    end
+    return conductor_dicts
+end
+
+
+function opendss_source_bus()::String
+    OpenDSS.Vsources.First()
+    source_bus = OpenDSS.Bus.Name()
+    if OpenDSS.Vsources.Count() != 1
+        @warn("More than one Vsource specified in OpenDSS model. 
+              Using the first value: $(OpenDSS.Vsources.Name())")
+    end
+    return source_bus
+end
+
+
+function opendss_transformers()
+    OpenDSS.Transformers.First()
+    OpenDSS.CktElement.BusNames()
 end

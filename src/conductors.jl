@@ -262,7 +262,12 @@ function validate_multiphase_conductors!(conds::AbstractVector{Conductor})
         else  # we have everything we need to define rmatrix, xmatrix
             if !ismissing(c.rmatrix) 
                 # unpack the Vector{Vector} (lower diagaonal portion of matrix)
-                unpack_input_matrices!(c)
+                if typeof(c.rmatrix) <: Vector
+                    unpack_input_matrices!(c)
+                # elseif typeof(c.rmatrix) <: Matrix  # do nothing, we're good
+                    # NOTE assuming R and X provided in the same format
+                end
+
             elseif !ismissing(c.template)  
                 # defer template copying in case the template requires calculating matrices
                 push!(templates, c.template)
