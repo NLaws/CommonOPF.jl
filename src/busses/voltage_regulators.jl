@@ -41,6 +41,7 @@ VoltageRegulator:
     # required values
     bus::String
     vreg_pu::Real
+    # turn_ratio::Real
     # optional values
     phases::Union{Vector{Int}, Missing} = missing
 end

@@ -46,6 +46,7 @@ net[lb, :kws, 1]  # last index is phase integer
 end
 
 
+# TODO all supertype of AbstractBus into directory
 LOAD_KEYS = [:kws1, :kvars1, :kws2, :kvars2, :kws3, :kvars3]
 
 

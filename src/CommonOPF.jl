@@ -103,13 +103,13 @@ include("io.jl")
 include("types.jl")
 include("inputs.jl")
 
-include("busses.jl")
-include("loads.jl")
-include("shunts.jl")
-include("voltage_regulators.jl")
+include("busses/busses.jl")
+include("busses/loads.jl")
+include("busses/shunts.jl")
+include("busses/voltage_regulators.jl")
 
-include("edges.jl")
-include("conductors.jl")
+include("edges/edges.jl")
+include("edges/conductors.jl")
 
 include("network.jl")
 
