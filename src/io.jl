@@ -583,29 +583,14 @@ end
 """
     function format_input_dict(d::Dict)::Dict
 
-Check dict has required top-level keys:
-- network
-- conductors
-
-Convert busses to Tuple
+Convert busses from Vector{String} to Tuple{String, String} for all edge types
 """
 function format_input_dict(d::Dict)::Dict
-    keys_to_format = [
-        (:Conductor, [:busses], true),  # bool for array values
-        # (:network, [:substation_bus], false),
-    ]
-    for (rkey, subkeys, is_array) in keys_to_format
-        if !(rkey in keys(d))
-            continue
-        end
-        if is_array  # arrays require another level of iteration
-            for sub_dict in d[rkey]
-                for skey in subkeys
-                    if skey == :busses
-                        # convert Vector{String} to Tuple{String, String}
-                        sub_dict[:busses] = Tuple(string.(sub_dict[:busses]))
-                    end
-                end
+    for EdgeType in subtypes(AbstractEdge)
+        dkey = Symbol(split(string(EdgeType), ".")[end])  # left-strip "CommonOPF."
+        if dkey in keys(d)  # the EdgeType is in the dict
+            for sub_dict in d[dkey]  # each edge type specifies a vector of input values
+                sub_dict[:busses] = Tuple(string.(sub_dict[:busses]))
             end
         end
     end
@@ -626,7 +611,9 @@ function dss_to_Network(dssfilepath::AbstractString)::Network
     net_dict = Dict{Symbol, Any}(
         :Network => Dict(
             :substation_bus => opendss_source_bus(),
-            :Vbase => OpenDSS.Vsources.BasekV() * 1e3,  # NOTE BaseKV relies on calls in opendss_source_bus
+            # following base values rely on calls in opendss_source_bus
+            :Vbase => OpenDSS.Vsources.BasekV() * 1e3,
+            # :Sbase => Tranformer value?,
         ),
         :Conductor => opendss_lines(),
     )
@@ -677,18 +664,59 @@ function opendss_lines()::Vector{Dict{Symbol, Any}}
 end
 
 
+"""
+    opendss_source_bus()::String
+
+Return the OpenDSS.Vsources.First() -> OpenDSS.Bus.Name
+"""
 function opendss_source_bus()::String
     OpenDSS.Vsources.First()
     source_bus = OpenDSS.Bus.Name()
     if OpenDSS.Vsources.Count() != 1
         @warn("More than one Vsource specified in OpenDSS model. 
-              Using the first value: $(OpenDSS.Vsources.Name())")
+              Using the first value: $source_bus")
     end
     return source_bus
 end
 
 
+# julia> OpenDSS.Transformers.
+# AllLossesByType  AllNames         CoreType         Count            First
+# Idx              IsDelta          LossesByType     MaxTap           MinTap
+# Name             Next             NumTaps          NumWindings      R
+# RdcOhms          Rneut            Tap              Wdg              WdgCurrents
+# WdgVoltages      XfmrCode         Xhl              Xht              Xlt
+# Xneut            eval             include          kV               kVA
+# strWdgCurrents
+
+# TODO transformers need to work with rij and xij methods s.t. they work in KVL definitions
 function opendss_transformers()
     OpenDSS.Transformers.First()
-    OpenDSS.CktElement.BusNames()
+    OpenDSS.CktElement.BusNames()  # can have phases
+    OpenDSS.Transformers.Xhl()  # in percent of kVA of first winding (reactance is between windings)
+    OpenDSS.Transformers.R()  # in percent of kVA of _active_ winding
+    OpenDSS.Transformers.Wdg(1.0)  # change winding to get individual resistances and kVs
+    OpenDSS.Transformers.kV()
+    # Next start basic transformer model in CommonOPF, then finish IEEE13 parsing to test LoadFlow,
+    # then on to 8500 node test network
+end
+
+
+# TODO regulated_busses(net::Network) to use in KVL definitions
+# julia> OpenDSS.RegControls.
+# AllNames       CTPrimary      Count          Delay          First          ForwardBand
+# ForwardR       ForwardVreg    ForwardX       Idx            IsInverseTime  IsReversible
+# MaxTapChange   MonitoredBus   Name           Next           PTRatio        Reset
+# ReverseBand    ReverseR       ReverseVreg    ReverseX       TapDelay       TapNumber
+# TapWinding     Transformer    VoltageLimit   Winding        eval           include
+
+function opendss_regulators()
+    # vreg: Voltage regulator setting, in VOLTS, for the winding being controlled. Multiplying this
+    # value times the ptratio should yield the voltage across the WINDING of the controlled
+    # transformer. Default is 120.0
+    OpenDSS.RegControls.PTRatio() * OpenDSS.RegControls.ForwardVreg()
+
+    # if MonitoredBus is an empty string then use the Transformer to get the regulated bus
+    OpenDSS.RegControls.Transformer()
+    OpenDSS.RegControls.Winding()
 end

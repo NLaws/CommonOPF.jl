@@ -43,12 +43,14 @@ end
     @test_throws KeyError net["b3", :bad, 2]
     @test_throws KeyError net["b3", :kvar, 4]
 
-    # missing input values for conductors
+    # missing input values for conductors and VoltageRegulator
     fp = joinpath("data", "yaml_inputs", "missing_vals.yaml")
     clear_log!(test_logger)
     expected_msgs = [
         "For single phase conductors you must provide",
-        "Missing templates: [\"cond2\"]."
+        "Missing templates: [\"cond2\"].",
+        """Missing required inputs for VoltageRegulators on busses [("b3", "b4")]""",
+        "provide either vreg_pu or turn_ratio"
     ]
     net = Network(fp)
     for log in test_logger.logs

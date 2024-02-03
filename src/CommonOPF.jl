@@ -106,10 +106,11 @@ include("inputs.jl")
 include("busses/busses.jl")
 include("busses/loads.jl")
 include("busses/shunts.jl")
-include("busses/voltage_regulators.jl")
 
 include("edges/edges.jl")
 include("edges/conductors.jl")
+include("edges/transformers.jl")
+include("edges/voltage_regulators.jl")
 
 include("network.jl")
 

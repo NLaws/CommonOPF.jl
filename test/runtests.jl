@@ -15,7 +15,7 @@ function clear_log!(logger)
     deleteat!(logger.logs, 1:length(logger.logs))
 end
 
-@warn "Logging messages are silenced!"
+@warn "Logging messages from CommonOPF are silenced."
 with_logger(test_logger) do
 # wrapping all tests with the test_logger means that we cannot use @test_warn,
 # (but can still use @test_throws). all @warn messages go into test_logger.logs,
