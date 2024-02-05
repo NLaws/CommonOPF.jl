@@ -2,7 +2,7 @@ module CommonOPF
 
 using LinearAlgebra
 using JuMP
-using Graphs, MetaGraphsNext
+import Graphs, MetaGraphsNext
 import MetaGraphsNext: inneighbors, outneighbors, induced_subgraph
 import PowerModelsDistribution: parse_dss, DELTA
 import Logging: SimpleLogger, Error, with_logger
@@ -79,11 +79,9 @@ export
     reduce_tree!,
     Network,
     edges,
-    edges_with_data,
     busses,
     conductors,
     zij,
-    add_edge!,
     conductors_with_attribute_value,
     load_busses,
     voltage_regulator_busses,
@@ -98,9 +96,9 @@ export
     add_time_vector_variables!
 
 
+include("types.jl")
 include("graphs.jl")
 include("io.jl")
-include("types.jl")
 include("inputs.jl")
 
 include("busses/busses.jl")

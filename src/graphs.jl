@@ -71,7 +71,7 @@ function make_graph(
     if !directed
         graph_template = Graphs.Graph()
     end
-    g = MetaGraph(
+    g = MetaGraphsNext.MetaGraph(
         graph_template, 
         label_type=String,
         vertex_data_type=dtype,
@@ -86,6 +86,75 @@ function make_graph(
     end
     return g
 end
+
+
+"""
+    function fill_edges!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractEdge})
+
+For each `edge`` in `vals` store the `edge`` in the graph using the `edge.busses`:
+```julia
+b1, b2 = edge.busses
+graph[b1, b2] = edge
+```
+"""
+function fill_edges!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractEdge})
+    for edge in vals
+        b1, b2 = edge.busses
+        try
+            g[b1, b2]
+        catch e
+            if e isa KeyError  # this is what we want, an empty edge to fill
+                nothing
+            else
+                rethrow(e)
+            end
+        else
+            @warn "Replacing existing data in edge $(edge.busses)\n$(g[b1, b2])"
+        end
+        g[b1, b2] = edge
+    end
+end
+
+
+# this make_graph will replace the other two make_graph once Inputs is gone
+function make_graph(
+        edges::AbstractVector{<:AbstractEdge}; 
+        directed::Union{Bool,Missing}=missing
+    )
+    busses = CommonOPF.busses_from_edges([e.busses for e in edges])  # TODO rm this hack
+    bus_int_map = Dict(b => i for (i,b) in enumerate(busses))
+    int_bus_map = Dict(i => b for (b, i) in bus_int_map)
+    dtype = Dict{Symbol, Any}
+    if ismissing(directed)  # infer from number of edges and busses
+        directed = false
+        if length(edges) + 1 == length(busses)  # assume radial, directed graph
+            directed = true
+        end
+    end
+    graph_template = Graphs.DiGraph()
+    if !directed
+        graph_template = Graphs.Graph()
+    end
+
+    edge_data_type = Union{subtypes(CommonOPF.AbstractEdge)...}
+
+    g = MetaGraphsNext.MetaGraph(
+        graph_template, 
+        label_type=String,  # node keys are strings
+        vertex_data_type=dtype,
+        edge_data_type=edge_data_type,
+        graph_data=Dict(:int_bus_map => int_bus_map)
+    )
+
+    for b in busses
+        setindex!(g, dtype(), b)  # emtpy dict to fill later
+    end
+
+    fill_edges!(g, edges)
+
+    return g
+end
+
 
 
 function outneighbors(g::MetaGraphsNext.MetaGraph, j::String)
@@ -138,11 +207,11 @@ end
 
 
 """
-    busses_from_deepest_to_source(g::MetaGraph, source::String)
+    busses_from_deepest_to_source(g::MetaGraphsNext.MetaGraph, source::String)
 
 return the busses and their integer depths in order from deepest from shallowest
 """
-function busses_from_deepest_to_source(g::MetaGraph, source::String)
+function busses_from_deepest_to_source(g::MetaGraphsNext.MetaGraph, source::String)
     depths = Int64[0]  # 1:1 with nms
     nms = String[source]
     depth = 0
@@ -207,14 +276,14 @@ end
 
 
 """
-    busses_with_multiple_inneighbors(g::MetaGraph)
+    busses_with_multiple_inneighbors(g::MetaGraphsNext.MetaGraph)
 
 Find all the busses in `g` with indegree > 1
 """
-function busses_with_multiple_inneighbors(g::MetaGraph)
+function busses_with_multiple_inneighbors(g::MetaGraphsNext.MetaGraph)
     bs = String[]
-    for v in vertices(g)
-        if indegree(g, v) > 1
+    for v in MetaGraphsNext.vertices(g)
+        if MetaGraphsNext.indegree(g, v) > 1
             push!(bs, MetaGraphsNext.label_for(g, v))
         end
     end
@@ -223,13 +292,13 @@ end
 
 
 """
-    next_bus_above_with_outdegree_more_than_one(g::MetaGraph, b::String)
+    next_bus_above_with_outdegree_more_than_one(g::MetaGraphsNext.MetaGraph, b::String)
 
 Find the next bus above `b` with outdegree more than one.
 If none are found than `nothing` is returned.
 Throws an error if a bus with indegree > 1 is found above `b`.
 """
-function next_bus_above_with_outdegree_more_than_one(g::MetaGraph, b::String)
+function next_bus_above_with_outdegree_more_than_one(g::MetaGraphsNext.MetaGraph, b::String)
     ins = inneighbors(g, b)
     check_ins(ins) = length(ins) > 1 ? error("Found more than one in neighbor for vertex $b") : nothing
     check_ins(ins)
@@ -247,7 +316,7 @@ function next_bus_above_with_outdegree_more_than_one(g::MetaGraph, b::String)
 end
 
 
-function paths_between(g::MetaGraph, b1, b2)
+function paths_between(g::MetaGraphsNext.MetaGraph, b1, b2)
     outs = outneighbors(g, b1)
     paths = [[o] for o in outs]
     check_nxtbs(bs) = length(bs) == 1 ? true : error("The paths between $b1 and $b2 diverge.")

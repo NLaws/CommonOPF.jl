@@ -424,8 +424,8 @@ function reduce_tree!(p::Inputs{SinglePhase}; keep_regulator_busses=true)
             push!(load_buses, bs...)
         end
     end
-    for v in vertices(g)
-        if !(int_bus_map[v] in load_buses) && indegree(g, v) == outdegree(g, v) == 1
+    for v in MetaGraphsNext.vertices(g)
+        if !(int_bus_map[v] in load_buses) && MetaGraphsNext.indegree(g, v) == MetaGraphsNext.outdegree(g, v) == 1
             push!(reducable_buses, int_bus_map[v])
         end
     end
@@ -460,8 +460,8 @@ function reduce_tree!(p::Inputs{MultiPhase}; keep_regulator_busses=true)
             push!(load_buses, bs...)
         end
     end
-    for v in vertices(g)
-        if !(int_bus_map[v] in load_buses) && indegree(g, v) == outdegree(g, v) == 1
+    for v in MetaGraphsNext.vertices(g)
+        if !(int_bus_map[v] in load_buses) && MetaGraphsNext.indegree(g, v) == MetaGraphsNext.outdegree(g, v) == 1
             # TODO add phases to the graph instead of this mess
             j = int_bus_map[v]
             i, k = i_to_j(j, p)[1], j_to_k(j, p)[1]

@@ -30,27 +30,29 @@ TODO MultiPhase
 """
 function zij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})::Tuple{Real, Real}
     # only have Conductor edges now, later add impedances of other devices
-    conductor = get(net[(i, j)], :Conductor, missing)
+    conductor = net[(i, j)]
     if ismissing(conductor)
         throw(ErrorException("No conductor found for edge ($i, $j)"))
+    elseif typeof(conductor) != CommonOPF.Conductor
+        throw(@error "Was looking for a Conductor in edge ($i, $j) but found a $(typeof(conductor))")
     end
+    # TODO should instead dispatch on edge type
     # check for template 
-    template = get(conductor, :template, missing)
-    if !ismissing(template)
+    if !ismissing(conductor.template)
         conds = collect(conductors(net))
-        results = filter(c -> haskey(c, :name) && c[:name] == template, conds)
+        results = filter(cond -> !ismissing(cond.name) && cond.name == conductor.template, conds)
         if length(results) == 0
-            throw(ErrorException("No conductor template with name $template found."))
+            throw(ErrorException("No conductor template with name $conductor.template found."))
         end
         template_conductor = results[1]
-        r1, x1 = get(template_conductor, :r1, missing), get(template_conductor, :x1, missing)
+        r1, x1 = template_conductor.r1, template_conductor.x1
     else  # get impedance from the conductor
-        r1, x1 = get(conductor, :r1, missing), get(conductor, :x1, missing)
+        r1, x1 = conductor.r1, conductor.x1
     end
     if ismissing(r1) || ismissing(x1)
         throw(ErrorException("Missing at least one of r1 and x1 for edge ($i, $j)"))
     end
-    L = conductor[:length]
+    L = conductor.length
     return (r1 * L / net.Zbase, x1 * L / net.Zbase)
 end
 
