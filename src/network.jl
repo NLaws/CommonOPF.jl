@@ -130,7 +130,9 @@ end
 # TODO make sure all these methods are tested
 # make it so Network[edge_tup] returns the data dict
 Base.getindex(net::Network, idx::Tuple{String, String}) = net.graph[idx[1], idx[2]]
-
+function Base.setindex!(net::Network, edge::CommonOPF.AbstractEdge, idx::Tuple{String, String}) 
+    net.graph[idx[1], idx[2]] = edge
+end
 
 # make it so Network[node_string] returns the data dict
 Base.getindex(net::Network, idx::String) = net.graph[idx]
@@ -177,8 +179,19 @@ edges(net::AbstractNetwork) = MetaGraphsNext.edge_labels(net.graph)
 Graphs.inneighbors(net::Network, bus::String) = MetaGraphsNext.inneighbor_labels(net.graph, bus)
 Graphs.outneighbors(net::Network, bus::String) = MetaGraphsNext.outneighbor_labels(net.graph, bus)
 
+"""
+    i_to_j(j::String, net::Network)
 
+all the inneighbors of bus j
+"""
 i_to_j(j::String, net::Network) = collect(inneighbors(net::Network, j::String))
+
+
+"""
+    j_to_k(j::String, net::Network)
+
+all the outneighbors of bus j
+"""
 j_to_k(j::String, net::Network) = collect(outneighbors(net::Network, j::String))
 
 

@@ -28,6 +28,7 @@ include("test_network.jl")
 
 include("test_results.jl")
 
+
 @testset "merge parallel single phase lines" begin
     #= 
            c -- e                   
@@ -197,50 +198,64 @@ end
     nodes c and d should be removed b/c there is no load at them and the phases are the same
     on both sides
     =#
-    edges = [("a", "b"), ("b", "c"), ("b", "d"), ("c", "e"), ("d", "f")]
-    linecodes = repeat(["l1"], length(edges))
-    linelengths = repeat([1.0], length(edges))
-    phases = repeat([[1]], length(edges))
-    substation_bus = "a"
-    Pload = Dict("e" => [1.0], "f" => [1.0])
-    Qload = Dict("e" => [0.1], "f" => [0.1])
-    Zdict = Dict("l1" => Dict("rmatrix"=> [1.0], "xmatrix"=> [1.0], "nphases"=> 1))
-    v0 = 1.0
-
-    p = Inputs(
-        edges, 
-        linecodes, 
-        linelengths, 
-        phases,
-        substation_bus;
-        Pload=Pload, 
-        Qload=Qload, 
-        Sbase=1, 
-        Vbase=1, 
-        Zdict=Zdict, 
-        v0=v0, 
-        v_lolim=0.95, 
-        v_uplim=1.05,
-        Ntimesteps=1, 
-        P_up_bound=1e4,
-        Q_up_bound=1e4,
-        P_lo_bound=-1e4,
-        Q_lo_bound=-1e4,
-        Isquared_up_bounds=Dict{String, Float64}(),
-        relaxed=true
+    net_dict = Dict(
+        :Network => Dict(
+            :substation_bus => "a",
+        ),
+        :Conductor => [
+            Dict(
+                :busses => ("a", "b"),
+                :length => 1,
+                :r1 => 1.0, 
+                :x1 => 1.0,
+                :name => "l1"
+            ),
+            Dict(
+                :busses => ("b", "c"),
+                :length => 1,
+                :template => "l1"
+            ),
+            Dict(
+                :busses => ("b", "d"),
+                :length => 1,
+                :template => "l1"
+            ),
+            Dict(
+                :busses => ("c", "e"),
+                :length => 1,
+                :template => "l1"
+            ),
+            Dict(
+                :busses => ("d", "f"),
+                :length => 1,
+                :template => "l1"
+            ),
+        ],
+        :Load => [
+            Dict(
+                :bus => "e",
+                :kws1 => [1.0],
+                :kvars1 => [0.1]
+            ),
+            Dict(
+                :bus => "f",
+                :kws1 => [1.0],
+                :kvars1 => [0.1]
+            )
+        ]
     )
+    net = Network(net_dict)
 
-    reduce_tree!(p)
-
-    @test !("c" in p.busses)
-    @test !("d" in p.busses)
-    @test !(("b", "c") in p.edges)
-    @test !(("b", "d") in p.edges)
-    @test !(("c", "e") in p.edges)
-    @test !(("d", "f") in p.edges)
-    @test ("b", "e") in p.edges
-    @test ("b", "f") in p.edges
-
+    reduce_tree!(net)
+    
+    @test !("c" in busses(net))
+    @test !("d" in busses(net))
+    @test !(("b", "c") in edges(net))
+    @test !(("b", "d") in edges(net))
+    @test !(("c", "e") in edges(net))
+    @test !(("d", "f") in edges(net))
+    @test ("b", "e") in edges(net)
+    @test ("b", "f") in edges(net)
 end
 
 

@@ -1,11 +1,4 @@
-function heads(edges:: Vector{Tuple})
-    return collect(e[1] for e in edges)
-end
 
-
-function tails(edges:: Vector{Tuple})
-    return collect(e[2] for e in edges)
-end
 
 
 function dss_files_to_dict(dssfilepath::String)

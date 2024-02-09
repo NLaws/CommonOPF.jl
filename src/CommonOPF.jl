@@ -58,7 +58,9 @@ export
     delete_bus_j!,
     info_max_rpu_xpu,
     info_max_Ppu_Qpu,
+    resistance,
     rij,
+    reactance,
     xij,
     i_to_j,
     j_to_k,
@@ -111,6 +113,8 @@ include("edges/transformers.jl")
 include("edges/voltage_regulators.jl")
 
 include("network.jl")
+include("edges/impedances.jl")  # Network type in signatures, move the struct to types?
+include("network_reduction.jl")
 
 include("utils.jl")
 include("variables.jl")

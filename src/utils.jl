@@ -12,49 +12,7 @@ function rij(i::AbstractString, j::AbstractString, p::Inputs{SinglePhase})
 end
 
 
-function rij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-    net[(i,j)][:Conductor][:r1] * net[(i,j)][:Conductor][:length] / net.Zbase
-end
 
-
-
-"""
-    function zij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})::Tuple{Real, Real}
-
-Impedance for single phase models. 
-
-Returns `(r1, x1) * length / net.Zbase` for the `Conductor` at `net[(i, j)]`.
-
-TODO test
-TODO MultiPhase
-"""
-function zij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})::Tuple{Real, Real}
-    # only have Conductor edges now, later add impedances of other devices
-    conductor = net[(i, j)]
-    if ismissing(conductor)
-        throw(ErrorException("No conductor found for edge ($i, $j)"))
-    elseif typeof(conductor) != CommonOPF.Conductor
-        throw(@error "Was looking for a Conductor in edge ($i, $j) but found a $(typeof(conductor))")
-    end
-    # TODO should instead dispatch on edge type
-    # check for template 
-    if !ismissing(conductor.template)
-        conds = collect(conductors(net))
-        results = filter(cond -> !ismissing(cond.name) && cond.name == conductor.template, conds)
-        if length(results) == 0
-            throw(ErrorException("No conductor template with name $conductor.template found."))
-        end
-        template_conductor = results[1]
-        r1, x1 = template_conductor.r1, template_conductor.x1
-    else  # get impedance from the conductor
-        r1, x1 = conductor.r1, conductor.x1
-    end
-    if ismissing(r1) || ismissing(x1)
-        throw(ErrorException("Missing at least one of r1 and x1 for edge ($i, $j)"))
-    end
-    L = conductor.length
-    return (r1 * L / net.Zbase, x1 * L / net.Zbase)
-end
 
 
 """
@@ -70,9 +28,7 @@ function xij(i::AbstractString, j::AbstractString, p::Inputs{SinglePhase})
 end
 
 
-function xij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-    net[(i,j)][:Conductor][:x1] * net[(i,j)][:Conductor][:length] / net.Zbase
-end
+
 
 
 """
@@ -385,4 +341,14 @@ function remove_bus!(j::String, p::Inputs{MultiPhase})
         "xmatrix" => x_ik ./ ik_len,
     )
     p.Isquared_up_bounds[ik_linecode] = ik_amps
+end
+
+
+function heads(edges:: Vector{Tuple})
+    return collect(e[1] for e in edges)
+end
+
+
+function tails(edges:: Vector{Tuple})
+    return collect(e[2] for e in edges)
 end
