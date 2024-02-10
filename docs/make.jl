@@ -11,7 +11,10 @@ makedocs(
         "Inputs" => "inputs.md",
         "The Network Model" => "network.md",
         "Results" => "results.md",
-        "Methods" => "methods.md",
+        "Methods" => [
+            "graph_methods.md",
+            "impedances.md",
+        ],
         "Math" => "math.md",
         "Developer" => "developer.md"
     ],

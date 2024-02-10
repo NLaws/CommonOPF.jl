@@ -4,7 +4,6 @@ using LinearAlgebra
 using JuMP
 import Graphs, MetaGraphsNext
 import MetaGraphsNext: inneighbors, outneighbors, induced_subgraph, delete!
-import PowerModelsDistribution: parse_dss, DELTA
 import Logging: SimpleLogger, Error, with_logger
 import YAML
 import Parameters: @with_kw
@@ -31,10 +30,6 @@ export
     heads,
     tails,
     dsstxt_to_sparse_array,
-    dss_dict_to_arrays,
-    dss_loads,
-    dss_files_to_dict,
-    AbstractInputs,
     Phases,
     SinglePhase,
     MultiPhase,

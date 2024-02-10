@@ -38,3 +38,13 @@ using CommonOPF
 net = Network_IEEE13_SinglePhase()
 net["670"]
 ```
+
+## Network Reduction
+A few convenience methods are provided in `CommonOPF` for reducing network complexity by removing
+intermediate busses and trimming branches that will not typically impact OPF results.
+```@docs
+remove_bus!(j::String, net::Network{SinglePhase})
+reduce_tree!(net::Network{SinglePhase})
+trim_tree!
+trim_tree_once!
+```
