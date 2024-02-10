@@ -96,13 +96,18 @@ function make_graph(edges::AbstractVector{<:AbstractEdge}; directed::Union{Bool,
 end
 
 
-
-function outneighbors(g::MetaGraphsNext.MetaGraph, j::String)
-    ks = outneighbors(g, MetaGraphsNext.code_for(g, j))  # ks::Vector{Int64}
-    return [MetaGraphsNext.label_for(g, k) for k in ks]
-end
+Graphs.outneighbors(g::MetaGraphsNext.MetaGraph, j::String) = collect(
+    MetaGraphsNext.outneighbor_labels(g, j)
+)
 
 
+"""
+    all_outneighbors(g::MetaGraphsNext.MetaGraph, j::String, outies::Vector{String})
+
+A recursive function for finding all of the busses below bus `j`. Use like:
+
+    busses_above_j = all_outneighbors(g, j, Vector{String}())
+"""
 function all_outneighbors(g::MetaGraphsNext.MetaGraph, j::String, outies::Vector{String}, except_busses::Vector{String})
     bs = setdiff(outneighbors(g, j), except_busses)
     for b in bs
@@ -119,6 +124,13 @@ function inneighbors(g::MetaGraphsNext.MetaGraph, j::String)
 end
 
 
+"""
+    all_inneighbors(g::MetaGraphsNext.MetaGraph, j::String, innies::Vector{String})
+
+A recursive function for finding all of the busses above bus `j`. Use like:
+
+    busses_above_j = all_inneighbors(g, j, Vector{String}())
+"""
 function all_inneighbors(g::MetaGraphsNext.MetaGraph, j::String, innies::Vector{String})
     bs = inneighbors(g, j)
     for b in bs
@@ -183,6 +195,11 @@ function busses_from_deepest_to_source(g::MetaGraphsNext.MetaGraph, source::Stri
 end
 
 
+"""
+    vertices_from_deepest_to_source(g::Graphs.AbstractGraph, source::Int64)
+
+returns the integer vertices of `g` and their depths from the leafs to `source`
+"""
 function vertices_from_deepest_to_source(g::Graphs.AbstractGraph, source::Int64)
     depths = Int64[0]  # 1:1 with vs
     vs = Int64[source]
@@ -220,7 +237,7 @@ end
 
 Find all the busses in `g` with indegree > 1
 """
-function busses_with_multiple_inneighbors(g::MetaGraphsNext.MetaGraph)
+function busses_with_multiple_inneighbors(g::MetaGraphsNext.MetaGraph)::Vector{String}
     bs = String[]
     for v in MetaGraphsNext.vertices(g)
         if MetaGraphsNext.indegree(g, v) > 1
@@ -256,9 +273,15 @@ function next_bus_above_with_outdegree_more_than_one(g::MetaGraphsNext.MetaGraph
 end
 
 
-function paths_between(g::MetaGraphsNext.MetaGraph, b1, b2)
+"""
+    paths_between(g::MetaGraphsNext.MetaGraph, b1::String, b2::String)::Vector{Vector{String}}
+
+Returns all the paths (as vectors of bus strings) between `b1` and `b2`
+"""
+function paths_between(g::MetaGraphsNext.MetaGraph, b1::String, b2::String)::Vector{Vector{String}}
     outs = outneighbors(g, b1)
-    paths = [[o] for o in outs]
+    paths = [[o] for o in outs] # initialize the path vectors with b1's outneighbors
+    # convenience method
     check_nxtbs(bs) = length(bs) == 1 ? true : error("The paths between $b1 and $b2 diverge.")
     for (i,o) in enumerate(outs)
         nxtbs = outneighbors(g, o)
@@ -272,6 +295,11 @@ function paths_between(g::MetaGraphsNext.MetaGraph, b1, b2)
 end
 
 
+"""
+    trim_above_bus!(g::MetaGraphsNext.MetaGraph, bus::String)
+
+Remove all the busses and edges that are inneighbors (recursively) of `bus`
+"""
 function trim_above_bus!(g::MetaGraphsNext.MetaGraph, bus::String)
     busses_to_delete = all_inneighbors(g, bus, Vector{String}())
     edges_to_delete = [e for e in MetaGraphsNext.edge_labels(g) if e[1] in busses_to_delete]
