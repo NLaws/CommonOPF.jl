@@ -78,6 +78,7 @@ export
     trim_tree_once!,
     get_variable_values,
     remove_bus!,
+    trim_above_bus!,
     reduce_tree!,
     Network,
     edges,

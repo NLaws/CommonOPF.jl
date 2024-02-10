@@ -330,3 +330,15 @@ function paths_between(g::MetaGraphsNext.MetaGraph, b1, b2)
     end
     return paths
 end
+
+
+function trim_above_bus!(g::MetaGraphsNext.MetaGraph, bus::String)
+    busses_to_delete = all_inneighbors(g, bus, Vector{String}())
+    edges_to_delete = [e for e in MetaGraphsNext.edge_labels(g) if e[1] in busses_to_delete]
+    for (i, j) in edges_to_delete
+        MetaGraphsNext.delete!(g, i, j)
+    end
+    for i in busses_to_delete
+        MetaGraphsNext.delete!(g, i)
+    end
+end

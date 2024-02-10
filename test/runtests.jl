@@ -162,30 +162,33 @@ end
 end
 
 
-@testset "trim_above_substation_bus" begin
-    sub = "670"
-    dssfilepath = joinpath("data", "ieee13", "IEEE13Nodeckt.dss")
-    d = dss_files_to_dict(dssfilepath)
-    edges, linecodes, linelengths, linecodes_dict, phases, Isquared_up_bounds, regulators = 
-        dss_dict_to_arrays(d, CommonOPF.SBASE_DEFAULT, CommonOPF.VBASE_DEFAULT, sub);
-    g = make_graph(edges)
-    busses_to_delete = all_inneighbors(g, sub, Vector{String}())
-    @test "632" in busses_to_delete
-    @test "645" in busses_to_delete
-    @test "646" in busses_to_delete
-    @test "633" in busses_to_delete
-    @test "634" in busses_to_delete
-    @test "rg60" in busses_to_delete
-    @test length(busses_to_delete) == 6
-    edges_to_delete = [e for e in edges if e[1] in busses_to_delete]
-    @test ("632", "670") in edges_to_delete
-    @test ("632", "645") in edges_to_delete
-    @test ("645", "646") in edges_to_delete
-    @test ("rg60", "632") in edges_to_delete
-    @test ("632", "633") in edges_to_delete
-    @test ("633", "634") in edges_to_delete
-    @test length(edges_to_delete) == 6
-    # TODO put in method for use and testing
+@testset "trim_above_bus!" begin
+    
+    net = Network_IEEE13_SinglePhase()
+    busses_before_trim = collect(busses(net))
+    edges_before_trim = collect(edges(net))
+    trim_above_bus!(net.graph, "670")
+    busses_after_trim = collect(busses(net))
+    edges_after_trim = collect(edges(net))
+    busses_deleted = setdiff(busses_before_trim, busses_after_trim)
+    edges_deleted = setdiff(edges_before_trim, edges_after_trim)
+    
+    @test "632" in busses_deleted
+    @test "645" in busses_deleted
+    @test "646" in busses_deleted
+    @test "633" in busses_deleted
+    @test "634" in busses_deleted
+    @test "650" in busses_deleted
+    @test length(busses_deleted) == 6
+
+    @test ("632", "670") in edges_deleted
+    @test ("632", "645") in edges_deleted
+    @test ("645", "646") in edges_deleted
+    @test ("650", "632") in edges_deleted
+    @test ("632", "633") in edges_deleted
+    @test ("633", "634") in edges_deleted
+    @test length(edges_deleted) == 6
+
 end
 
 
