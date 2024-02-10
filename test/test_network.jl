@@ -1,15 +1,3 @@
-
-
-@testset "Conductor single phase construction" begin
-    c1 = CommonOPF.Conductor(; busses=("b1", "b2"), name="edge1", template="edge2", length=1.2)
-    c2 = CommonOPF.Conductor(;
-        Dict(:busses => ("b1", "b2"), :name => "edge1", :r1 => 0.1, :x1 => 0.2, :length => 20)...
-    )
-    @test c1.name == c2.name
-    @test c1.busses == c2.busses
-end
-
-
 @testset "Network single phase" begin
     # TODO make/test JSON
     fp = joinpath("data", "yaml_inputs", "no_conductors.yaml")

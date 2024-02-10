@@ -11,16 +11,17 @@ leaf_busses
 ```@docs
 remove_bus!(j::String, net::Network{SinglePhase})
 reduce_tree!(net::Network{SinglePhase})
-```
-
-# Types
-
-
-# Utils
-```@docs
 trim_tree!
 trim_tree_once!
-rij(i::AbstractString, j::AbstractString, p::Inputs{SinglePhase})
-xij(i::AbstractString, j::AbstractString, p::Inputs{SinglePhase})
+```
+
+# Edge Impedances
+```@docs
+resistance
+resistance_per_length
+rij
+rij_per_unit
+
+xij
 zij
 ```

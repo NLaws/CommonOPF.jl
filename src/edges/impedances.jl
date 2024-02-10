@@ -4,6 +4,14 @@
 # valeu of zeros
 
 
+"""
+    resistance_per_length(c::Conductor)
+
+    if ismissing(c.phases)  # single phase
+        return c.r1
+    end
+    return c.rmatrix
+"""
 function resistance_per_length(c::Conductor)
     if ismissing(c.phases)  # single phase
         return c.r1
@@ -13,11 +21,47 @@ end
 
 
 """
+    resistance(c::Conductor)
 
+    resistance_per_length(c) * c.length
 
+The absolute resistance of the conductor (in the units provided by the user)
 """
 function resistance(c::Conductor)
     resistance_per_length(c) * c.length
+end
+
+
+"""
+    rij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
+
+    resistance(net[(i,j)])
+
+Resistance of edge i-j
+"""
+function rij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
+    resistance(net[(i,j)])
+end
+
+
+"""
+    rij(i::AbstractString, j::AbstractString, net::Network{MultiPhase})
+
+Resistance of edge i-j
+"""
+function rij(i::AbstractString, j::AbstractString, net::Network{MultiPhase})
+    throw("Not implemented")
+end
+
+"""
+    rij_per_unit(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
+
+    resistance(net[(i,j)]) / net.Zbase
+
+Resistance of edge i-j normalized by `net.Zbase`
+"""
+function rij_per_unit(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
+    resistance(net[(i,j)]) / net.Zbase
 end
 
 
@@ -39,22 +83,23 @@ function reactance(c::Conductor)
     reactance_per_length(c) * c.length
 end
 
-function rij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-    resitance(net[(i,j)])
-end
 
-function rij_per_unit(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-    resitance(net[(i,j)]) / net.Zbase
-end
+"""
+    xij(i::AbstractString, j::AbstractString, net::Network{MultiPhase})
 
-
+Reactance of edge i-j
+"""
 function xij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
     net[(i,j)].x1 * net[(i,j)].length
 end
 
 
+"""
+    xij(i::AbstractString, j::AbstractString, net::Network{MultiPhase})
 
-function xij_perunit(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
+Reactance of edge i-j normalized by `net.Zbase`
+"""
+function xij_per_unit(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
     net[(i,j)].x1 * net[(i,j)].length / net.Zbase
 end
 

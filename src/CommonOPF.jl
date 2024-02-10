@@ -53,12 +53,21 @@ export
     check_paths_for_loads,
     info_max_rpu_xpu,
     info_max_Ppu_Qpu,
+
+    # impedance
     resistance,
+    resistance_per_length,
     rij,
+    rij_per_unit,
     reactance,
+    reactance_per_length,
     xij,
+    xij_per_unit,
+    zij,
+
     i_to_j,
     j_to_k,
+
     info_max_Ppu_Qpu,
     leaf_busses,
     trim_tree!,
@@ -71,7 +80,6 @@ export
     edges,
     busses,
     conductors,
-    zij,
     conductors_with_attribute_value,
     load_busses,
     voltage_regulator_busses,

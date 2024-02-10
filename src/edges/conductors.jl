@@ -118,18 +118,19 @@ function check_edges!(conductors::AbstractVector{Conductor})
     if any((!ismissing(c.phases) for c in conductors))
         validate_multiphase_conductors!(conductors)
     else
-        warn_singlephase_conductors(conductors)
+        warn_singlephase_conductors_and_copy_templates(conductors)
     end
     return nothing
 end
 
 
 """
+    warn_singlephase_conductors_and_copy_templates(conds::AbstractVector{Conductor})
 
-Warn there is no way to define a load.
-Copy template r1 and x1 values.
+1. Warn when missing templates and/or cannot define impedances.
+2. Copy template r1 and x1 values.
 """
-function warn_singlephase_conductors(conds::AbstractVector{Conductor})
+function warn_singlephase_conductors_and_copy_templates(conds::AbstractVector{Conductor})
     n_cannot_define_impedance = 0
     templates = String[]
     for cond in conds

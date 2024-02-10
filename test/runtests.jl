@@ -24,6 +24,8 @@ with_logger(test_logger) do
 
 @testset "CommonOPF.jl" begin
 
+include("test_conductor.jl")
+
 include("test_network.jl")
 
 include("test_results.jl")
