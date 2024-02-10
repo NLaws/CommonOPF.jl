@@ -59,6 +59,11 @@ CommonOPF.ShuntAdmittance
 CommonOPF.ShuntImpedance
 ```
 
+## Transformer
+```@docs
+CommonOPF.Transformer
+```
+
 ## VoltageRegulator
 ```@docs
 CommonOPF.VoltageRegulator

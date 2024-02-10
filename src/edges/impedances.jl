@@ -1,7 +1,25 @@
-# todo rij and rij_pu and _per_length methods for all edge types
-# change edge attributes to r/x_per_length for clarity
-# all supertype of AbstractEdge must have impedances, even if zero; decide where to put default
-# valeu of zeros
+"""
+    resistance(e::AbstractEdge) = 0.0
+"""
+resistance(e::AbstractEdge) = 0.0
+
+
+"""
+    reactance(e::AbstractEdge) = 0.0
+"""
+reactance(e::AbstractEdge) = 0.0
+
+
+"""
+    resistance_per_length(e::AbstractEdge) = 0.0
+"""
+resistance_per_length(e::AbstractEdge) = 0.0
+
+
+"""
+    reactance_per_length(e::AbstractEdge) = 0.0
+"""
+reactance_per_length(e::AbstractEdge) = 0.0
 
 
 """
@@ -65,8 +83,14 @@ function rij_per_unit(i::AbstractString, j::AbstractString, net::Network{SingleP
 end
 
 
+"""
+    reactance_per_length(c::Conductor)
 
-
+    if ismissing(c.phases)  # single phase
+        return c.x1
+    end
+    return c.xmatrix
+"""
 function reactance_per_length(c::Conductor)
     if ismissing(c.phases)  # single phase
         return c.x1
@@ -76,8 +100,11 @@ end
 
 
 """
+    reactance(c::Conductor)
 
+    reactance_per_length(c) * c.length
 
+The absolute reactance of the conductor (in the units provided by the user)
 """
 function reactance(c::Conductor)
     reactance_per_length(c) * c.length
@@ -90,7 +117,7 @@ end
 Reactance of edge i-j
 """
 function xij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-    net[(i,j)].x1 * net[(i,j)].length
+    reactance(net[(i,j)])
 end
 
 
@@ -100,18 +127,32 @@ end
 Reactance of edge i-j normalized by `net.Zbase`
 """
 function xij_per_unit(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-    net[(i,j)].x1 * net[(i,j)].length / net.Zbase
+    reactance(net[(i,j)]) / net.Zbase
 end
 
 
+"""
+    resistance(vr::VoltageRegulator)
 
-
+    vr.resistance
+"""
 function resistance(vr::VoltageRegulator)
-    
+    vr.resistance
 end
+
+
+"""
+    reactance(vr::VoltageRegulator)
+
+    vr.reactance
+"""
+function reactance(vr::VoltageRegulator)
+    vr.reactance
+end
+
 
 function resistance(trfx::Transformer)
-
+    
 end
 
 

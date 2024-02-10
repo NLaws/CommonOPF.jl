@@ -1,5 +1,14 @@
 """
     @with_kw mutable struct Transformer <: AbstractEdge
+        # required values
+        busses::Tuple{String, String}
+        # optional values
+        high_kv::Real = 1.0
+        low_kv::Real = 1.0
+        phases::Union{Vector{Int}, Missing} = missing
+        reactance::Real = 0.0
+        resistance::Real = 0.0
+    end
 
 !!! note
     For now the `high_kv` and `low_kv` values are only for reference. Throughout the modules that use

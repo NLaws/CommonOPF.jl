@@ -10,14 +10,14 @@ The edges of the Network model include all power transfer elements, i.e. the dev
 system that move power from one place to another and therefore have two or more busses. Edges
 include:
 - [Conductor](@ref)
+- [VoltageRegulator](@ref)
+- [Transformer](@ref)
 
-Within the network model edges are indexed via two-tuples of bus names (strings) like
-```julia
+Within the network model edges are indexed via two-tuples of bus names like so:
+```@example
 using CommonOPF
-# TODO code that runs using a test file
-net = Network("yaml/filepath")
-bus = collect(busses(net))[1]
-net[bus]
+net = Network_IEEE13_SinglePhase()
+net[("650", "632")]
 ```
 
 ## Nodes
@@ -31,3 +31,10 @@ Nodes contain:
 - [ShuntAdmittance](@ref)
 - [ShuntImpedance](@ref)
 - [VoltageRegulator](@ref)
+
+Within the network model busses are indexed via bus names like so:
+```@example
+using CommonOPF
+net = Network_IEEE13_SinglePhase()
+net["670"]
+```
