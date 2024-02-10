@@ -1,7 +1,8 @@
 @testset "Results" begin
 
     # TODO test Network.var_name_map and VARIABLE_NAMES
-    # TODO test get_variable_values
+    # TODO test get_variable_values with vectors and matrices
+    # TODO test get_variable_values with _squared, after defining containers with CommonOPF.VariableContainer
     m = Model()
     m.obj_dict[:vsqrd] = Dict("bus1" => [1.123456789])
 
