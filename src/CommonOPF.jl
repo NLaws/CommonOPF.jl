@@ -3,7 +3,7 @@ module CommonOPF
 using LinearAlgebra
 using JuMP
 import Graphs, MetaGraphsNext
-import MetaGraphsNext: inneighbors, outneighbors, induced_subgraph
+import MetaGraphsNext: inneighbors, outneighbors, induced_subgraph, delete!
 import PowerModelsDistribution: parse_dss, DELTA
 import Logging: SimpleLogger, Error, with_logger
 import YAML

@@ -175,7 +175,7 @@ end
 end
 
 
-@testset "reduce_tree! SinglePhase" begin
+@testset "reduce_tree! and trim_tree! SinglePhase" begin
     #=           c -- e                     -- e
                 / [1,2]                   /
     a -[1,2,3]- b           ->       a -- b
@@ -242,6 +242,15 @@ end
     @test !(("d", "f") in edges(net))
     @test ("b", "e") in edges(net)
     @test ("b", "f") in edges(net)
+
+    # remove the load at bus e and test for removal of edges (b, c) and (c, e)
+    net = Network(net_dict)
+    delete!(net.graph["e"], :Load)
+    trim_tree!(net)
+    @test !("c" in busses(net))
+    @test !("e" in busses(net))
+    @test !(("b", "c") in edges(net))
+    @test !(("c", "e") in edges(net))
 end
 
 

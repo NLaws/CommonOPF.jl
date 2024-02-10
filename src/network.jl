@@ -211,6 +211,22 @@ real_load_busses(net::Network{SinglePhase}) = (b for b in load_busses(net) if ha
 reactive_load_busses(net::Network{SinglePhase}) = (b for b in load_busses(net) if haskey(net[b][:Load], :kvars1))
 
 
+"""
+    leaf_busses(net::Network)
+
+returns `Vector{String}` containing all of the leaf busses in `net.graph`
+"""
+function leaf_busses(net::Network)
+    leafs = String[]
+    for j in busses(net)
+        if !isempty(i_to_j(j, net)) && isempty(j_to_k(j, net))
+            push!(leafs, j)
+        end
+    end
+    return leafs
+end
+
+
 conductors(net::AbstractNetwork) = ( net[ekey] for ekey in edges(net) if net[ekey] isa CommonOPF.Conductor )
 
 

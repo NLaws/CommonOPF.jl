@@ -48,9 +48,9 @@ function remove_bus!(j::String, net::Network{SinglePhase})
     x_ik = reactance(c1)  + reactance(c2)
     ik_len = c1.length + c2.length
     # delete the old values
-    MetaGraphsNext.delete!(net.graph, i, j)
-    MetaGraphsNext.delete!(net.graph, j, k)
-    MetaGraphsNext.delete!(net.graph, j)
+    delete!(net.graph, i, j)
+    delete!(net.graph, j, k)
+    delete!(net.graph, j)
     # add the new values
 
     net[(i, k)] = CommonOPF.Conductor(;
@@ -62,4 +62,53 @@ function remove_bus!(j::String, net::Network{SinglePhase})
     )
     nothing
     # TODO assign amperage for new line as minimum amperage of the two joined lines
+end
+
+
+
+
+
+"""
+    trim_tree_once!(net::Network)
+
+A support function for `trim_tree!`, `trim_tree_once!` removes all the empty leaf busses. When
+trimming the tree sometimes new leafs are created. So `trim_tree!` loops over `trim_tree_once!`.
+"""
+function trim_tree_once!(net::Network)
+    trimmable_busses = [
+        b for b in leaf_busses(net) if isempty(net[b])
+    ]
+    if isempty(trimmable_busses) return false end
+    trimmable_edges = Tuple[]
+    for j in trimmable_busses
+        for i in i_to_j(j, net)
+            push!(trimmable_edges, (i,j))
+        end
+    end
+    @debug("Deleting the following edges from the net.graph:")
+    for edge in trimmable_edges @debug(edge) end
+    for (i, j) in trimmable_edges
+        delete!(net.graph, i, j)
+    end
+    for i in trimmable_busses
+        delete!(net.graph, i)
+    end
+    true
+end
+
+
+"""
+    trim_tree!(net::Network)
+
+Trim any branches that have empty busses, i.e. remove the branches that have no loads or DER.
+"""
+function trim_tree!(net::Network)
+    n_edges_before = length(collect(edges(net)))
+    trimming = trim_tree_once!(net)
+    while trimming
+        trimming = trim_tree_once!(net)
+    end
+    n_edges_after = length(collect(edges(net)))
+    @info("Removed $(n_edges_before - n_edges_after) edges.")
+    true
 end

@@ -159,64 +159,6 @@ function check_paths_for_loads(paths::AbstractVecOrMat, net::Network)
 end
 
 
-"""
-    leaf_busses(p::Inputs)
-
-returns `Vector{String}` containing all of the leaf busses in `p.busses`
-"""
-function leaf_busses(p::Inputs)
-    leafs = String[]
-    for j in p.busses
-        if !isempty(i_to_j(j, p)) && isempty(j_to_k(j, p))
-            push!(leafs, j)
-        end
-    end
-    return leafs
-end
-
-
-"""
-    trim_tree_once!(p::Inputs)
-
-A support function for `trim_tree!`. When trimming the tree sometimes new leafs are created. 
-So `trim_tree!` loops over `trim_tree_once!`.
-"""
-function trim_tree_once!(p::Inputs)
-    trimmable_busses = setdiff(leaf_busses(p), union(keys(p.Pload), keys(p.Qload)))
-    if isempty(trimmable_busses) return false end
-    trimmable_edges = Tuple[]
-    for j in trimmable_busses
-        for i in i_to_j(j, p)
-            push!(trimmable_edges, (i,j))
-        end
-    end
-    @debug("Deleting the following edges from the Inputs:")
-    for edge in trimmable_edges @debug(edge) end
-    for (i,j) in trimmable_edges
-        delete_edge_ij!(i, j, p)
-        delete_bus_j!(j, p)
-    end
-    true
-end
-
-
-"""
-    trim_tree!(p::Inputs)
-
-Trim any branches that do not contain load busses.
-"""
-function trim_tree!(p::Inputs)
-    n_edges_before = length(p.edges)
-    trimming = trim_tree_once!(p)
-    while trimming
-        trimming = trim_tree_once!(p)
-    end
-    n_edges_after = length(p.edges)
-    @info("Removed $(n_edges_before - n_edges_after) edges.")
-    true
-end
-
-
 # """
 #     remove_bus!(j::String, p::Inputs{MultiPhase})
 
