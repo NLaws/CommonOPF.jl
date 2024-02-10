@@ -71,3 +71,5 @@ function check_edges!(regulators::AbstractVector{VoltageRegulator})
     end
     nothing
 end
+
+# methods for constraining regulated voltage? will need the voltage variable and model
