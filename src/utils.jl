@@ -1,34 +1,4 @@
 # TODO mv MultiPhase rij xij to CommonOPF (requires something new to handle BFM vs. LDF)
-"""
-    rij(i::AbstractString, j::AbstractString, p::Inputs{SinglePhase})
-
-The per-unit resistance of line i->j
-"""
-function rij(i::AbstractString, j::AbstractString, p::Inputs{SinglePhase})
-    linecode = get_ijlinecode(i, j, p)
-    linelength = get_ijlinelength(i, j, p)
-    rmatrix = p.Zdict[linecode]["rmatrix"] * linelength / p.Zbase
-    return rmatrix[1]  # 1 index b/c single phase
-end
-
-
-
-
-
-"""
-    xij(i::AbstractString, j::AbstractString, p::Inputs{SinglePhase})
-
-The per-unit reacttance of line i->j
-"""
-function xij(i::AbstractString, j::AbstractString, p::Inputs{SinglePhase})
-    linecode = get_ijlinecode(i, j, p)
-    linelength = get_ijlinelength(i, j, p)
-    xmatrix = p.Zdict[linecode]["xmatrix"] * linelength / p.Zbase
-    return xmatrix[1]  # 1 index b/c single phase
-end
-
-
-
 
 
 """
@@ -49,42 +19,6 @@ find all busses downstream of bus j
 """
 function j_to_k(j::AbstractString, p::Inputs)
     convert(Array{String, 1}, map(x->x[2], filter(t->t[1]==j, p.edges)))
-end
-
-
-"""
-    get_ij_idx(i::AbstractString, j::AbstractString, p::Inputs)
-
-get the index for edge i->j in the `Inputs`` edge vectors: 
-    `edges`, `linecodes`, `phases`, `edge_keys`, and `linelengths`
-"""
-function get_ij_idx(i::AbstractString, j::AbstractString, p::Inputs)
-    ij_idxs = findall(t->(t[1]==i && t[2]==j), p.edges)
-    if length(ij_idxs) > 1
-        error("found more than one edge for i=$i and j=$j")
-    elseif length(ij_idxs) == 0
-        error("found no matching edges for i=$i and j=$j")
-    else
-        return ij_idxs[1]
-    end
-end
-
-
-function get_ijlinelength(i::AbstractString, j::AbstractString, p::Inputs)
-    ij_idx = get_ij_idx(i, j, p)
-    return p.linelengths[ij_idx]
-end
-
-
-function get_ijlinecode(i::AbstractString, j::AbstractString, p::Inputs)
-    ij_idx = get_ij_idx(i, j, p)
-    return p.linecodes[ij_idx]
-end
-
-
-function get_ijedge(i::AbstractString, j::AbstractString, p::Inputs)
-    ij_idx = get_ij_idx(i, j, p)
-    return p.edges[ij_idx]
 end
 
 
