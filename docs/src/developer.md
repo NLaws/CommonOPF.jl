@@ -8,6 +8,10 @@ One can then easily extend `MetaGraphsNext` and `Graphs` methods using the `Netw
 Graphs.edges(net::AbstractNetwork) = MetaGraphsNext.edge_labels(net.graph)
 ```
 
+Each edge of the `Network.graph` stores one concrete subtype of `AbstractEdge`. The busses can store
+multiple subtypes of `AbstractBus`. 
+
+
 # Adding a Bus device
 The current Bus devices are:
 ```@eval
@@ -58,11 +62,13 @@ To add a new Edge device:
         phases::Union{Vector{Int}, Missing} = missing
     end
     ```
-2. OPTIONALLY define a `check_edges!(edges::AbstractVector{YourType})` method
-    - `check_edges!` is used in the `Network` builder after unpacking user input dicts into `YourType` constructor
-3. Ensure compatibility with the `MetaGraph`
-    - make sure the `AbstractVector{YourType}` returned from your constructor is compatible with `fill_edge_attributes!`. 
-
+2. define methods that dispatch on your type like
+    - `resistance(your_edge::YourType)`
+    - `reactance(your_edge::YourType)`
+3. OPTIONALLY define a `check_edges!(edges::AbstractVector{YourType})` method
+    - `check_edges!` is used in the `Network` builder after unpacking user input dicts into
+      `YourType` constructor
+    
 
 # JuMP Model Variables
 CommonOPF provides some patterns for storing variables so that we can provide common functionality
