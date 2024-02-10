@@ -7,12 +7,10 @@ leaf_busses
 # IO methods
 
 
-# Inputs
+# Network
 ```@docs
-remove_bus!(j::String, p::Inputs{SinglePhase})
-remove_bus!(j::String, p::Inputs{MultiPhase})
-reduce_tree!(p::Inputs{SinglePhase})
-reduce_tree!(p::Inputs{MultiPhase})
+remove_bus!(j::String, net::Network{SinglePhase})
+reduce_tree!(net::Network{SinglePhase})
 ```
 
 # Types

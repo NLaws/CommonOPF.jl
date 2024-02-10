@@ -405,78 +405,45 @@ function singlephase38linesInputs(;
 end
 
 
-"""
-    reduce_tree!(p::Inputs{SinglePhase})
+# """
+#     reduce_tree!(p::Inputs{MultiPhase})
 
-combine any line sets with intermediate busses that have indegree == outdegree == 1
-and is not a load bus into a single line
+# combine any line sets with intermediate busses that satisfy 
+#     1. indegree == outdegree == 1
+#     2. is not a load bus and 
+#     3. has same phases in as out 
+# into a single line.
 
-See `remove_bus!` for how the two lines are combined.
-"""
-function reduce_tree!(p::Inputs{SinglePhase}; keep_regulator_busses=true)
-    # TODO make graph once in Inputs ?
-    g = make_graph(p.busses, p.edges)
-    int_bus_map = g[][:int_bus_map]
-    reducable_buses = String[]
-    load_buses = Set(vcat(collect(keys(p.Pload)), collect(keys(p.Qload))))
-    if keep_regulator_busses
-        for bs in keys(p.regulators)  # tuple keys of bus pairs, i.e. edges
-            push!(load_buses, bs...)
-        end
-    end
-    for v in MetaGraphsNext.vertices(g)
-        if !(int_bus_map[v] in load_buses) && MetaGraphsNext.indegree(g, v) == MetaGraphsNext.outdegree(g, v) == 1
-            push!(reducable_buses, int_bus_map[v])
-        end
-    end
-    @debug("Removing the following busses: \n$reducable_buses")
-    # replace two lines with one
-    for j in reducable_buses
-        remove_bus!(j, p)
-    end
-    @info("Removed $(length(reducable_buses)) busses.")
-end
-
-
-"""
-    reduce_tree!(p::Inputs{MultiPhase})
-
-combine any line sets with intermediate busses that satisfy 
-    1. indegree == outdegree == 1
-    2. is not a load bus and 
-    3. has same phases in as out 
-into a single line.
-
-See `remove_bus!` for how the two lines are combined.
-"""
-function reduce_tree!(p::Inputs{MultiPhase}; keep_regulator_busses=true)
-    # TODO make graph once in Inputs ?
-    g = make_graph(p.busses, p.edges)
-    int_bus_map = g[][:int_bus_map]
-    reducable_buses = String[]
-    load_buses = Set(vcat(collect(keys(p.Pload)), collect(keys(p.Qload))))
-    if keep_regulator_busses
-        for bs in keys(p.regulators)  # tuple keys of bus pairs, i.e. edges
-            push!(load_buses, bs...)
-        end
-    end
-    for v in MetaGraphsNext.vertices(g)
-        if !(int_bus_map[v] in load_buses) && MetaGraphsNext.indegree(g, v) == MetaGraphsNext.outdegree(g, v) == 1
-            # TODO add phases to the graph instead of this mess
-            j = int_bus_map[v]
-            i, k = i_to_j(j, p)[1], j_to_k(j, p)[1]
-            ij_idx, jk_idx = get_ij_idx(i, j, p), get_ij_idx(j, k, p)
-            phases_in = Set(p.phases[ij_idx])
-            phases_out = Set(p.phases[jk_idx])
-            if phases_in == phases_out
-                push!(reducable_buses, int_bus_map[v])
-            end
-        end
-    end
-    @debug("Removing the following busses: \n$reducable_buses")
-    # replace two lines with one
-    for j in reducable_buses
-        remove_bus!(j, p)
-    end
-    @info("Removed $(length(reducable_buses)) busses.")
-end
+# See `remove_bus!` for how the two lines are combined.
+# """
+# function reduce_tree!(p::Inputs{MultiPhase}; keep_regulator_busses=true)
+#     # TODO make graph once in Inputs ?
+#     g = make_graph(p.busses, p.edges)
+#     int_bus_map = g[][:int_bus_map]
+#     reducable_buses = String[]
+#     load_buses = Set(vcat(collect(keys(p.Pload)), collect(keys(p.Qload))))
+#     if keep_regulator_busses
+#         for bs in keys(p.regulators)  # tuple keys of bus pairs, i.e. edges
+#             push!(load_buses, bs...)
+#         end
+#     end
+#     for v in MetaGraphsNext.vertices(g)
+#         if !(int_bus_map[v] in load_buses) && MetaGraphsNext.indegree(g, v) == MetaGraphsNext.outdegree(g, v) == 1
+#             # TODO add phases to the graph instead of this mess
+#             j = int_bus_map[v]
+#             i, k = i_to_j(j, p)[1], j_to_k(j, p)[1]
+#             ij_idx, jk_idx = get_ij_idx(i, j, p), get_ij_idx(j, k, p)
+#             phases_in = Set(p.phases[ij_idx])
+#             phases_out = Set(p.phases[jk_idx])
+#             if phases_in == phases_out
+#                 push!(reducable_buses, int_bus_map[v])
+#             end
+#         end
+#     end
+#     @debug("Removing the following busses: \n$reducable_buses")
+#     # replace two lines with one
+#     for j in reducable_buses
+#         remove_bus!(j, p)
+#     end
+#     @info("Removed $(length(reducable_buses)) busses.")
+# end
