@@ -14,81 +14,6 @@ end
 
 
 """
-    make_graph(edges::AbstractVector)
-
-return SimpleDiGraph by inferring busses from `edges`
-with the dicts for bus => int and int => bus
-(because Graphs.jl only works with integer nodes)
-```julia
-julia> g["13", :bus]
-10
-
-julia> g[13, :bus]
-"24"
-
-julia> get_prop(g, :int_bus_map)[13]
-"24"
-```
-"""
-function make_graph(edges::AbstractVector)
-    busses = busses_from_edges(edges)
-    make_graph(busses, edges)
-end
-
-
-"""
-    make_graph(busses::AbstractVector{String}, edges::AbstractVector; directed::Union{Bool,Missing}=missing)
-
-return SimpleDiGraph
-with the dicts for bus => int and int => bus
-(because Graphs.jl only works with integer nodes)
-```julia
-julia> g["13", :bus]
-10
-
-julia> g[13, :bus]
-"24"
-
-julia> get_prop(g, :int_bus_map)[13]
-"24"
-```
-"""
-function make_graph(
-        busses::AbstractVector{String}, 
-        edges::AbstractVector; 
-        directed::Union{Bool,Missing}=missing
-    )
-    bus_int_map = Dict(b => i for (i,b) in enumerate(busses))
-    int_bus_map = Dict(i => b for (b, i) in bus_int_map)
-    dtype = Dict{Symbol, Any}
-    if ismissing(directed)  # infer from number of edges and busses
-        directed = false
-        if length(edges) + 1 == length(busses)  # assume radial, directed graph
-            directed = true
-        end
-    end
-    graph_template = Graphs.DiGraph()
-    if !directed
-        graph_template = Graphs.Graph()
-    end
-    g = MetaGraphsNext.MetaGraph(
-        graph_template, 
-        label_type=String,
-        vertex_data_type=dtype,
-        edge_data_type=dtype,
-        graph_data=Dict(:int_bus_map => int_bus_map)
-    )
-    for b in busses
-        setindex!(g, dtype(), b)
-    end
-    for e in edges
-        setindex!(g, dtype(), e[1], e[2])
-    end
-    return g
-end
-
-
-"""
     function fill_edges!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractEdge})
 
 For each `edge`` in `vals` store the `edge`` in the graph using the `edge.busses`:
@@ -116,11 +41,26 @@ function fill_edges!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:Abs
 end
 
 
-# this make_graph will replace the other two make_graph once Inputs is gone
-function make_graph(
-        edges::AbstractVector{<:AbstractEdge}; 
-        directed::Union{Bool,Missing}=missing
-    )
+
+"""
+    make_graph(edges::AbstractVector{<:AbstractEdge};  directed::Union{Bool,Missing}=missing)
+
+return MetaGraph made up of the `edges`
+
+Also the graph[:int_bus_map] is created with the dicts for bus => int and int => bus
+(because Graphs.jl only works with integer nodes)
+```julia
+julia> g["13", :bus]
+10
+
+julia> g[13, :bus]
+"24"
+
+julia> get_prop(g, :int_bus_map)[13]
+"24"
+```
+"""
+function make_graph(edges::AbstractVector{<:AbstractEdge}; directed::Union{Bool,Missing}=missing)
     busses = CommonOPF.busses_from_edges([e.busses for e in edges])  # TODO rm this hack
     bus_int_map = Dict(b => i for (i,b) in enumerate(busses))
     int_bus_map = Dict(i => b for (b, i) in bus_int_map)

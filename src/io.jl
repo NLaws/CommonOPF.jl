@@ -31,7 +31,7 @@ get_phases(bus::AbstractString) = sort!(collect(parse(Int,ph) for ph in split(bu
 
 
 """
-    fill_transformer_vals!(d::Dict, p::Inputs)
+    fill_transformer_vals!(d::Dict, Sbase::Real, Vbase::Real)
 
 Fill in necessary values for parsing transformers in the dict from parse_dss
 """

@@ -39,8 +39,6 @@ export
     SinglePhase,
     MultiPhase,
     MultiPhaseVariableContainerType,
-    Inputs,
-    singlephase38linesInputs,
     make_graph,
     outneighbors,
     all_outneighbors,
@@ -91,7 +89,6 @@ export
 include("types.jl")
 include("graphs.jl")
 include("io.jl")
-include("inputs.jl")
 
 include("busses/busses.jl")
 include("busses/loads.jl")
