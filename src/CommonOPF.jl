@@ -52,7 +52,7 @@ export
     busses_with_multiple_inneighbors,
     next_bus_above_with_outdegree_more_than_one,
     paths_between,
-    check_paths,
+    check_paths_for_loads,
     delete_edge_index!,
     delete_edge_ij!,
     delete_bus_j!,

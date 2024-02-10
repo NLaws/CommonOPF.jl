@@ -442,75 +442,71 @@ function pos_seq(z::AbstractArray)
 end
 
 
-"""
-    extract_one_phase!(phs::Int, edges, linecodes, linelengths, phases, linecodes_dict;
-        use_extract_phase_impedance=false)
+# """
+#     extract_one_phase!(phs::Int, net::Network{MultiPhase}; use_extract_phase_impedance=false)
 
-Given a certain phase modify the `edges`, `linecodes`, `phases`, `linecodes_dict`, and `linelengths`
-to convert a multiphase system into a single phase system. 
-This is _not_ a positive sequence model as we take only the appropriate diagaonal elements of the 
-r and x matrices for the specified phase.
-"""
-function extract_one_phase!(phs::Int, edges, linecodes, linelengths, phases, linecodes_dict, regulators;
-        use_extract_phase_impedance=false
-    )
-
-    # step 1 find the lines that include phs
-    indices_to_remove = Int[]
-    for (i, phase_vec) in enumerate(phases)
-        if !(phs in phase_vec)
-            push!(indices_to_remove, i)
-        end
-    end
+# Given a certain phase modify the `net` to convert a multiphase system into a single phase system. 
+# This is _not_ a positive sequence model as we take only the appropriate diagaonal elements of the 
+# r and x matrices for the specified phase.
+# """
+# function extract_one_phase!(phs::Int, net::Network{MultiPhase}; use_extract_phase_impedance=false)
+#     throw(@error "Not implemented. Should we?")
+#     # step 1 find the lines that include phs
+#     indices_to_remove = Int[]
+#     for (i, phase_vec) in enumerate(phases)
+#         if !(phs in phase_vec)
+#             push!(indices_to_remove, i)
+#         end
+#     end
     
-    # step 2 delete lines and associated values that do no include phs
-    deleteat!(phases,      indices_to_remove)
-    deleteat!(linecodes,   indices_to_remove)
-    deleteat!(edges,       indices_to_remove)
-    deleteat!(linelengths, indices_to_remove)
+#     # step 2 delete lines and associated values that do no include phs
+#     deleteat!(phases,      indices_to_remove)
+#     deleteat!(linecodes,   indices_to_remove)
+#     deleteat!(edges,       indices_to_remove)
+#     deleteat!(linelengths, indices_to_remove)
 
-    # step 3 modify the rmatrix, xmatrix values s.t. the rij, xij methods will get the right values
-    # (the SinglePhase rij, xij methods take the first value from the matrices)
-    if !use_extract_phase_impedance   # use traditional positive sequence
-        for d in values(linecodes_dict)
-            d["rmatrix"] = pos_seq(d["rmatrix"])
-            d["xmatrix"] = pos_seq(d["xmatrix"])
-            d["nphases"] = 1
-        end
-    else  # use the extract phase's self impedance rather than the average across phases
-        # NOTE using self impedance only results in WAY too high voltage drop / impedance
-        # this method can result in slightly more accurate voltage drop
-        for (phase_vec, line_code) in zip(phases, linecodes)
-            if length(phase_vec) == 1 || length(linecodes_dict[line_code]["rmatrix"]) == 1 continue end
-            d = linecodes_dict[line_code]
-            # the matrix values can be 2x2 or 3x3, with phases (1,2), (1,3), or (2,3) in 2x2 matrices
-            i = indexin(phs, sort(phase_vec))[1]
-            m,n = size(d["rmatrix"])
-            r_mutual = 1/m * sum(d["rmatrix"][i,j] for i=1:m, j=1:n if i > j)
-            x_mutual = 1/m * sum(d["xmatrix"][i,j] for i=1:m, j=1:n if i > j)
-            d["rmatrix"] = d["rmatrix"][i,i] - r_mutual
-            d["xmatrix"] = d["xmatrix"][i,i] - x_mutual
-            d["nphases"] = 1
-        end
-    end
-    lcs_to_delete = setdiff(keys(linecodes_dict), linecodes)
-    for lc in lcs_to_delete
-        delete!(linecodes_dict, lc)
-    end
+#     # step 3 modify the rmatrix, xmatrix values s.t. the rij, xij methods will get the right values
+#     # (the SinglePhase rij, xij methods take the first value from the matrices)
+#     if !use_extract_phase_impedance   # use traditional positive sequence
+#         for d in values(linecodes_dict)
+#             d["rmatrix"] = pos_seq(d["rmatrix"])
+#             d["xmatrix"] = pos_seq(d["xmatrix"])
+#             d["nphases"] = 1
+#         end
+#     else  # use the extract phase's self impedance rather than the average across phases
+#         # NOTE using self impedance only results in WAY too high voltage drop / impedance
+#         # this method can result in slightly more accurate voltage drop
+#         for (phase_vec, line_code) in zip(phases, linecodes)
+#             if length(phase_vec) == 1 || length(linecodes_dict[line_code]["rmatrix"]) == 1 continue end
+#             d = linecodes_dict[line_code]
+#             # the matrix values can be 2x2 or 3x3, with phases (1,2), (1,3), or (2,3) in 2x2 matrices
+#             i = indexin(phs, sort(phase_vec))[1]
+#             m,n = size(d["rmatrix"])
+#             r_mutual = 1/m * sum(d["rmatrix"][i,j] for i=1:m, j=1:n if i > j)
+#             x_mutual = 1/m * sum(d["xmatrix"][i,j] for i=1:m, j=1:n if i > j)
+#             d["rmatrix"] = d["rmatrix"][i,i] - r_mutual
+#             d["xmatrix"] = d["xmatrix"][i,i] - x_mutual
+#             d["nphases"] = 1
+#         end
+#     end
+#     lcs_to_delete = setdiff(keys(linecodes_dict), linecodes)
+#     for lc in lcs_to_delete
+#         delete!(linecodes_dict, lc)
+#     end
 
-    # pull out one phase from regulators
-    new_regs = Dict()
-    for (b, d) in regulators
-        new_regs[b] = Dict(
-            k => v[phs]
-            for (k,v) in d
-        )
-    end
+#     # pull out one phase from regulators
+#     new_regs = Dict()
+#     for (b, d) in regulators
+#         new_regs[b] = Dict(
+#             k => v[phs]
+#             for (k,v) in d
+#         )
+#     end
 
-    # adjust the phases
-    phases = repeat([[phs]], length(phases))
-    return phases, new_regs
-end
+#     # adjust the phases
+#     phases = repeat([[phs]], length(phases))
+#     return phases, new_regs
+# end
 
 
 """

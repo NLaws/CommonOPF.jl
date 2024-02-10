@@ -149,11 +149,10 @@ end
 paths is vector of vectors containing bus names for parallel lines.
 if any load busses are in the paths then an error is thrown because we are not handling that case yet.
 """
-function check_paths(paths::AbstractVecOrMat, p::Inputs)
-    load_busses = union(keys(p.Pload), keys(p.Qload))
+function check_paths_for_loads(paths::AbstractVecOrMat, net::Network)
     for path in paths, bus in path
-        if bus in load_busses
-            @error("At least one load bus is in the parallel lines: not merging.")
+        if bus in load_busses(net)
+            throw("At least one load bus is in the parallel lines: not merging.")
         end
     end
     true
