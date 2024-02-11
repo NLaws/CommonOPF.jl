@@ -26,21 +26,41 @@
         @test reactance(c1) == 0.2 * 1.2
         @test reactance(c2) == 0.2 * 20
     end
+end
+
+
+@testset "Conductor multi-phase" begin
 
     # some multi-phase conductors to test with
     c1 = CommonOPF.Conductor(; 
-        busses=("b1", "b2"), name="edge1", template="edge2", length=1.2, phases=[2,3]
+        busses=("b1", "b2"), 
+        name="edge1", 
+        template="edge2", 
+        length=1.2, 
+        phases=[2,3],
     )
     c2 = CommonOPF.Conductor(;
-        Dict(
-            :busses => ("b2", "b3"), :name => "edge2", :r1 => 0.1, :x1 => 0.2, :length => 20,
-            :phases => [1]
-        )...
+        busses=("b2", "b3"), 
+        name="edge2", 
+        r1=0.1, 
+        r0=0,
+        x1=0.2,
+        x0=0,
+        length=20,
+        phases=[1],
     )
-    clear_log!(test_logger)
-    CommonOPF.validate_multiphase_conductors!([c1, c2])
-    @test occursin(
-        "do not have sufficient parameters to define the impedance", 
-        test_logger.logs[end].message
-    )
+
+    @testset "validate_multiphase_conductors!" begin
+        clear_log!(test_logger)
+        c2.x0 = missing
+        CommonOPF.validate_multiphase_conductors!([c2])
+        @test occursin(
+            "do not have sufficient parameters to define the impedance", 
+            test_logger.logs[end].message
+        )
+        c2.x0=0
+
+        # will a template for different phases work? 
+        # maybe if the template has same number of phases or more 
+    end
 end
