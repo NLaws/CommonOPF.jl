@@ -156,20 +156,25 @@ function Base.getindex(net::Network, bus::String, kws_kvars::Symbol, phase::Int)
     if !(load_key in LOAD_KEYS)
         throw(KeyError("To get a Load use :kws or :kvars and a phase in [1,2,3]"))
     end
+    # make sure that there is a bus and Load
     try
-        return net[bus][:Load][load_key]
+        net[bus][:Load]
     catch e
         # if the key error is from the bus or :Load we throw it
         if typeof(e) == KeyError 
             if e.key == :Load
                 throw(KeyError("There is no Load at bus $bus"))
             elseif e.key == bus
-                throw(e)
+                throw(KeyError("There is no bus in the Network at $bus"))
             end
+        else
+            rethrow(e)
         end
-        # else we return zeros
+    end
+    if ismissing(getproperty(net[bus][:Load], load_key))
         return zeros(net.Ntimesteps)
     end
+    return getproperty(net[bus][:Load], load_key)
 end
 
 
@@ -240,6 +245,12 @@ function conductors_with_attribute_value(net::AbstractNetwork, attr::Symbol, val
 end
 
 
+"""
+    fill_node_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractBus})
+
+For each concrete bus in `vals` store a dict of key,val pairs for the bus attributes in a symbol key
+like :Load for CommonOPF.Load TODO just store the type
+"""
 function fill_node_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractBus})
     for node in vals
         if !(node.bus in MetaGraphsNext.labels(g))
@@ -253,9 +264,7 @@ function fill_node_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVe
         if !isempty( get(g[node.bus], Symbol(type), []) )
             @warn "Replacing existing attributes $(g[node.bus][Symbol(type)]) in node $(node.bus)"
         end
-        g[node.bus][Symbol(type)] = Dict(
-            fn => getfield(node, fn) for fn in node_fieldnames if !ismissing(getfield(node, fn))
-        )
+        g[node.bus][Symbol(type)] = node
     end
 end
 

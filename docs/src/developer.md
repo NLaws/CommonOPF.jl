@@ -31,8 +31,14 @@ To add a new Bus device:
     - any optional fields should have default of `missing`
 2. OPTIONALLY define a `check_busses!(busses::AbstractVector{YourType})` method
     - `check_busses!` is used in the `Network` builder after unpacking user input dicts into `YourType` constructor
+```@docs
+CommonOPF.check_busses!
+```
 3. Ensure compatibility with the `MetaGraph`
     - make sure the `AbstractVector{YourType}` returned from your constructor is compatible with `fill_node_attributes!`.
+```@docs
+CommonOPF.fill_node_attributes!
+```
 
 The `fill_{edge,node}_attributes!` methods are used in the `Network` builder to store all the
 attributes of `YourType` in the `Network.graph`.  The `Network.graph` is used to build the power

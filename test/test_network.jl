@@ -23,12 +23,17 @@
     @test xij("b1", "b2", net) == 0.627 * 100 == xij("b2", "b3", net) / 2
 
     # loads
-    @test net["b3"][:Load][:kws1] == [5.6]
-    @test net["b2"][:Load][:kvars1] == [1.2]
+    @test net["b3"][:Load].kws1 == [5.6]
+    @test net["b2"][:Load].kvars1 == [1.2]
+    # the safe getter looks like:
     @test net["b3", :kws, 1] == [5.6]
     @test net["b3", :kvars, 1] == [1.2]
     @test net["b3", :kws, 2] == [0]
     @test net["b3", :kvars, 2] == [0]
+    # do we want to keep this missing behavior?
+    @test ismissing(net["b2"][:Load].kvars2)
+    @test net["b2", :kvars, 2] == [0.0]
+
     @test_throws KeyError net["notabus", :kws, 2]
     @test_throws KeyError net["b3", :bad, 2]
     @test_throws KeyError net["b3", :kvar, 4]
