@@ -29,7 +29,6 @@ edge specifications.
 Nodes contain:
 - [Load](@ref)
 - [ShuntAdmittance](@ref)
-- [ShuntImpedance](@ref)
 - [VoltageRegulator](@ref)
 
 Within the network model busses are indexed via bus names like so:

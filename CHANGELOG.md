@@ -1,7 +1,7 @@
 # CommonOPF Changelog
 
 ## dev
-- add `VoltageRegulator`, `ShuntImpedance`, and `ShuntAdmittance` as a new bus inputs
+- add `VoltageRegulator` and `ShuntAdmittance` as a new bus inputs
 - add `VariableContainer = Dict{Int, Dict{String, Any}}` and `VARIABLE_NAMES`
 - add `Network.var_name_map` for parsing results
 

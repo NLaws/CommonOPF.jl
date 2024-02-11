@@ -30,3 +30,12 @@
     @test occursin("has been removed", test_logger.logs[end].message)
     @test isempty(loads)
 end
+
+
+@testset "ShuntAdmittance" begin
+    shunt = CommonOPF.ShuntAdmittance(;
+        bus="b",
+        g=1,
+        b=1.1,
+    )
+end

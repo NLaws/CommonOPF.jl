@@ -54,11 +54,6 @@ Base.getindex(net::Network, bus::String, kws_kvars::Symbol, phase::Int)
 CommonOPF.ShuntAdmittance
 ```
 
-## ShuntImpedance
-```@docs
-CommonOPF.ShuntImpedance
-```
-
 ## Transformer
 ```@docs
 CommonOPF.Transformer
