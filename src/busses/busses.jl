@@ -2,19 +2,21 @@
 
 
 """
-    function  build_busses(dicts::AbstractVector{Dict{Symbol, Any}}, Bus::DataType)
+    function  build_busses(dicts::AbstractVector{Dict{Symbol, Any}}, ConcreteBusType::DataType)
 
-unpack each dict in `dicts` into `Bus` and pass the results to `check_edges!`.
-returns `Vector{T}`
+unpack each dict in `dicts` into `ConcreteBusType` constructor and pass the results to
+`check_edges!`.
+
+returns `Vector{ConcreteBusType}`
 """
-function build_busses(dicts::AbstractVector{Dict{Symbol, Any}}, Bus::DataType)
-    @assert supertype(Bus) == AbstractBus
+function build_busses(dicts::AbstractVector{Dict{Symbol, Any}}, ConcreteBusType::DataType)
+    @assert supertype(ConcreteBusType) == AbstractBus
     # String(int) does not work, have to use string(int) :/
     for d in dicts
         d[:bus] = string(d[:bus])
     end
-    busses = Bus[Bus(;bdict...) for bdict in dicts]
-    check_busses!(busses)  # dispatch on Vector{T}
+    busses = ConcreteBusType[ConcreteBusType(;bdict...) for bdict in dicts]
+    check_busses!(busses)  # dispatch on Vector{}
     return busses
 end
 

@@ -2,6 +2,8 @@ using CommonOPF
 using Test
 using JuMP
 import Logging: with_logger
+# @with_kw is used to define concrete types of AbstractBus and AbstractEdge in CommonOPF
+import Parameters: @with_kw  
 
 test_logger = TestLogger()
 
@@ -25,6 +27,8 @@ end
 with_logger(test_logger) do
 
 @testset "CommonOPF.jl" begin
+
+    include("test_busses.jl")
 
     include("test_conductor.jl")
 
