@@ -42,10 +42,10 @@ end
     c2 = CommonOPF.Conductor(;
         busses=("b2", "b3"), 
         name="edge2", 
-        r1=0.1, 
-        r0=0,
-        x1=0.2,
-        x0=0,
+        r1=1, 
+        r0=2,
+        x1=3,
+        x0=4,
         length=20,
         phases=[1],
     )
@@ -88,5 +88,16 @@ end
         clear_log!(test_logger)
         @test CommonOPF.validate_multiphase_conductors!([c1, c2])
         @test isempty(test_logger.logs)
+        @test c2.rmatrix == c1.rmatrix
+        @test c2.xmatrix == c1.xmatrix
+
+        c2.rmatrix = missing
+        c2.xmatrix = missing
+        CommonOPF.fill_impedance_matrices!(c2)
+        # first row is all zeros b/c c2.phases == [2,3]
+        @test all(c2.rmatrix[1, i] == 0 for i=1:3)
+        @test all(c2.xmatrix[1, i] == 0 for i=1:3)
+        @test c2.rmatrix[2,2] == c2.rmatrix[3,3] ≈ 1/3 * c2.r0 + 2/3 * c2.r1
+        @test c2.rmatrix[2,3] == c2.rmatrix[3,2] ≈ 1/3 * (c2.r0 - c2.r1)
     end
 end
