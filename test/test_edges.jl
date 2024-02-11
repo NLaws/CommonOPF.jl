@@ -1,6 +1,10 @@
 @testset "Required values for edges" begin
     for EType in subtypes(CommonOPF.AbstractEdge)
         @test_throws "Field 'busses' has no default" EType()
+        concrete_edge = EType(;busses=("a", "b"))
+        @test ismissing(concrete_edge.phases)
+        @test ismissing(concrete_edge.rmatrix)
+        @test ismissing(concrete_edge.xmatrix)
     end
 end
 
