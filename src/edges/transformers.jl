@@ -28,4 +28,18 @@ Series impedance defaults to zero.
     phases::Union{Vector{Int}, Missing} = missing
     reactance::Real = 0.0
     resistance::Real = 0.0
+    rmatrix::Union{AbstractArray, Missing} = missing
+    xmatrix::Union{AbstractArray, Missing} = missing
+end
+
+
+"""
+    check_edges!(transformers::AbstractVector{Transformer})
+
+fill in `rmatrix` and `xmatrix` if `phases` is not missing. For now assuming zero mutual impedances.
+"""
+function check_edges!(transformers::AbstractVector{Transformer})
+    if any((!ismissing(trfx.phases) for trfx in transformers))
+        validate_multiphase_edges!(transformers)
+    end
 end

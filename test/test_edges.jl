@@ -26,9 +26,5 @@ end
 
 
 @testset "VoltageRegulator" begin
-    # shunt = CommonOPF.ShuntAdmittance(;
-    #     bus="b",
-    #     g=1,
-    #     b=1.1,
-    # )
+    # Next
 end

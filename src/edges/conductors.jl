@@ -116,7 +116,7 @@ end
 function check_edges!(conductors::AbstractVector{Conductor})
     # check multiphase conductors
     if any((!ismissing(c.phases) for c in conductors))
-        validate_multiphase_conductors!(conductors)
+        validate_multiphase_edges!(conductors)
     else
         warn_singlephase_conductors_and_copy_templates(conductors)
     end
@@ -204,50 +204,12 @@ end
 
 
 """
-    function unpack_input_matrices!(cond::Conductor)
-
-Convert lower diagonal impedance matrices loaded in from YAML or JSON to 3x3 matrices.
-The "matrices" come in as Vector{Vector} and look like:
-```
-julia> d[:conductors][3][:rmatrix]
-3-element Vector{Vector{Float64}}:
- [0.31]
- [0.15, 0.32]
- [0.15, 0.15, 0.33]
-```
-"""
-function unpack_input_matrices!(cond::Conductor)
-    rmatrix = zeros(3,3)
-    xmatrix = zeros(3,3)
-    for (i, phs1) in enumerate(cond.phases), (j, phs2) in enumerate(cond.phases)
-        try
-            if i >= j # in lower triangle
-                rmatrix[phs1, phs2] = cond.rmatrix[i][j]
-                xmatrix[phs1, phs2] = cond.xmatrix[i][j]
-            else  # flip i,j to mirror in to upper triangle
-                rmatrix[phs1, phs2] = cond.rmatrix[j][i]
-                xmatrix[phs1, phs2] = cond.xmatrix[j][i]
-            end
-        catch BoundsError
-            @warn "Unable to process impedance matrices for conductor:\n"*
-                "$cond\n"*
-                "Probably because the phases do not align with one or both of the rmatrix and xmatrix."
-            return
-        end
-    end
-    cond.rmatrix = rmatrix
-    cond.xmatrix = xmatrix
-    nothing
-end
-
-
-"""
-    validate_multiphase_conductors!(conds::AbstractVector{Conductor})
+    validate_multiphase_edges!(conds::AbstractVector{Conductor})
 
 Fill in impedance matrices and `@warn` for any conductors that do not have inputs required to define
 impedance.
 """
-function validate_multiphase_conductors!(conds::AbstractVector{Conductor})
+function validate_multiphase_edges!(conds::AbstractVector{Conductor})
     n_no_phases = 0
     n_no_impedance = 0
     templates = String[]
@@ -262,8 +224,8 @@ function validate_multiphase_conductors!(conds::AbstractVector{Conductor})
             n_no_impedance += 1
         else  # we have everything we need to define rmatrix, xmatrix
             if !ismissing(c.rmatrix) 
-                # unpack the Vector{Vector} (lower diagaonal portion of matrix)
                 if typeof(c.rmatrix) <: Vector
+                    # unpack the Vector{Vector} (lower diagaonal portion of matrix)
                     unpack_input_matrices!(c)
                 # elseif typeof(c.rmatrix) <: Matrix  # do nothing, we're good
                     # NOTE assuming R and X provided in the same format

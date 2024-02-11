@@ -60,8 +60,14 @@ To add a new Edge device:
     @with_kw mutable struct YourType <: AbstractEdge
         busses::Tuple{String, String}
         phases::Union{Vector{Int}, Missing} = missing
+        rmatrix::Union{AbstractArray, Missing} = missing
+        xmatrix::Union{AbstractArray, Missing} = missing
     end
     ```
+    For multiphase models each subtype of `AbstractEdge` must have `rmatrix` and `xmatrix`
+    properties. If you also specify `resistance` and `reactance` fields then you can take advantage
+    of `validate_multiphase_edges!` for you type. (Note that `Conductor` is a special case because
+    we permit specification of the sequence impedances.)
 2. define methods that dispatch on your type like
     - `resistance(your_edge::YourType)`
     - `reactance(your_edge::YourType)`
@@ -69,6 +75,7 @@ To add a new Edge device:
     - `check_edges!` is used in the `Network` builder after unpacking user input dicts into
       `YourType` constructor
     
+
 
 # JuMP Model Variables
 CommonOPF provides some patterns for storing variables so that we can provide common functionality
