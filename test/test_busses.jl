@@ -1,4 +1,4 @@
-# @testset "busses" begin 
+# @testset "build_busses" begin 
     bus_dicts = [
         Dict{Symbol,Any}(
             :bus => s
@@ -19,3 +19,14 @@
     @test length(concrete_test_busses) == length(bus_dicts)
     
 # end
+
+
+@testset "Load" begin
+    bad_load = CommonOPF.Load(; bus="bname")  # no load defined
+    # a warning should be logged about removing bad_load
+    loads = CommonOPF.Load[bad_load]
+    clear_log!(test_logger)
+    CommonOPF.check_busses!(loads)
+    @test occursin("has been removed", test_logger.logs[end].message)
+    @test isempty(loads)
+end

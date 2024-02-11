@@ -46,10 +46,14 @@ net[lb, :kws, 1]  # last index is phase integer
 end
 
 
-# TODO all supertype of AbstractBus into directory
 LOAD_KEYS = [:kws1, :kvars1, :kws2, :kvars2, :kws3, :kvars3]
 
 
+"""
+    check_busses!(loads::AbstractVector{Load})
+
+Remove (and warn about it) if any Load have no way to define the loads
+"""
 function check_busses!(loads::AbstractVector{Load})
     indices_to_delete = Int[]
     for (idx, load) in enumerate(loads)
@@ -60,12 +64,14 @@ function check_busses!(loads::AbstractVector{Load})
             load.csv,
         )))
             push!(indices_to_delete, idx)
-            @warn "Load at bus $(load.bus) does not have enough values to define a multi-phase load.\n"*
+            @warn "Load at bus $(load.bus) does not have enough values to define a load.\n"*
             "It has been removed from the model.\n"*
             "See https://nlaws.github.io/CommonOPF.jl/dev/inputs/#Loads for required inputs."
         end
     end
     # TODO check all time-series have same lengths
+    # TODO how to check Load inputs for single phase vs multiphase? Need to no phase b/c a bus could 
+        # have a load on only phase 1, 2, or 3 or some combination of them.
     deleteat!(loads, indices_to_delete)
     nothing
 end
