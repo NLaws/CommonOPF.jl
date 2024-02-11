@@ -9,7 +9,7 @@ unpack each dict in `dicts` into `ConcreteBusType` constructor and pass the resu
 
 returns `Vector{ConcreteBusType}`
 """
-function build_busses(dicts::AbstractVector{Dict{Symbol, Any}}, ConcreteBusType::DataType)
+function build_busses(dicts::AbstractVector{Dict{Symbol, Any}}, ConcreteBusType::DataType)::Vector{ConcreteBusType}
     @assert supertype(ConcreteBusType) == AbstractBus
     # String(int) does not work, have to use string(int) :/
     for d in dicts
