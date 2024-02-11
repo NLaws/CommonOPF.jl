@@ -19,6 +19,8 @@
     for cond in conductors(net)
         @test !ismissing(cond.r1) || !ismissing(cond.template)
     end
+    @test rij("b1", "b2", net) == 0.301 * 100 == rij("b2", "b3", net) / 2
+    @test xij("b1", "b2", net) == 0.627 * 100 == xij("b2", "b3", net) / 2
 
     # loads
     @test net["b3"][:Load][:kws1] == [5.6]
@@ -114,6 +116,13 @@ end
     @test cond.rmatrix[1,1] == 0
     @test cond.rmatrix[2,2] == 0.32
     @test cond.rmatrix[3,3] == 0.33
+
+    # network impedances
+    # conductor at (b2, b3) uses (b1, b2) as template
+    @test rij("b1", "b2", net) == rij("b2", "b3", net) / 2  # twice as long
+    @test xij("b1", "b2", net) == xij("b2", "b3", net) / 2  # twice as long
+    @test rij_per_unit("b1", "b2", net) == rij_per_unit("b2", "b3", net) / 2
+    @test xij_per_unit("b1", "b2", net) == xij_per_unit("b2", "b3", net) / 2
 
     # test load definitions
     lbs = collect(load_busses(net))

@@ -23,6 +23,50 @@ reactance_per_length(e::AbstractEdge) = 0.0
 
 
 """
+    rij(i::AbstractString, j::AbstractString, net::Network)
+
+    resistance(net[(i,j)])
+
+Resistance of edge i-j
+"""
+function rij(i::AbstractString, j::AbstractString, net::Network)
+    resistance(net[(i,j)])
+end
+
+
+"""
+    rij_per_unit(i::AbstractString, j::AbstractString, net::Network)
+
+    resistance(net[(i,j)]) / net.Zbase
+
+Resistance of edge i-j normalized by `net.Zbase`
+"""
+function rij_per_unit(i::AbstractString, j::AbstractString, net::Network)
+    resistance(net[(i,j)]) / net.Zbase
+end
+
+
+"""
+    xij(i::AbstractString, j::AbstractString, net::Network)
+
+Reactance of edge i-j
+"""
+function xij(i::AbstractString, j::AbstractString, net::Network)
+    reactance(net[(i,j)])
+end
+
+
+"""
+    xij_per_unit(i::AbstractString, j::AbstractString, net::Network)
+
+Reactance of edge i-j normalized by `net.Zbase`
+"""
+function xij_per_unit(i::AbstractString, j::AbstractString, net::Network)
+    reactance(net[(i,j)]) / net.Zbase
+end
+
+
+"""
     resistance_per_length(c::Conductor)
 
     if ismissing(c.phases)  # single phase
@@ -48,41 +92,6 @@ The absolute resistance of the conductor (in the units provided by the user)
 function resistance(c::Conductor)
     resistance_per_length(c) * c.length
 end
-
-
-"""
-    rij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-
-    resistance(net[(i,j)])
-
-Resistance of edge i-j
-"""
-function rij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-    resistance(net[(i,j)])
-end
-
-
-"""
-    rij(i::AbstractString, j::AbstractString, net::Network{MultiPhase})
-
-Resistance of edge i-j
-"""
-function rij(i::AbstractString, j::AbstractString, net::Network{MultiPhase})
-    throw("Not implemented")
-end
-
-"""
-    rij_per_unit(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-
-    resistance(net[(i,j)]) / net.Zbase
-
-Resistance of edge i-j normalized by `net.Zbase`
-"""
-function rij_per_unit(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-    resistance(net[(i,j)]) / net.Zbase
-end
-
-
 """
     reactance_per_length(c::Conductor)
 
@@ -108,26 +117,6 @@ The absolute reactance of the conductor (in the units provided by the user)
 """
 function reactance(c::Conductor)
     reactance_per_length(c) * c.length
-end
-
-
-"""
-    xij(i::AbstractString, j::AbstractString, net::Network{MultiPhase})
-
-Reactance of edge i-j
-"""
-function xij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-    reactance(net[(i,j)])
-end
-
-
-"""
-    xij(i::AbstractString, j::AbstractString, net::Network{MultiPhase})
-
-Reactance of edge i-j normalized by `net.Zbase`
-"""
-function xij_per_unit(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-    reactance(net[(i,j)]) / net.Zbase
 end
 
 
