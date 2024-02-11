@@ -278,6 +278,8 @@ function validate_multiphase_conductors!(conds::AbstractVector{Conductor})
         end
     end
 
+    good = true
+
     # copy template values
     missing_templates = String[]
     for template_name in templates
@@ -288,12 +290,16 @@ function validate_multiphase_conductors!(conds::AbstractVector{Conductor})
         end
         template_cond = conds[template_index]
         for c in filter(c -> !ismissing(c.template) && c.template == template_name, conds)
+            if Set(sort(c.phases)) != Set(sort(template_cond.phases))
+                @warn """Conductor with name $(c.name) and phases $(c.phases) has template $(c.template) 
+                         with phases $(template_cond.phases). Not copying template impedance matrices."""
+                good = false
+            end
             c.xmatrix = template_cond.xmatrix
             c.rmatrix = template_cond.rmatrix
         end
     end
 
-    good = true
     if n_no_phases > 0
         @warn "$(n_no_phases) conductors are missing phases."
         good = false
