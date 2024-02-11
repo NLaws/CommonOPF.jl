@@ -16,7 +16,11 @@ makedocs(
             "graph_methods.md",
         ],
         "Math" => "math.md",
-        "Developer" => "developer.md"
+        "Developer" => [
+            "developer/developer.md",
+            "developer/input_validation.md",
+            "developer/jump_variables.md",
+        ]
     ],
     warnonly = true,  # TODO rm this and fix all the docs
 )
