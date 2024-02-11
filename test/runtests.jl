@@ -3,7 +3,8 @@ using Test
 using JuMP
 import Logging: with_logger
 # @with_kw is used to define concrete types of AbstractBus and AbstractEdge in CommonOPF
-import Parameters: @with_kw  
+import Parameters: @with_kw
+import InteractiveUtils: subtypes
 
 test_logger = TestLogger()
 
@@ -31,6 +32,8 @@ with_logger(test_logger) do
     include("test_busses.jl")
 
     include("test_conductor.jl")
+
+    include("test_edges.jl")
 
     include("test_network_reduction.jl")
 
