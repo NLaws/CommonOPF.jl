@@ -51,14 +51,30 @@ end
     )
 
     @testset "validate_multiphase_conductors!" begin
-        clear_log!(test_logger)
         c2.x0 = missing
+        clear_log!(test_logger)
         CommonOPF.validate_multiphase_conductors!([c2])
         @test occursin(
             "do not have sufficient parameters to define the impedance", 
             test_logger.logs[end].message
         )
-        c2.x0=0
+        c2.x0 = 0
+
+        c2.phases = missing
+        clear_log!(test_logger)
+        CommonOPF.validate_multiphase_conductors!([c2])
+        @test occursin(
+            "1 conductors are missing phases.", 
+            test_logger.logs[end].message
+        )
+        c2.phases = [1]
+
+        clear_log!(test_logger)
+        CommonOPF.validate_multiphase_conductors!([c1])
+        @test occursin(
+            "Missing templates: [\"edge2\"]", 
+            test_logger.logs[end].message
+        )
 
         # will a template for different phases work? 
         # maybe if the template has same number of phases or more 
