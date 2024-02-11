@@ -71,6 +71,12 @@ VoltageRegulator:
 end
 
 
+"""
+    check_edges!(regulators::AbstractVector{VoltageRegulator})
+
+Warn if not missing both vreg_pu and turn_ratio and call validate_multiphase_edges! if any `phases`
+are not missing.
+"""
 function check_edges!(regulators::AbstractVector{VoltageRegulator})
     bad_reg_busses = Tuple{String, String}[]
     for reg in regulators

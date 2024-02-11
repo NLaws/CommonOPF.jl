@@ -113,6 +113,14 @@ Conductor:
 end
 
 
+"""
+    check_edges!(conductors::AbstractVector{Conductor})
+
+if all `phases` are missing then
+    - `warn_singlephase_conductors_and_copy_templates(conductors)`
+else
+    - `validate_multiphase_edges!(conductors)`
+"""
 function check_edges!(conductors::AbstractVector{Conductor})
     # check multiphase conductors
     if any((!ismissing(c.phases) for c in conductors))

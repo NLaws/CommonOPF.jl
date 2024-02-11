@@ -85,7 +85,7 @@ end
 """
     resistance(c::Conductor)
 
-    resistance_per_length(c) * c.length
+`resistance_per_length(c) * c.length`
 
 The absolute resistance of the conductor (in the units provided by the user)
 """
@@ -111,7 +111,7 @@ end
 """
     reactance(c::Conductor)
 
-    reactance_per_length(c) * c.length
+`reactance_per_length(c) * c.length`
 
 The absolute reactance of the conductor (in the units provided by the user)
 """
