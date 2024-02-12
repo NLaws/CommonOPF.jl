@@ -37,6 +37,8 @@ Load:
     kvars1: 
       - 1.2
 ```
+The [`Network(fp::String)`](@ref) constructor excepts a path to a yaml file.
+
 
 ## Conductor
 ```@docs
