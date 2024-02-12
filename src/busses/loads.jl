@@ -1,5 +1,5 @@
 """
-    struct Load <: AbstractBus
+    @with_kw mutable struct Load <: AbstractBus
 
 A Load input specifier, mapped from YAML, JSON, or manually populated.
 
@@ -31,7 +31,7 @@ lb = ld_busses[1]  # bus keys are strings in the network
 net[lb, :kws, 1]  # last index is phase integer
 ```
 """
-@with_kw struct Load <: AbstractBus
+@with_kw mutable struct Load <: AbstractBus
     # required values
     bus::String
     # optional values
@@ -57,6 +57,7 @@ Remove (and warn about it) if any Load have no way to define the loads
 function check_busses!(loads::AbstractVector{Load})
     indices_to_delete = Int[]
     for (idx, load) in enumerate(loads)
+        fill_load!(load)
         if all(ismissing.((
             load.kws1, load.kvars1, 
             load.kws2, load.kvars2, 
@@ -80,11 +81,25 @@ end
 """
 
 Rules:
-1. If `q_to_p` is defined and a `kwN` value is defined then we fill the `kvarN` values.
+1. If `q_to_p` is defined and a `kwsN` value is defined then we fill the `kvarN` value, where ``N
+   \\in {1,2,3}``.
 2. 
 """
-function fill_load(load::Load)
+function fill_load!(load::Load)
+    if ismissing(load.q_to_p) return end
 
+    if !ismissing(load.kws1) && ismissing(load.kvars1)
+        load.kvars1 = load.kws1 .* load.q_to_p
+    end
+
+    if !ismissing(load.kws2) && ismissing(load.kvars2)
+        load.kvars2 = load.kws2 .* load.q_to_p
+    end
+
+    if !ismissing(load.kws3) && ismissing(load.kvars3)
+        load.kvars3 = load.kws3 .* load.q_to_p
+    end
+    nothing
 end
 
 

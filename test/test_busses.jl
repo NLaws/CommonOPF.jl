@@ -32,6 +32,19 @@ end
     CommonOPF.check_busses!(loads)
     @test occursin("has been removed", test_logger.logs[end].message)
     @test isempty(loads)
+
+    # test fill_load
+    load = CommonOPF.Load(;
+        bus="bname",
+        q_to_p=0.1,
+        kws1=[10],
+        kws2=[20],
+        kws3=[30],
+    )
+    CommonOPF.fill_load!(load)
+    @test load.kvars1 == [1]
+    @test load.kvars2 == [2]
+    @test load.kvars3 == [3]
 end
 
 

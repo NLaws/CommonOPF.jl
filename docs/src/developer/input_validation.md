@@ -7,6 +7,7 @@ CommonOPF.format_input_dict
 ```@docs
 CommonOPF.check_busses!
 CommonOPF.fill_node_attributes!
+CommonOPF.CommonOPF.fill_load!
 ```
 
 ### Subtypes of `AbstractEdge`

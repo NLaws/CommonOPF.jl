@@ -4,6 +4,8 @@ Methods for using/analyzing the network model as a graph
 make_graph
 all_inneighbors
 all_outneighbors
+i_to_j
+j_to_k
 busses_from_deepest_to_source
 busses_with_multiple_inneighbors
 leaf_busses
