@@ -17,7 +17,7 @@ YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 [compat]
 Graphs = "1.8"
 JuMP = "1"
-MetaGraphsNext = "0.6"
+MetaGraphsNext = "0.7"
 Parameters = "0.12"
 YAML = "0.4"
 julia = "1"
