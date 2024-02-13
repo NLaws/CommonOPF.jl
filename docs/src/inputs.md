@@ -37,6 +37,8 @@ Load:
     kvars1: 
       - 1.2
 ```
+The [`Network(fp::String)`](@ref) constructor excepts a path to a yaml file.
+
 
 ## Conductor
 ```@docs
@@ -54,9 +56,9 @@ Base.getindex(net::Network, bus::String, kws_kvars::Symbol, phase::Int)
 CommonOPF.ShuntAdmittance
 ```
 
-## ShuntImpedance
+## Transformer
 ```@docs
-CommonOPF.ShuntImpedance
+CommonOPF.Transformer
 ```
 
 ## VoltageRegulator

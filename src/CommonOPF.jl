@@ -2,9 +2,8 @@ module CommonOPF
 
 using LinearAlgebra
 using JuMP
-using Graphs, MetaGraphsNext
-import MetaGraphsNext: inneighbors, outneighbors, induced_subgraph
-import PowerModelsDistribution: parse_dss, DELTA
+import Graphs, MetaGraphsNext
+import MetaGraphsNext: inneighbors, outneighbors, induced_subgraph, delete!
 import Logging: SimpleLogger, Error, with_logger
 import YAML
 import Parameters: @with_kw
@@ -31,16 +30,10 @@ export
     heads,
     tails,
     dsstxt_to_sparse_array,
-    dss_dict_to_arrays,
-    dss_loads,
-    dss_files_to_dict,
-    AbstractInputs,
     Phases,
     SinglePhase,
     MultiPhase,
     MultiPhaseVariableContainerType,
-    Inputs,
-    singlephase38linesInputs,
     make_graph,
     outneighbors,
     all_outneighbors,
@@ -52,38 +45,36 @@ export
     busses_with_multiple_inneighbors,
     next_bus_above_with_outdegree_more_than_one,
     paths_between,
-    check_paths,
-    delete_edge_index!,
-    delete_edge_ij!,
-    delete_bus_j!,
+    check_paths_for_loads,
     info_max_rpu_xpu,
     info_max_Ppu_Qpu,
+
+    # impedance
+    resistance,
+    resistance_per_length,
     rij,
+    rij_per_unit,
+    reactance,
+    reactance_per_length,
     xij,
+    xij_per_unit,
+    zij,
+
     i_to_j,
     j_to_k,
-    get_ij_idx,
-    get_ijlinelength,
-    get_ijlinecode,
-    get_ijedge,
+
     info_max_Ppu_Qpu,
-    reg_busses,
-    turn_ratio,
-    has_vreg,
-    vreg,
     leaf_busses,
     trim_tree!,
     trim_tree_once!,
     get_variable_values,
     remove_bus!,
+    trim_above_bus!,
     reduce_tree!,
     Network,
     edges,
-    edges_with_data,
     busses,
     conductors,
-    zij,
-    add_edge!,
     conductors_with_attribute_value,
     load_busses,
     voltage_regulator_busses,
@@ -98,20 +89,22 @@ export
     add_time_vector_variables!
 
 
+include("types.jl")
 include("graphs.jl")
 include("io.jl")
-include("types.jl")
-include("inputs.jl")
 
-include("busses.jl")
-include("loads.jl")
-include("shunts.jl")
-include("voltage_regulators.jl")
+include("busses/busses.jl")
+include("busses/loads.jl")
+include("busses/shunts.jl")
 
-include("edges.jl")
-include("conductors.jl")
+include("edges/edges.jl")
+include("edges/conductors.jl")
+include("edges/transformers.jl")
+include("edges/voltage_regulators.jl")
 
 include("network.jl")
+include("edges/impedances.jl")  # Network type in signatures, move the struct to types?
+include("network_reduction.jl")
 
 include("utils.jl")
 include("variables.jl")

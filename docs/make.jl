@@ -11,9 +11,16 @@ makedocs(
         "Inputs" => "inputs.md",
         "The Network Model" => "network.md",
         "Results" => "results.md",
-        "Methods" => "methods.md",
+        "Methods" => [
+            "impedances.md",
+            "graph_methods.md",
+        ],
         "Math" => "math.md",
-        "Developer" => "developer.md"
+        "Developer" => [
+            "developer/developer.md",
+            "developer/input_validation.md",
+            "developer/jump_variables.md",
+        ]
     ],
     warnonly = true,  # TODO rm this and fix all the docs
 )

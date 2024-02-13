@@ -14,3 +14,8 @@ Conductor:
     - b3
     template: cond2
     length: 200
+
+VoltageRegulator:
+  - busses:
+    - b3
+    - b4

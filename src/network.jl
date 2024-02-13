@@ -68,7 +68,7 @@ function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict, net_type::Type)
 end
 
 
-REQUIRED_EDGES = [Conductor]
+REQUIRED_EDGES = [CommonOPF.Conductor]
 
 
 """
@@ -79,22 +79,22 @@ Construct a `Network` from a dictionary that has at least keys for:
 2. `:Network`, a dict with at least `:substation_bus`
 """
 function Network(d::Dict)
-    edges = AbstractEdge[]
-    for EdgeType in subtypes(AbstractEdge)
+    edges = CommonOPF.AbstractEdge[]
+    for EdgeType in subtypes(CommonOPF.AbstractEdge)
         dkey = Symbol(split(string(EdgeType), ".")[end])  # left-strip CommonOPF.
         if dkey in keys(d)
-            edges = vcat(edges, build_edges(d[dkey], EdgeType))
+            edges = vcat(edges, CommonOPF.build_edges(d[dkey], EdgeType))
         elseif EdgeType in REQUIRED_EDGES
             throw(error("Missing required input $(string(dkey))"))
         end
     end
     # Single vs. MultiPhase is determined by edge.phases
-    net_type = SinglePhase
+    net_type = CommonOPF.SinglePhase
     if any((!ismissing(e.phases) for e in edges))
-        net_type = MultiPhase
+        net_type = CommonOPF.MultiPhase
     end
-    busses = AbstractBus[]
-    for BusType in subtypes(AbstractBus)
+    busses = CommonOPF.AbstractBus[]
+    for BusType in subtypes(CommonOPF.AbstractBus)
         dkey = Symbol(split(string(BusType), ".")[end])   # left-strip CommonOPF.
         if dkey in keys(d)
             busses = vcat(busses, build_busses(d[dkey], BusType))
@@ -103,9 +103,7 @@ function Network(d::Dict)
     # NEXT all tests, examples need new keys to match type names
 
     # make the graph
-    edge_tuples = collect(e.busses for e in edges)
-    g = make_graph(edge_tuples)
-    fill_edge_attributes!(g, edges)
+    g = make_graph(edges)
     if length(busses) > 0
         fill_node_attributes!(g, busses)
     end
@@ -129,10 +127,12 @@ function Network(fp::String)
     Network(d)
 end
 
-
+# TODO make sure all these methods are tested
 # make it so Network[edge_tup] returns the data dict
 Base.getindex(net::Network, idx::Tuple{String, String}) = net.graph[idx[1], idx[2]]
-
+function Base.setindex!(net::Network, edge::CommonOPF.AbstractEdge, idx::Tuple{String, String}) 
+    net.graph[idx[1], idx[2]] = edge
+end
 
 # make it so Network[node_string] returns the data dict
 Base.getindex(net::Network, idx::String) = net.graph[idx]
@@ -156,39 +156,48 @@ function Base.getindex(net::Network, bus::String, kws_kvars::Symbol, phase::Int)
     if !(load_key in LOAD_KEYS)
         throw(KeyError("To get a Load use :kws or :kvars and a phase in [1,2,3]"))
     end
+    # make sure that there is a bus and Load
     try
-        return net[bus][:Load][load_key]
+        net[bus][:Load]
     catch e
         # if the key error is from the bus or :Load we throw it
         if typeof(e) == KeyError 
             if e.key == :Load
                 throw(KeyError("There is no Load at bus $bus"))
             elseif e.key == bus
-                throw(e)
+                throw(KeyError("There is no bus in the Network at $bus"))
             end
+        else
+            rethrow(e)
         end
-        # else we return zeros
+    end
+    if ismissing(getproperty(net[bus][:Load], load_key))
         return zeros(net.Ntimesteps)
     end
+    return getproperty(net[bus][:Load], load_key)
 end
 
 
-Graphs.edges(net::AbstractNetwork) = MetaGraphsNext.edge_labels(net.graph)
+edges(net::AbstractNetwork) = MetaGraphsNext.edge_labels(net.graph)
 
 
 Graphs.inneighbors(net::Network, bus::String) = MetaGraphsNext.inneighbor_labels(net.graph, bus)
 Graphs.outneighbors(net::Network, bus::String) = MetaGraphsNext.outneighbor_labels(net.graph, bus)
 
+"""
+    i_to_j(j::String, net::Network)
 
+all the inneighbors of bus j
+"""
 i_to_j(j::String, net::Network) = collect(inneighbors(net::Network, j::String))
+
+
+"""
+    j_to_k(j::String, net::Network)
+
+all the outneighbors of bus j
+"""
 j_to_k(j::String, net::Network) = collect(outneighbors(net::Network, j::String))
-
-
-function MetaGraphsNext.add_edge!(net::CommonOPF.AbstractNetwork, b1::String, b2::String; data=Dict())
-    MetaGraphsNext.add_vertex!(net.graph, b1, Dict())
-    MetaGraphsNext.add_vertex!(net.graph, b2, Dict())
-    @assert MetaGraphsNext.add_edge!(net.graph, b1, b2, data) == true
-end
 
 
 busses(net::AbstractNetwork) = MetaGraphsNext.labels(net.graph)
@@ -197,7 +206,8 @@ busses(net::AbstractNetwork) = MetaGraphsNext.labels(net.graph)
 load_busses(net::AbstractNetwork) = (b for b in busses(net) if haskey(net[b], :Load))
 
 
-voltage_regulator_busses(net::AbstractNetwork) = (b for b in busses(net) if haskey(net[b], :VoltageRegulator))
+voltage_regulator_busses(net::AbstractNetwork) = (b[2] for b in edges(net) if haskey(net[edge], :VoltageRegulator))
+# TODO account for reverse flow voltage regulation?
 
 
 real_load_busses(net::Network{SinglePhase}) = (b for b in load_busses(net) if haskey(net[b][:Load], :kws1))
@@ -206,48 +216,44 @@ real_load_busses(net::Network{SinglePhase}) = (b for b in load_busses(net) if ha
 reactive_load_busses(net::Network{SinglePhase}) = (b for b in load_busses(net) if haskey(net[b][:Load], :kvars1))
 
 
-edges_with_data(net::AbstractNetwork) = ( (edge_tup, net[edge_tup]) for edge_tup in edges(net))
+"""
+    leaf_busses(net::Network)
+
+returns `Vector{String}` containing all of the leaf busses in `net.graph`
+"""
+function leaf_busses(net::Network)
+    leafs = String[]
+    for j in busses(net)
+        if !isempty(i_to_j(j, net)) && isempty(j_to_k(j, net))
+            push!(leafs, j)
+        end
+    end
+    return leafs
+end
 
 
-conductors(net::AbstractNetwork) = ( edge_data[:Conductor] for (_, edge_data) in edges_with_data(net) if haskey(edge_data, :Conductor))
+conductors(net::AbstractNetwork) = ( net[ekey] for ekey in edges(net) if net[ekey] isa CommonOPF.Conductor )
 
 
-function conductors_with_attribute_value(net::AbstractNetwork, attr::Symbol, val::Any)::AbstractVector{Dict}
+function conductors_with_attribute_value(net::AbstractNetwork, attr::Symbol, val::Any)::AbstractVector{CommonOPF.Conductor}
     collect(
-        filter(c -> haskey(c, attr) && c[attr] == val, collect(conductors(net)))
+        filter(
+            c -> !ismissing(getproperty(c, attr)) && getproperty(c, attr) == val, 
+            collect(conductors(net))
+        )
     )
 end
 
 
 """
-    function fill_edge_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractEdge})
+    fill_node_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractBus})
 
-For each edge in `vals` fill in the graph `g` edge attributes for all fieldnames in the edge (except
-busses). The outer edge key is set to the edge type, for example after this process is run Conductor
-attributes that are not missing can be accessed via:
-```julia
-graph["b1", "b2"][:Conductor][:r0]
-```
+For each concrete bus in `vals` store a dict of key,val pairs for the bus attributes in a symbol key
+like :Load for CommonOPF.Load TODO just store the type
 """
-function fill_edge_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractEdge})
-    for edge in vals
-        # TODO memoize next two lines or make more efficient some other way
-        edge_fieldnames = fieldnames(typeof(edge))
-        type = split(string(typeof(edge)), ".")[end]  # e.g. "CommonOPF.Conductor" -> "Conductor"
-        b1, b2 = edge.busses
-        if !isempty( get(g[b1, b2], Symbol(type), []) )
-            @warn "Replacing existing attributes $(g[b1, b2][Symbol(type)]) in edge $(edge.busses)"
-        end
-        g[b1, b2][Symbol(type)] = Dict(
-            fn => getfield(edge, fn) for fn in edge_fieldnames if !ismissing(getfield(edge, fn))
-        )
-    end
-end
-
-
 function fill_node_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractBus})
     for node in vals
-        if !(node.bus in labels(g))
+        if !(node.bus in MetaGraphsNext.labels(g))
             @warn "Bus $(node.bus) is not in the graph after adding edges but has attributes:\n"*
                 "$node\n"*
                 "You will have to manually add bus $(node.bus) if you want it in the graph."
@@ -258,9 +264,7 @@ function fill_node_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVe
         if !isempty( get(g[node.bus], Symbol(type), []) )
             @warn "Replacing existing attributes $(g[node.bus][Symbol(type)]) in node $(node.bus)"
         end
-        g[node.bus][Symbol(type)] = Dict(
-            fn => getfield(node, fn) for fn in node_fieldnames if !ismissing(getfield(node, fn))
-        )
+        g[node.bus][Symbol(type)] = node
     end
 end
 
@@ -269,11 +273,10 @@ function check_missing_templates(net::Network)
     conds = collect(conductors(net))
     missing_templates = String[]
     for c in conds
-        template = get(c, :template, missing)
-        if !ismissing(template)
-            results = filter(c -> haskey(c, :name) && c[:name] == template, conds)
+        if !ismissing(c.template)
+            results = filter(con -> !ismissing(con.name) && con.name == c.template, conds)
             if length(results) == 0
-                push!(missing_templates, template)
+                push!(missing_templates, c.template)
             end
         end
     end
