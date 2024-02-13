@@ -62,6 +62,25 @@ end
 
 
 """
+    function fill_impedance_matrices!(edge::AbstractEdge)
+
+Put the resistance and reactance values on the diagonal of the rmatrix and xmatrix respectively
+"""
+function fill_impedance_matrices!(edge::AbstractEdge)
+    # fill the matrices
+    rmatrix = zeros(3,3)
+    xmatrix = zeros(3,3)
+    for phs in edge.phases
+        rmatrix[phs, phs] = edge.resistance
+        xmatrix[phs, phs] = edge.reactance
+    end
+    edge.rmatrix = rmatrix
+    edge.xmatrix = xmatrix
+    nothing
+end
+
+
+"""
     validate_multiphase_edges!(edges::AbstractVector{<:AbstractEdge})
 
 The default method for checking for missing phases and filling `rmatrix` and `xmatrix` values for

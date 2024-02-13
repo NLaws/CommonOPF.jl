@@ -165,6 +165,22 @@ end
 
 
 """
+    reactance(trfx::Transformer)
+
+    if ismissing(trfx.phases)  # single phase
+        return trfx.reactance
+    end
+    return trfx.xmatrix
+"""
+function reactance(trfx::Transformer)
+    if ismissing(trfx.phases)  # single phase
+        return trfx.reactance
+    end
+    return trfx.xmatrix
+end
+
+
+"""
     function zij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})::Tuple{Real, Real}
 
 Impedance for single phase models. 
