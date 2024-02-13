@@ -1,23 +1,31 @@
 """
     resistance(e::AbstractEdge) = 0.0
+
+Default resistance for subtypes of `AbstractEdge`
 """
 resistance(e::AbstractEdge) = 0.0
 
 
 """
     reactance(e::AbstractEdge) = 0.0
+
+Default reactance for subtypes of `AbstractEdge`
 """
 reactance(e::AbstractEdge) = 0.0
 
 
 """
     resistance_per_length(e::AbstractEdge) = 0.0
+
+Default resistance_per_length for subtypes of `AbstractEdge`
 """
 resistance_per_length(e::AbstractEdge) = 0.0
 
 
 """
     reactance_per_length(e::AbstractEdge) = 0.0
+
+Default reactance_per_length for subtypes of `AbstractEdge`
 """
 reactance_per_length(e::AbstractEdge) = 0.0
 
@@ -140,8 +148,19 @@ function reactance(vr::VoltageRegulator)
 end
 
 
+"""
+    resistance(trfx::Transformer)
+
+    if ismissing(trfx.phases)  # single phase
+        return trfx.resistance
+    end
+    return trfx.rmatrix
+"""
 function resistance(trfx::Transformer)
-    
+    if ismissing(trfx.phases)  # single phase
+        return trfx.resistance
+    end
+    return trfx.rmatrix
 end
 
 
