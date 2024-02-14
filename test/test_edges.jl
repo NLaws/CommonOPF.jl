@@ -50,6 +50,28 @@ end
 
 
 @testset "VoltageRegulator" begin
-    # Next
-    # fill_impedance_matrices!
+    # single phase
+    vr = CommonOPF.VoltageRegulator(;
+        busses=("a", "b"),
+        reactance=1,
+        resistance=0.5,
+        turn_ratio=1.02
+    )
+    @test CommonOPF.check_edges!([vr]) == true
+    vr.turn_ratio = missing
+    vr.vreg_pu = 1.04
+    @test CommonOPF.check_edges!([vr]) == true
+
+    # multiphase
+    vr.phases = [2,3]
+     # fill_impedance_matrices! is called in check_edges! via validate_multiphase_edges!
+    @test CommonOPF.check_edges!([vr]) == true
+    @test vr.rmatrix == [0 0 0; 0 vr.resistance 0; 0 0 vr.resistance]
+    @test vr.xmatrix == [0 0 0; 0 vr.reactance 0; 0 0 vr.reactance]
+
+    # missing values
+    vr.phases = missing
+    @test CommonOPF.validate_multiphase_edges!([vr]) == false
+    vr.vreg_pu = missing
+    @test CommonOPF.check_edges!([vr]) == false
 end

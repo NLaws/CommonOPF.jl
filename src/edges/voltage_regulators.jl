@@ -55,7 +55,7 @@ VoltageRegulator:
   vreg_pu: 1.05
 ```
 """
-@with_kw struct VoltageRegulator <: AbstractEdge
+@with_kw mutable struct VoltageRegulator <: AbstractEdge
     # required values
     busses::Tuple{String, String}
     # optional values
@@ -72,13 +72,14 @@ end
 
 
 """
-    check_edges!(regulators::AbstractVector{VoltageRegulator})
+    check_edges!(regulators::AbstractVector{VoltageRegulator})::Bool
 
 Warn if not missing both vreg_pu and turn_ratio and call validate_multiphase_edges! if any `phases`
 are not missing.
 """
-function check_edges!(regulators::AbstractVector{VoltageRegulator})
+function check_edges!(regulators::AbstractVector{VoltageRegulator})::Bool
     bad_reg_busses = Tuple{String, String}[]
+    good = true
     for reg in regulators
         if ismissing(reg.vreg_pu) && ismissing(reg.turn_ratio)
             push!(bad_reg_busses, reg.busses)
@@ -87,11 +88,12 @@ function check_edges!(regulators::AbstractVector{VoltageRegulator})
     if !isempty(bad_reg_busses)
         @warn "Missing required inputs for VoltageRegulators on busses $(bad_reg_busses)"
         @warn "You must provide either vreg_pu or turn_ratio for each VoltageRegulator."
+        good = false
     end
     if any((!ismissing(reg.phases) for reg in regulators))
-        validate_multiphase_edges!(regulators)
+        good = validate_multiphase_edges!(regulators)
     end
-    nothing
+    return good
 end
 
 # methods for constraining regulated voltage? will need the voltage variable and model
