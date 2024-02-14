@@ -16,11 +16,11 @@ end
 
 
 """
-    check_edges!(edges::AbstractVector{<:AbstractEdge}) = nothing
+    check_edges!(edges::AbstractVector{<:AbstractEdge})::Bool = true
 
 The default action after build_edges.
 """
-check_edges!(edges::AbstractVector{<:AbstractEdge}) = nothing
+check_edges!(edges::AbstractVector{<:AbstractEdge})::Bool = true
 
 
 """
@@ -87,7 +87,7 @@ The default method for checking for missing phases and filling `rmatrix` and `xm
     subtypes of `AbstractEdge`. We assume that the subtype has `resistance` and `reactance`
     properties and warn if any `phases` are missing as well as if we cannot infer impedance values.
 """
-function validate_multiphase_edges!(edges::AbstractVector{<:AbstractEdge})
+function validate_multiphase_edges!(edges::AbstractVector{<:AbstractEdge})::Bool
     n_no_phases = 0
     n_no_impedance = 0
 

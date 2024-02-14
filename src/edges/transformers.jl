@@ -34,12 +34,13 @@ end
 
 
 """
-    check_edges!(transformers::AbstractVector{Transformer})
+    check_edges!(transformers::AbstractVector{Transformer})::Bool
 
 fill in `rmatrix` and `xmatrix` if `phases` is not missing. For now assuming zero mutual impedances.
 """
-function check_edges!(transformers::AbstractVector{Transformer})
+function check_edges!(transformers::AbstractVector{Transformer})::Bool
     if any((!ismissing(trfx.phases) for trfx in transformers))
-        validate_multiphase_edges!(transformers)
+        return validate_multiphase_edges!(transformers)
     end
+    return true
 end

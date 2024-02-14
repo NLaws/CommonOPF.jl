@@ -31,6 +31,12 @@ end
 
 @testset "Transformer" begin
     # test single and multiphase, where resistance gets put in diagonal matrix
+    t1 = CommonOPF.Transformer(;
+        busses=("a", "b"),
+        reactance=1,
+        resistance=0.5
+    )
+    @test CommonOPF.check_edges!([t1]) == true
     # fill_impedance_matrices!
 end
 

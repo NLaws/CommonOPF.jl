@@ -212,12 +212,12 @@ end
 
 
 """
-    validate_multiphase_edges!(conds::AbstractVector{Conductor})
+    validate_multiphase_edges!(conds::AbstractVector{Conductor})::Bool
 
 Fill in impedance matrices and `@warn` for any conductors that do not have inputs required to define
 impedance.
 """
-function validate_multiphase_edges!(conds::AbstractVector{Conductor})
+function validate_multiphase_edges!(conds::AbstractVector{Conductor})::Bool
     n_no_phases = 0
     n_no_impedance = 0
     templates = String[]
