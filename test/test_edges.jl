@@ -37,7 +37,15 @@ end
         resistance=0.5
     )
     @test CommonOPF.check_edges!([t1]) == true
-    # fill_impedance_matrices!
+    t1.phases = [2,3]
+     # fill_impedance_matrices! is called in check_edges! via validate_multiphase_edges!
+    @test CommonOPF.check_edges!([t1]) == true
+    @test t1.rmatrix == [0 0 0; 0 t1.resistance 0; 0 0 t1.resistance]
+    @test t1.xmatrix == [0 0 0; 0 t1.reactance 0; 0 0 t1.reactance]
+
+    # missing values
+    t1.phases = missing
+    @test CommonOPF.validate_multiphase_edges!([t1]) == false
 end
 
 
