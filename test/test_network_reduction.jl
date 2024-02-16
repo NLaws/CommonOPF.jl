@@ -96,6 +96,9 @@
         @test !(("d", "f") in edges(net))
         @test ("b", "e") in edges(net)
         @test ("b", "f") in edges(net)
+        @test net[("b", "e")].length == 2
+        @test resistance(net[("b", "e")]) == 2
+        @test reactance(net[("b", "e")]) == 2
 
         # remove the load at bus e and test for removal of edges (b, c) and (c, e)
         net = Network(net_dict)
@@ -105,6 +108,136 @@
         @test !("e" in busses(net))
         @test !(("b", "c") in edges(net))
         @test !(("c", "e") in edges(net))
+
+        # now multiphase
+        net_dict = Dict(
+            :Network => Dict(
+                :substation_bus => "a",
+            ),
+            :Conductor => [
+                Dict(
+                    :busses => ("a", "b"),
+                    :length => 1,
+                    :r1 => 1.0, 
+                    :x1 => 1.0,
+                    :r0 => 0.0, 
+                    :x0 => 0.0,
+                    :phases => [1, 2, 3]
+                ),
+                Dict(
+                    :busses => ("b", "c"),
+                    :length => 1,
+                    :r1 => 1.0, 
+                    :x1 => 1.0,
+                    :r0 => 0.0, 
+                    :x0 => 0.0,
+                    :name => "l1",
+                    :phases => [1, 2]
+                ),
+                Dict(
+                    :busses => ("c", "e"),
+                    :length => 1,
+                    :template => "l1",
+                    :phases => [1, 2]
+                ),
+                Dict(
+                    :busses => ("b", "d"),
+                    :length => 1,
+                    :r1 => 1.0, 
+                    :x1 => 1.0,
+                    :r0 => 0.0, 
+                    :x0 => 0.0,
+                    :name => "l2",
+                    :phases => [2, 3]
+                ),
+                Dict(
+                    :busses => ("d", "f"),
+                    :length => 1,
+                    :template => "l2",
+                    :phases => [2, 3]
+                ),
+            ]
+        )
+        net = Network(net_dict)
+
+        reduce_tree!(net)
+        
+        @test !("c" in busses(net))
+        @test !("d" in busses(net))
+        @test !(("b", "c") in edges(net))
+        @test !(("b", "d") in edges(net))
+        @test !(("c", "e") in edges(net))
+        @test !(("d", "f") in edges(net))
+        @test ("b", "e") in edges(net)
+        @test ("b", "f") in edges(net)
+        @test net[("b", "e")].length == 2
+        @test resistance(net[("b", "e")]) ≈ [4/3 -2/3 0; -2/3 4/3 0; 0 0 0]
+        @test reactance(net[("b", "e")]) ≈ [4/3 -2/3 0; -2/3 4/3 0; 0 0 0]
+
+        # repeat multiphase with phase mismatch on b-c-e branch
+        net_dict = Dict(
+            :Network => Dict(
+                :substation_bus => "a",
+            ),
+            :Conductor => [
+                Dict(
+                    :busses => ("a", "b"),
+                    :length => 1,
+                    :r1 => 1.0, 
+                    :x1 => 1.0,
+                    :r0 => 0.0, 
+                    :x0 => 0.0,
+                    :phases => [1, 2, 3]
+                ),
+                Dict(
+                    :busses => ("b", "c"),
+                    :length => 1,
+                    :r1 => 1.0, 
+                    :x1 => 1.0,
+                    :r0 => 0.0, 
+                    :x0 => 0.0,
+                    :phases => [1, 2]
+                ),
+                Dict(
+                    :busses => ("c", "e"),
+                    :length => 1,
+                    :r1 => 1.0, 
+                    :x1 => 1.0,
+                    :r0 => 0.0, 
+                    :x0 => 0.0,
+                    :phases => [1]
+                ),
+                Dict(
+                    :busses => ("b", "d"),
+                    :length => 1,
+                    :r1 => 1.0, 
+                    :x1 => 1.0,
+                    :r0 => 0.0, 
+                    :x0 => 0.0,
+                    :name => "l2",
+                    :phases => [2, 3]
+                ),
+                Dict(
+                    :busses => ("d", "f"),
+                    :length => 1,
+                    :template => "l2",
+                    :phases => [2, 3]
+                ),
+            ]
+        )
+        net = Network(net_dict)
+
+        reduce_tree!(net)
+        
+        @test ("c" in busses(net))
+        @test !("d" in busses(net))
+        @test (("b", "c") in edges(net))
+        @test !(("b", "d") in edges(net))
+        @test (("c", "e") in edges(net))
+        @test !(("d", "f") in edges(net))
+        @test !(("b", "e") in edges(net))
+        @test ("b", "f") in edges(net)
+
     end
 
     @testset "merge parallel single phase lines" begin

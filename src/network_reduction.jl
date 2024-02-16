@@ -6,18 +6,24 @@ and is not a load bus into a single line
 
 See `remove_bus!` for how the two lines are combined.
 """
-function reduce_tree!(net::Network{SinglePhase})
-    # TODO MultiPhase
+function reduce_tree!(net::Network)
     g = net.graph
     int_bus_map = g[][:int_bus_map]
     reducable_buses = String[]
     ld_busses = load_busses(net)
     for v in MetaGraphsNext.vertices(g)  # we need integer vertex for in/outdegree methods
+        if !(MetaGraphsNext.indegree(g, v) == MetaGraphsNext.outdegree(g, v) == 1)
+            continue
+        end
         bus = int_bus_map[v]
-        if ( # we have two and only two conductors at the bus
+        edge_ij = net[(i_to_j(bus, net)[1], bus)]
+        edge_jk = net[(bus, j_to_k(bus, net)[1])]
+        phases_ij = ismissing(edge_ij.phases) ? [1] : edge_ij.phases
+        phases_jk = ismissing(edge_jk.phases) ? [1] : edge_jk.phases
+        if ( # we have two and only two conductors at the bus and phases match
             !(bus in ld_busses) && 
-            MetaGraphsNext.indegree(g, v) == MetaGraphsNext.outdegree(g, v) == 1 &&
-            typeof(net[(i_to_j(bus, net)[1], bus)]) == CommonOPF.Conductor == typeof(net[(bus, j_to_k(bus, net)[1])])
+            typeof(edge_ij) == CommonOPF.Conductor == typeof(edge_jk) &&
+            phases_ij == phases_jk
         )
             # TODO do not include a bus if it contains any subtype of AbstractBus?
             push!(reducable_buses, bus)
@@ -65,7 +71,39 @@ function remove_bus!(j::String, net::Network{SinglePhase})
 end
 
 
+"""
+    remove_bus!(j::String, net::Network{MultiPhase})
 
+Remove bus `j` in the line i->j->k from the model by making an equivalent line from busses i->k.
+We assume the conductors from i->j and j->k have impedance matrices.
+"""
+function remove_bus!(j::String, net::Network{MultiPhase})
+    # get all the old values
+    i, k = i_to_j(j, net)[1], j_to_k(j, net)[1]
+    c1, c2 = net[(i, j)], net[(j, k)]
+    @assert typeof(c1) == CommonOPF.Conductor == typeof(c2) "remove_bus! can only combine two conductors"
+    @assert c1.phases == c2.phases "remove_bus! only works with two conductors that have matching phases"
+    # make the new values
+    rmatrix_ik = resistance(c1) + resistance(c2)
+    xmatrix_ik = reactance(c1)  + reactance(c2)
+    ik_len = c1.length + c2.length
+    # delete the old values
+    delete!(net.graph, i, j)
+    delete!(net.graph, j, k)
+    delete!(net.graph, j)
+    # add the new values
+
+    net[(i, k)] = CommonOPF.Conductor(;
+        name = "line_from_removing_bus_$j",
+        busses = (i, k),
+        length = ik_len,
+        rmatrix = rmatrix_ik / ik_len,
+        xmatrix = xmatrix_ik / ik_len,
+        phases = c1.phases
+    )
+    nothing
+    # TODO assign amperage for new line as minimum amperage of the two joined lines
+end
 
 
 """
