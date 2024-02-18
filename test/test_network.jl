@@ -38,6 +38,10 @@
     @test_throws KeyError net["b3", :bad, 2]
     @test_throws KeyError net["b3", :kvar, 4]
 
+    # load bus getters
+    @test sort(real_load_busses(net)) == ["b2", "b3"]
+    @test sort(reactive_load_busses(net)) == ["b2", "b3"]
+
     # missing input values for conductors and VoltageRegulator
     fp = joinpath("data", "yaml_inputs", "missing_vals.yaml")
     clear_log!(test_logger)
@@ -130,7 +134,7 @@ end
     @test xij_per_unit("b1", "b2", net) == xij_per_unit("b2", "b3", net) / 2
 
     # test load definitions
-    lbs = collect(load_busses(net))
+    lbs = load_busses(net)
     @test "b3" in lbs && "b5" in lbs
 
     # test warnings for missing, required inputs

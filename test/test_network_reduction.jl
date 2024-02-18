@@ -3,11 +3,11 @@
     @testset "trim_above_bus!" begin
     
         net = Network_IEEE13_SinglePhase()
-        busses_before_trim = collect(busses(net))
-        edges_before_trim = collect(edges(net))
+        busses_before_trim = busses(net)
+        edges_before_trim = edges(net)
         trim_above_bus!(net.graph, "670")
-        busses_after_trim = collect(busses(net))
-        edges_after_trim = collect(edges(net))
+        busses_after_trim = busses(net)
+        edges_after_trim = edges(net)
         busses_deleted = setdiff(busses_before_trim, busses_after_trim)
         edges_deleted = setdiff(edges_before_trim, edges_after_trim)
         

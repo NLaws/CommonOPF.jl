@@ -178,7 +178,7 @@ function Base.getindex(net::Network, bus::String, kws_kvars::Symbol, phase::Int)
 end
 
 
-edges(net::AbstractNetwork) = MetaGraphsNext.edge_labels(net.graph)
+edges(net::AbstractNetwork) = collect(MetaGraphsNext.edge_labels(net.graph))
 
 
 Graphs.inneighbors(net::Network, bus::String) = MetaGraphsNext.inneighbor_labels(net.graph, bus)
@@ -200,20 +200,20 @@ all the outneighbors of bus j
 j_to_k(j::String, net::Network) = collect(outneighbors(net::Network, j::String))
 
 
-busses(net::AbstractNetwork) = MetaGraphsNext.labels(net.graph)
+busses(net::AbstractNetwork) = collect(MetaGraphsNext.labels(net.graph))
 
 
-load_busses(net::AbstractNetwork) = (b for b in busses(net) if haskey(net[b], :Load))
+load_busses(net::AbstractNetwork) = collect(b for b in busses(net) if haskey(net[b], :Load))
 
 
-voltage_regulator_busses(net::AbstractNetwork) = (b[2] for b in edges(net) if haskey(net[edge], :VoltageRegulator))
+voltage_regulator_busses(net::AbstractNetwork) = collect(b[2] for b in edges(net) if haskey(net[edge], :VoltageRegulator))
 # TODO account for reverse flow voltage regulation?
 
 
-real_load_busses(net::Network{SinglePhase}) = (b for b in load_busses(net) if haskey(net[b][:Load], :kws1))
+real_load_busses(net::Network{SinglePhase}) = collect(b for b in load_busses(net) if !ismissing(net[b][:Load].kws1))
 
 
-reactive_load_busses(net::Network{SinglePhase}) = (b for b in load_busses(net) if haskey(net[b][:Load], :kvars1))
+reactive_load_busses(net::Network{SinglePhase}) = collect(b for b in load_busses(net) if !ismissing(net[b][:Load].kvars1))
 
 
 """
@@ -232,7 +232,7 @@ function leaf_busses(net::Network)
 end
 
 
-conductors(net::AbstractNetwork) = ( net[ekey] for ekey in edges(net) if net[ekey] isa CommonOPF.Conductor )
+conductors(net::AbstractNetwork) = collect( net[ekey] for ekey in edges(net) if net[ekey] isa CommonOPF.Conductor )
 
 
 function conductors_with_attribute_value(net::AbstractNetwork, attr::Symbol, val::Any)::AbstractVector{CommonOPF.Conductor}
