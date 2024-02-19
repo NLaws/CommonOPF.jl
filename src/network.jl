@@ -72,13 +72,17 @@ REQUIRED_EDGES = [CommonOPF.Conductor]
 
 
 """
-    function Network(d::Dict)
+    function Network(d::Dict; directed::Union{Bool,Missing}=missing)
 
 Construct a `Network` from a dictionary that has at least keys for:
 1. `:Conductor`, a vector of dicts with [Conductor](@ref) specs
 2. `:Network`, a dict with at least `:substation_bus`
+
+If `directed` is missing then the graph is directed only if the number of busses and edges imply a 
+    radial graph.
+
 """
-function Network(d::Dict)
+function Network(d::Dict; directed::Union{Bool,Missing}=missing)
     edges = CommonOPF.AbstractEdge[]
     for EdgeType in subtypes(CommonOPF.AbstractEdge)
         dkey = Symbol(split(string(EdgeType), ".")[end])  # left-strip CommonOPF.
@@ -103,7 +107,7 @@ function Network(d::Dict)
     # NEXT all tests, examples need new keys to match type names
 
     # make the graph
-    g = make_graph(edges)
+    g = make_graph(edges; directed=directed)
     if length(busses) > 0
         fill_node_attributes!(g, busses)
     end

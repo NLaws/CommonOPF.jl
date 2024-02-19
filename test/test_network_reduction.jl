@@ -308,6 +308,83 @@
         @test_throws "not merging" check_paths_for_loads(paths, net)
         delete!(net.graph["c"], :Load)
         @test check_paths_for_loads(paths, net)
+
+
+        #=       3
+               c -- e                   
+             2/      1\                6.5  
+        a -- b         g    ->   a -- b -- g
+           2.5\      2/                     
+               d -- f            
+                 3.5
+        Merge parallel lines sets that do not have loads
+        =#
+
+        net_dict = Dict(
+            :Network => Dict(
+                :substation_bus => "a",
+            ),
+            :Conductor => [
+                Dict(
+                    :busses => ("a", "b"),
+                    :length => 1,
+                    :rmatrix => [[1.0, 0.5], [0.5, 1.0]], 
+                    :xmatrix => [[1.0, 0.5], [0.5, 1.0]],
+                    :phases => [1,2],
+                    :name => "l1"
+                ),
+                Dict(
+                    :busses => ("b", "c"),
+                    :length => 2,
+                    :phases => [1],
+                    :rmatrix => [2], 
+                    :xmatrix => [2],
+                    :name => "two"
+                ),
+                Dict(
+                    :busses => ("b", "d"),
+                    :length => 2.5,
+                    :phases => [2],
+                    :rmatrix => [3], 
+                    :xmatrix => [3],
+                    :name => "three"
+                ),
+                Dict(
+                    :busses => ("c", "e"),
+                    :length => 3,
+                    :phases => [1],
+                    :template => "two"
+                ),
+                Dict(
+                    :busses => ("d", "f"),
+                    :length => 3.5,
+                    :phases => [2],
+                    :template => "three"
+                ),
+                Dict(
+                    :busses => ("e", "g"),
+                    :length => 1,
+                    :phases => [1],
+                    :template => "two"
+                ),
+                Dict(
+                    :busses => ("f", "g"),
+                    :length => 1,
+                    :phases => [2],
+                    :template => "three"
+                ),
+            ]
+        )
+        net = Network(net_dict; directed=true)
+
+        combine_parallel_lines!(net)
+        @test busses(net) == ["a", "b", "g"]
+        @test net[("b", "g")].length == 6.5  # avg of 6 and 7
+        @test rij("b", "g", net)[1,1] == 12  # 2*2 + 2*3 + 2*1
+        @test rij("b", "g", net)[2,2] == 21  # 3*2.5 + 3*3.5 + 3*1
+        @test xij("b", "g", net)[1,1] == 12
+        @test xij("b", "g", net)[2,2] == 21
+        # TODO test_throws combine_parallel_lines!
     end
     
 end

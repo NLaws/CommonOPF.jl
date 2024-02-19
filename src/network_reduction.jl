@@ -92,8 +92,7 @@ function remove_bus!(j::String, net::Network{MultiPhase})
     delete!(net.graph, j, k)
     delete!(net.graph, j)
     # add the new values
-
-    net[(i, k)] = CommonOPF.Conductor(;
+    new_conductor = CommonOPF.Conductor(;
         name = "line_from_removing_bus_$j",
         busses = (i, k),
         length = ik_len,
@@ -101,7 +100,15 @@ function remove_bus!(j::String, net::Network{MultiPhase})
         xmatrix = xmatrix_ik / ik_len,
         phases = c1.phases
     )
-    nothing
+    try 
+        net[(i, k)]
+    catch KeyError
+        net[(i, k)] = new_conductor
+        return true
+    else
+        @error "Network already has conductor at $((i, k)). Returning new Conductor."
+        return new_conductor
+    end
     # TODO assign amperage for new line as minimum amperage of the two joined lines
 end
 
@@ -149,4 +156,96 @@ function trim_tree!(net::Network)
     n_edges_after = length(collect(edges(net)))
     @info("Removed $(n_edges_before - n_edges_after) edges.")
     true
+end
+
+
+"""
+    combine_parallel_lines!(net::Network)
+
+Combine any parallel single phase lines without loads on intermediate busses into one multiphase 
+line. This method is useful for making a mesh network radial when the mesh components are products of
+modeling single phase voltage regulators in load flow software such as OpenDSS.
+
+"""
+function combine_parallel_lines!(net::Network{MultiPhase})
+    g = net.graph  # TODO graph has to be directed
+    end_bs = busses_with_multiple_inneighbors(g)
+
+    for b2 in end_bs
+        ins = inneighbors(g, b2)
+        start_bs = unique(
+            next_bus_above_with_outdegree_more_than_one.(repeat([g], length(ins)), ins)
+        )
+        if length(start_bs) == 1 && typeof(start_bs[1]) == String
+            # we have a start bus and end bus to merge lines (if none of the intermediate busses have loads)
+            b1 = start_bs[1]
+            paths = paths_between(g, b1, b2)
+            check_paths_for_loads(paths, net)
+            # confirm separate phases on each path
+            phase_int = 0
+            for path in paths
+                phases_path_start = net[(b1, path[1])].phases
+                @assert length(phases_path_start) == 1 "Can only combine single phase lines."
+                @assert phases_path_start[1] != phase_int "Cannot combine parallel lines of the same phase."
+                phase_int = phases_path_start[1]
+                previous_b = b1
+                for b in path
+                    @assert length(net[(previous_b, b)].phases) == 1 "Can only combine single phase lines."
+                    @assert net[(previous_b, b)].phases[1] == phase_int "A conductor changes phases at bus $previous_b"
+                    previous_b = b
+                end
+            end
+            # remove all the intermdiate busses s.t. we have two // lines from b1 to b2
+            # Graphs.jl does not support multi-edges, so we collect the extra edges returned from remove_bus!
+            extra_conductors = CommonOPF.Conductor[]
+            for path in paths
+                for b in path
+                    ret_val = remove_bus!(b, net)
+                    if isa(ret_val, CommonOPF.Conductor)
+                        push!(extra_conductors, ret_val)
+                    end
+                end
+            end
+            # now we combine the two // lines into one
+            @assert length(extra_conductors) in [1,2] "Found more than three parallel lines between busses $b1 and $b2!"
+            if length(extra_conductors) == 1
+                c1, c2 = net[(b1, b2)], extra_conductors[1]
+                # amps1, amps2 = p.Isquared_up_bounds[linecode1], p.Isquared_up_bounds[linecode2]
+                # new values
+                new_len = (c1.length + c2.length) / 2
+                new_rmatrix = (resistance(c1) + resistance(c2)) ./ new_len
+                new_xmatrix = (reactance(c1) + reactance(c2)) ./ new_len
+                new_phases = sort([c1.phases[1], c2.phases[1]])
+                
+                # add the new values
+                net[(b1, b2)] = CommonOPF.Conductor(;
+                    name = "combined_parallel_lines_from_$(b1)_to_$(b2)",
+                    busses = (b1, b2),
+                    length = new_len,
+                    rmatrix = new_rmatrix,
+                    xmatrix = new_xmatrix,
+                    phases = new_phases
+                )
+                # p.Isquared_up_bounds[new_linecode] = (amps1 + amps2) / 2
+            else  # 3 lines to combine
+                c1, c2, c3 = net[(b1, b2)], extra_conductors[1], extra_conductors[2]
+                # amps1, amps2 = p.Isquared_up_bounds[linecode1], p.Isquared_up_bounds[linecode2]
+                # new values
+                new_len = (c1.length + c2.length + c3.length) / 3
+                new_rmatrix = (resistance(c1) + resistance(c2) + resistance(c3)) ./ new_len
+                new_xmatrix = (reactance(c1) + reactance(c2) + reactance(c3)) ./ new_len
+                
+                net[(b1, b2)] = CommonOPF.Conductor(;
+                    name = "combined_parallel_lines_from_$(b1)_to_$(b2)",
+                    busses = (b1, b2),
+                    length = new_len,
+                    rmatrix = new_rmatrix,
+                    xmatrix = new_xmatrix,
+                    phases = [1, 2, 3]
+                )
+                # p.Isquared_up_bounds[new_linecode] = (amps1 + amps2) / 2
+            end
+            @info "Made new combined line between busses $b1 and $b2"
+        end
+    end
 end

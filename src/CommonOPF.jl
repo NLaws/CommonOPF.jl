@@ -48,6 +48,7 @@ export
     check_paths_for_loads,
     info_max_rpu_xpu,
     info_max_Ppu_Qpu,
+    combine_parallel_lines!,
 
     # impedance
     resistance,
