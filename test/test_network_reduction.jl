@@ -384,7 +384,19 @@
         @test rij("b", "g", net)[2,2] == 21  # 3*2.5 + 3*3.5 + 3*1
         @test xij("b", "g", net)[1,1] == 12
         @test xij("b", "g", net)[2,2] == 21
-        # TODO test_throws combine_parallel_lines!
+
+        # make an intermediate line multiphase and test for exception
+        net_dict[:Conductor][4][:phases] = [1,2]  # ("c", "e")
+        net_dict[:Conductor][4][:template] = "l1"  # ("c", "e")
+        net = Network(net_dict; directed=true)
+        @test_throws AssertionError combine_parallel_lines!(net) 
+
+
+        # TODO test combination of 3 lines
+        # for cond in conductors(net)
+        #     if length(cond.phases) end
+        # end
+        # TODO more test_throws combine_parallel_lines!
     end
     
 end

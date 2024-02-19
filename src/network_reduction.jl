@@ -59,13 +59,22 @@ function remove_bus!(j::String, net::Network{SinglePhase})
     delete!(net.graph, j)
     # add the new values
 
-    net[(i, k)] = CommonOPF.Conductor(;
+    new_conductor = CommonOPF.Conductor(;
         name = "line_from_removing_bus_$j",
         busses = (i, k),
         length = ik_len,
         r1 = r_ik / ik_len,
         x1 = x_ik / ik_len,
     )
+    try 
+        net[(i, k)]
+    catch KeyError
+        net[(i, k)] = new_conductor
+        return true
+    else
+        @error "Network already has conductor at $((i, k)). Returning new Conductor."
+        return new_conductor
+    end
     nothing
     # TODO assign amperage for new line as minimum amperage of the two joined lines
 end
@@ -170,13 +179,13 @@ modeling single phase voltage regulators in load flow software such as OpenDSS.
 function combine_parallel_lines!(net::Network{MultiPhase})
     g = net.graph  # TODO graph has to be directed
     end_bs = busses_with_multiple_inneighbors(g)
-
+    # TODO assert that the lines to be combined have all the phases coming in
     for b2 in end_bs
         ins = inneighbors(g, b2)
         start_bs = unique(
             next_bus_above_with_outdegree_more_than_one.(repeat([g], length(ins)), ins)
         )
-        if length(start_bs) == 1 && typeof(start_bs[1]) == String
+        if length(start_bs) == 1
             # we have a start bus and end bus to merge lines (if none of the intermediate busses have loads)
             b1 = start_bs[1]
             paths = paths_between(g, b1, b2)
