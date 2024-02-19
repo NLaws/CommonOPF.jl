@@ -4,6 +4,7 @@
 - add `VoltageRegulator` and `ShuntAdmittance` as a new bus inputs
 - add `VariableContainer = Dict{Int, Dict{String, Any}}` and `VARIABLE_NAMES`
 - add `Network.var_name_map` for parsing results
+- rm all `Inputs` associated stuff
 
 ## v0.4.0
 - change dependency MetaGraphs to MetaGraphsNext
