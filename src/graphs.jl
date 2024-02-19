@@ -143,6 +143,12 @@ function all_inneighbors(g::MetaGraphsNext.MetaGraph, j::String, innies::Vector{
 end
 
 
+"""
+    function induced_subgraph(g::MetaGraphsNext.MetaGraph, vlist::Vector{String})
+
+returns the sub_busses::Vector{String} and sub_edges::Vector{Tuple{String, String}} that are 
+required to make the induced subgraph in `g` from the nodes (or vertices) in `vlist`.
+"""
 function induced_subgraph(g::MetaGraphsNext.MetaGraph, vlist::Vector{String})
     ivlist = [MetaGraphsNext.code_for(g, b) for b in vlist]
     subg, vmap = induced_subgraph(g, ivlist)
