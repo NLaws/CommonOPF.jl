@@ -1,7 +1,7 @@
 # TODO mv MultiPhase rij xij to CommonOPF (requires something new to handle BFM vs. LDF)
 
 """
-    check_paths(paths::AbstractVecOrMat, net::Network)
+    check_paths_for_loads(paths::AbstractVecOrMat, net::Network)
 
 paths is vector of vectors containing bus names for parallel lines.
 if any load busses are in the paths then an error is thrown because we are not handling that case yet.
