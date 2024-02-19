@@ -9,8 +9,15 @@ Graphs.edges(net::AbstractNetwork) = MetaGraphsNext.edge_labels(net.graph)
 ```
 
 Each edge of the `Network.graph` stores one concrete subtype of `AbstractEdge`. The busses can store
-multiple subtypes of `AbstractBus`. 
-
+multiple subtypes of `AbstractBus` using symbol keys. For example an edge in the Network is accessed via a two-tuple of bus strings like
+```julia
+network[("bus1", "bus2")]
+```
+which will return an instance of a subtype of `AbstractEdge` (which are listed in [Adding an Edge device](@ref)). A bus is accessed in the network via:
+```julia
+network["bus2"]
+```
+which will return a `Dict{Symbol, Any}`. The `Symbol`s can be any of the names of the `AbstractBus` subtypes (which are listed in [Adding a Bus device](@ref))
 
 ### Adding a Bus device
 The current Bus devices are:
