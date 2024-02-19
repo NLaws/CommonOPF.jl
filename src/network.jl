@@ -130,9 +130,12 @@ end
 # TODO make sure all these methods are tested
 # make it so Network[edge_tup] returns the data dict
 Base.getindex(net::Network, idx::Tuple{String, String}) = net.graph[idx[1], idx[2]]
+
+
 function Base.setindex!(net::Network, edge::CommonOPF.AbstractEdge, idx::Tuple{String, String}) 
     net.graph[idx[1], idx[2]] = edge
 end
+
 
 # make it so Network[node_string] returns the data dict
 Base.getindex(net::Network, idx::String) = net.graph[idx]
@@ -206,7 +209,7 @@ busses(net::AbstractNetwork) = collect(MetaGraphsNext.labels(net.graph))
 load_busses(net::AbstractNetwork) = collect(b for b in busses(net) if haskey(net[b], :Load))
 
 
-voltage_regulator_busses(net::AbstractNetwork) = collect(b[2] for b in edges(net) if haskey(net[edge], :VoltageRegulator))
+voltage_regulator_edges(net::AbstractNetwork) = collect(e for e in edges(net) if isa(net[e], VoltageRegulator))
 # TODO account for reverse flow voltage regulation?
 
 

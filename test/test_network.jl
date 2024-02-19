@@ -59,6 +59,7 @@
     @test_throws "Missing at least one of r1" zij("b1", "b2", net)
     CommonOPF.check_missing_templates(net)
     @test occursin("Missing templates", test_logger.logs[end].message)
+    @test voltage_regulator_edges(net) == [("b3", "b4")]
 
     # extra values
     fp = joinpath("data", "yaml_inputs", "extra_conductor_field.yaml")
