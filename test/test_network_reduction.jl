@@ -389,14 +389,93 @@
         net_dict[:Conductor][4][:phases] = [1,2]  # ("c", "e")
         net_dict[:Conductor][4][:template] = "l1"  # ("c", "e")
         net = Network(net_dict; directed=true)
-        @test_throws AssertionError combine_parallel_lines!(net) 
+        @test_throws AssertionError combine_parallel_lines!(net)
 
+        # add two lines of same phase and test for exception
+        net_dict[:Conductor][4][:phases] = [2]  # ("c", "e")
+        net_dict[:Conductor][4][:template] = "three"
+        net = Network(net_dict; directed=true)
+        @test_throws AssertionError combine_parallel_lines!(net)
 
-        # TODO test combination of 3 lines
-        # for cond in conductors(net)
-        #     if length(cond.phases) end
-        # end
-        # TODO more test_throws combine_parallel_lines!
+        # test combination of 3 lines
+        net_dict = Dict(
+            :Network => Dict(
+                :substation_bus => "a",
+            ),
+            :Conductor => [
+                Dict(
+                    :busses => ("a", "b"),
+                    :length => 1,
+                    :rmatrix => [[1.0, 0.5, 0.5], [0.5, 1.0, 0.5], [0.5, 0.5, 1.5]], 
+                    :xmatrix => [[1.0, 0.5, 0.5], [0.5, 1.0, 0.5], [0.5, 0.5, 1.5]],
+                    :phases => [1,2,3],
+                    :name => "l1"
+                ),
+                Dict(
+                    :busses => ("b", "c"),
+                    :length => 2,
+                    :phases => [1],
+                    :rmatrix => [2], 
+                    :xmatrix => [2],
+                    :name => "two"
+                ),
+                Dict(
+                    :busses => ("b", "d"),
+                    :length => 2.5,
+                    :phases => [2],
+                    :rmatrix => [3], 
+                    :xmatrix => [3],
+                    :name => "three"
+                ),
+                Dict(
+                    :busses => ("b", "x"),
+                    :length => 2,
+                    :phases => [3],
+                    :rmatrix => [2], 
+                    :xmatrix => [2],
+                ),
+                Dict(
+                    :busses => ("c", "e"),
+                    :length => 3,
+                    :phases => [1],
+                    :template => "two"
+                ),
+                Dict(
+                    :busses => ("d", "f"),
+                    :length => 3.5,
+                    :phases => [2],
+                    :template => "three"
+                ),
+                Dict(
+                    :busses => ("e", "g"),
+                    :length => 1,
+                    :phases => [1],
+                    :template => "two"
+                ),
+                Dict(
+                    :busses => ("f", "g"),
+                    :length => 1,
+                    :phases => [2],
+                    :template => "three"
+                ),
+                Dict(
+                    :busses => ("x", "g"),
+                    :length => 2,
+                    :phases => [3],
+                    :rmatrix => [2], 
+                    :xmatrix => [2],
+                ),
+            ]
+        )
+        net = Network(net_dict; directed=true)
+        combine_parallel_lines!(net)
+        @test busses(net) == ["a", "b", "g"]
+        @test net[("b", "g")].length ≈ (6+7+4)/3
+        @test rij("b", "g", net)[1,1] == 12  # 2*2 + 2*3 + 2*1
+        @test rij("b", "g", net)[3,3] == 8  # 2*2*2
+        @test xij("b", "g", net)[1,1] == 12
+        @test xij("b", "g", net)[3,3] == 8
+
     end
     
 end
