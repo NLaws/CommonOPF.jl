@@ -181,6 +181,12 @@ function format_input_dict(d::Dict)::Dict
 end
 
 
+"""
+    dss_to_Network(dssfilepath::AbstractString)::Network
+
+Using a OpenDSS command to compile the `dssfilepath` we load in the data from .dss files and parse
+the data into a `Network` model.
+"""
 function dss_to_Network(dssfilepath::AbstractString)::Network
     
     # OpenDSS changes the working directory, so we need to change it back

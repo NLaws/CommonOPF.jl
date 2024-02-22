@@ -33,6 +33,8 @@ with_logger(test_logger) do
 
     include("test_conductor.jl")
 
+    include("test_decomposition.jl")
+
     include("test_edges.jl")
 
     include("test_network_reduction.jl")

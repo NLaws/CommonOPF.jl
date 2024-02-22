@@ -61,6 +61,9 @@ export
     xij_per_unit,
     zij,
 
+    # io
+    dss_to_Network,
+
     i_to_j,
     j_to_k,
 
@@ -87,7 +90,10 @@ export
     Network_Papavasiliou_2018,
     VARIABLE_NAMES,
     VariableContainer,
-    add_time_vector_variables!
+    add_time_vector_variables!,
+
+    # decomposition
+    split_network
 
 
 include("types.jl")
@@ -106,6 +112,7 @@ include("edges/voltage_regulators.jl")
 include("network.jl")
 include("edges/impedances.jl")  # Network type in signatures, move the struct to types?
 include("network_reduction.jl")
+include("decomposition.jl")
 
 include("utils.jl")
 include("variables.jl")

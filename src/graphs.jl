@@ -150,14 +150,14 @@ returns the sub_busses::Vector{String} and sub_edges::Vector{Tuple{String, Strin
 required to make the induced subgraph in `g` from the nodes (or vertices) in `vlist`.
 """
 function induced_subgraph(g::MetaGraphsNext.MetaGraph, vlist::Vector{String})
-    ivlist = [MetaGraphsNext.code_for(g, b) for b in vlist]
-    subg, vmap = induced_subgraph(g, ivlist)
+    int_vlist = [MetaGraphsNext.code_for(g, b) for b in vlist]
+    subg, vmap = Graphs.induced_subgraph(g, int_vlist)
     # vmap is Vector{Int} where vmap[int_in_subg] -> int_in_g
     # but we want the string busses as well as the edge tuples with strings
-    sub_busses = [label_for(g, vmap[i]) for i in 1:length(vmap)]
+    sub_busses = [MetaGraphsNext.label_for(g, vmap[i]) for i in 1:length(vmap)]
     sub_edges = [
-        ( label_for(g, vmap[e.src]), label_for(g, vmap[e.dst]) ) 
-        for e in edges(subg)
+        ( MetaGraphsNext.label_for(g, vmap[e.src]), MetaGraphsNext.label_for(g, vmap[e.dst]) ) 
+        for e in Graphs.edges(subg)
     ]
     return sub_busses, sub_edges
 end
