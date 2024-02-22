@@ -34,6 +34,11 @@ export
     SinglePhase,
     MultiPhase,
     MultiPhaseVariableContainerType,
+    check_paths_for_loads,
+    info_max_rpu_xpu,
+    info_max_Ppu_Qpu,
+
+    # graphs
     make_graph,
     outneighbors,
     all_outneighbors,
@@ -45,10 +50,6 @@ export
     busses_with_multiple_inneighbors,
     next_bus_above_with_outdegree_more_than_one,
     paths_between,
-    check_paths_for_loads,
-    info_max_rpu_xpu,
-    info_max_Ppu_Qpu,
-    combine_parallel_lines!,
 
     # impedance
     resistance,
@@ -64,17 +65,20 @@ export
     # io
     dss_to_Network,
 
+    # network reduction
+    reduce_tree!,
+    remove_bus!,
+    trim_tree!,
+    trim_tree_once!,
+    combine_parallel_lines!,
+    trim_above_bus!,
+
     i_to_j,
     j_to_k,
 
     info_max_Ppu_Qpu,
     leaf_busses,
-    trim_tree!,
-    trim_tree_once!,
     get_variable_values,
-    remove_bus!,
-    trim_above_bus!,
-    reduce_tree!,
     Network,
     edges,
     busses,

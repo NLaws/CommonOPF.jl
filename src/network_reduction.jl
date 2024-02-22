@@ -258,3 +258,20 @@ function combine_parallel_lines!(net::Network{MultiPhase})
         end
     end
 end
+
+
+"""
+    trim_above_bus!(g::MetaGraphsNext.MetaGraph, bus::String)
+
+Remove all the busses and edges that are inneighbors (recursively) of `bus`
+"""
+function trim_above_bus!(g::MetaGraphsNext.MetaGraph, bus::String)
+    busses_to_delete = all_inneighbors(g, bus, Vector{String}())
+    edges_to_delete = [e for e in MetaGraphsNext.edge_labels(g) if e[1] in busses_to_delete]
+    for (i, j) in edges_to_delete
+        delete!(g, i, j)
+    end
+    for i in busses_to_delete
+        delete!(g, i)
+    end
+end

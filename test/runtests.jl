@@ -37,6 +37,8 @@ with_logger(test_logger) do
 
     include("test_edges.jl")
 
+    include("test_graphs.jl")
+
     include("test_network_reduction.jl")
 
     include("test_network.jl")
