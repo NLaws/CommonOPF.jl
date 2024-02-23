@@ -38,6 +38,10 @@ export
     info_max_rpu_xpu,
     info_max_Ppu_Qpu,
 
+    # decomposition
+    splitting_busses,
+    split_at_busses,
+
     # graphs
     make_graph,
     outneighbors,

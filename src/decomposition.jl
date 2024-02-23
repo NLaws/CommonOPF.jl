@@ -76,4 +76,186 @@ function split_network(net::Network, bus::String, out_busses::Vector{String})::T
 end
 
 
-# NEXT split_at_busses (moving decomposition support to CommonOPF from BFM)
+"""
+    splitting_busses(net::Network, source::String; threshold::Int64=10)
+
+Determine the busses to split a tree graph on by searching upward from the deepest leafs first
+and gathering the nearest busses until threshold is met for each subgraph.
+
+Returns a `Vector{String}` for the bus names to split on and `Vector{Vector{String}}` for the 
+corresponding busses within each sub-graph.
+
+!!! note
+    It is not enough to have only the splitting busses to obey the `max_busses` limit because
+    one must also know which sub branches to take from each splitting bus. In other words, we also
+    need all the busses within each subgraph to split properly. For example, if a splitting
+    bus has two sub branches then obeying the max_busses limit can require only including one
+    sub branch out of the splitting bus. To know which branch to take we can use the other busses
+    in the sub graph (which is why this method also returns the bussed in each subgraph).
+"""
+function splitting_busses(net::Network, source::String; max_busses::Int64=10)
+    g = net.graph
+    @assert Graphs.is_directed(net.graph)  "net.graph must be directed"
+    bs, depths = busses_from_deepest_to_source(g, source)
+    splitting_bs = String[]  # head nodes of all the subgraphs
+    subgraph_bs = Vector[]
+    # iterate until bs is empty, taking out busses as they are added to subgraphs
+    subg_bs = String[]
+    bs_parsed = String[]
+    while !isempty(bs)
+        b = popfirst!(bs)
+        push!(subg_bs, b)
+        ins = [b] # first check for any out neighbors of b
+        while length(ins) == 1  # moving up tree from b in this loop
+            inb = ins[1]
+            # outns includes every bus below inb, 
+            # excluding any branches that start with a bus in bs_parsed
+            outns = all_outneighbors(g, inb, String[], bs_parsed)
+            setdiff!(outns, bs_parsed)  # just in case
+            new_subg_bs = unique(vcat([inb], outns, subg_bs))
+
+            if length(new_subg_bs) > max_busses || isempty(bs)
+                # addition of busses would increase busses in subgraph beyond max_busses
+                # so we split at b and start a new subgraph
+                push!(splitting_bs, b)
+                push!(bs_parsed, subg_bs...)
+                push!(subgraph_bs, subg_bs)
+                bs = setdiff(bs, subg_bs)
+                subg_bs = String[]
+                break  # inner loop
+            end
+            # else continue going up tree
+            subg_bs = new_subg_bs
+            bs = setdiff(bs, subg_bs)
+            ins = inneighbors(g, inb)  # go up another level
+            b = inb
+        end
+    end
+    if source in splitting_bs
+        # the last bus in splitting_bs is the source, which is not really a splitting bus
+        return setdiff(splitting_bs, [source]), subgraph_bs[1:end-1]
+    end
+    return splitting_bs, subgraph_bs
+end
+
+
+"""
+    split_at_busses(net::Network, at_busses::Vector{String})
+
+Split `net.graph` using the `at_busses`
+
+returns directed `MetaGraph` with vertices containing `Network` for the sub-graphs using integer 
+vertex labels. For example `mg[2]` is the `Network` at the second vertex of the graph created by 
+splitting the network via the `at_busses`.
+"""
+function split_at_busses(net::Network, at_busses::Vector{String})::MetaGraphsNext.MetaGraph
+    unique!(at_busses)
+    mg = MetaGraphsNext.MetaGraph(
+        Graphs.DiGraph(), 
+        label_type=Integer,
+        vertex_data_type=Network,
+        graph_data=Dict{Symbol, Any}()
+    )
+    # initial split
+    net_above, net_below = split_network(net, at_busses[1]);
+    MetaGraphsNext.add_vertex!(mg, 1, net_above)
+    MetaGraphsNext.add_vertex!(mg, 2, net_below)
+    MetaGraphsNext.add_edge!(mg, 1, 2)
+
+    for (i, splitting_bus) in enumerate(at_busses[2:end])
+        # find the vertex in mg to split
+        vertex = 0
+        for v in MetaGraphsNext.vertices(mg)
+            if splitting_bus in busses(mg[v])
+                vertex = v
+                break
+            end
+        end
+        net_above, net_below = split_network(mg[vertex], splitting_bus);
+        mg[vertex] = net_above  # replace the already set net, which preserves inneighbors
+        MetaGraphsNext.add_vertex!(mg, i+2, net_below)  # vertex i+2
+        if !isempty(MetaGraphsNext.outdegree(mg, vertex))
+            # already have edge(s) for vertex -> outneighbors(mg, vertex)
+            # but now i+2 could be the parent for some of the outneighbors(mg, vertex)
+            outns = copy(MetaGraphsNext.outneighbors(mg, vertex))
+            for neighb in outns
+                if !( mg[neighb].substation_bus in busses(mg[vertex]) )
+                    # mv the edge to the new intermediate node
+                    MetaGraphsNext.rem_edge!(mg, vertex, neighb)
+                    MetaGraphsNext.add_edge!(mg, i+2, neighb)
+                end
+            end
+        end
+        MetaGraphsNext.add_edge!(mg, vertex, i+2)  # net_above -> net_below
+    end
+    # create the load_sum_order, a breadth first search from the leafs
+    vs, depths = vertices_from_deepest_to_source(mg, 1)
+    mg.graph_data[:load_sum_order] = vs
+    # init_inputs!(mg)  # TODO
+    if Graphs.ne(mg) != length(mg.vertex_properties) - 1
+        @warn "The MetaDiGraph created is not a tree."
+    end
+
+    return mg
+end
+
+
+# """
+#     split_at_busses(net::Network, at_busses::Vector{String}, with_busses::Vector{Vector{String}})
+
+# Split up `p` using the `at_busses` as each new `substation_bus` and containing the corresponding `with_busses`.
+# The `at_busses` and `with_busses` can be determined using `splitting_busses`.
+
+# NOTE: this variation of splt_at_busses allows for more than two splits at the same bus; whereas the other
+# implementation of split_at_busses only splits the network into two parts for everything above and
+# everything below a splitting bus.
+# """
+# function split_at_busses(net::Network, at_busses::Vector{String}, with_busses::Vector{Vector}; add_connections=true)
+#     unique!(at_busses)
+#     mg = MetaDiGraph()
+#     if add_connections
+#         with_busses = connect_subgraphs_at_busses(p, at_busses, with_busses)
+#     end
+#     # initial split
+#     p_above, p_below = BranchFlowModel.split_inputs(p, at_busses[1], with_busses[1]);
+#     add_vertex!(mg, :p, p_above)
+#     add_vertex!(mg, :p, p_below)
+#     add_edge!(mg, 1, 2)
+#     set_indexing_prop!(mg, :p)
+
+#     for (i, (b, sub_bs)) in enumerate(zip(at_busses[2:end], with_busses[2:end]))
+#         # find the vertex to split
+#         vertex = 0
+#         for v in vertices(mg)
+#             if b in mg[v, :p].busses
+#                 vertex = v
+#                 break
+#             end
+#         end
+#         p_above, p_below = BranchFlowModel.split_inputs(mg[vertex, :p], b, sub_bs);
+#         set_prop!(mg, vertex, :p, p_above)  # replace the already set :p, which preserves inneighbors
+#         add_vertex!(mg, :p, p_below)  # vertex i+2
+#         if !isempty(outdegree(mg, vertex))
+#             # already have edge(s) for vertex -> outneighbors(mg, vertex)
+#             # but now i+2 could be the parent for some of the outneighbors(mg, vertex)
+#             outns = copy(outneighbors(mg, vertex))
+#             for neighb in outns
+#                 if !( mg[neighb, :p].substation_bus in mg[vertex, :p].busses )
+#                     # mv the edge to the new intermediate node
+#                     rem_edge!(mg, vertex, neighb)
+#                     add_edge!(mg, i+2, neighb)
+#                 end
+#             end
+#         end
+#         add_edge!(mg, vertex, i+2)  # p_above -> p_below
+#     end
+#     # create the load_sum_order, a breadth first search from the leafs
+#     vs, depths = vertices_from_deepest_to_source(mg, 1)
+#     set_prop!(mg, :load_sum_order, vs)
+#     init_inputs!(mg)
+#     if mg.graph.ne != length(mg.vprops) - 1
+#         @warn "The MetaDiGraph created is not a tree."
+#     end
+
+#     return mg
+# end
