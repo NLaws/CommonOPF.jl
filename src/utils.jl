@@ -14,13 +14,3 @@ function check_paths_for_loads(paths::AbstractVecOrMat, net::Network)
     end
     true
 end
-
-
-function heads(edges:: Vector{Tuple})
-    return collect(e[1] for e in edges)
-end
-
-
-function tails(edges:: Vector{Tuple})
-    return collect(e[2] for e in edges)
-end

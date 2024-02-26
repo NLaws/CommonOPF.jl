@@ -27,8 +27,6 @@ const VARIABLE_NAMES = String[
 VariableContainer = Dict{String, Dict{Int, Any}}  # edge/bus String, time step Int, variable(s)
 
 export 
-    heads,
-    tails,
     dsstxt_to_sparse_array,
     Phases,
     SinglePhase,
