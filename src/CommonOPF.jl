@@ -120,7 +120,6 @@ include("edges/impedances.jl")  # Network type in signatures, move the struct to
 include("network_reduction.jl")
 include("decomposition.jl")
 
-include("utils.jl")
 include("variables.jl")
 include("results.jl")
 
