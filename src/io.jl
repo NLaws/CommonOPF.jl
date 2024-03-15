@@ -194,13 +194,23 @@ end
 # TODO transformers need to work with rij and xij methods s.t. they work in KVL definitions
 function opendss_transformers()
     OpenDSS.Transformers.First()
-    OpenDSS.CktElement.BusNames()  # can have phases
-    OpenDSS.Transformers.Xhl()  # in percent of kVA of first winding (reactance is between windings)
-    OpenDSS.Transformers.R()  # in percent of kVA of _active_ winding
-    OpenDSS.Transformers.Wdg(1.0)  # change winding to get individual resistances and kVs
-    OpenDSS.Transformers.kV()
-    # Next start basic transformer model in CommonOPF, then finish IEEE13 parsing to test LoadFlow,
-    # then on to 8500 node test network
+    # BusNames can have phases like bname.1.2
+    busses = OpenDSS.CktElement.BusNames()
+    # Xhl in percent of kVA of first winding (reactance is between windings)
+    x_pct = OpenDSS.Transformers.Xhl()
+    kvs = Float64[]
+    rs = Float64[]
+    for wdg_int in 1:Int(OpenDSS.Transformers.NumWindings())
+        # set the wdg to get individual resistances and kVs
+        OpenDSS.Transformers.Wdg(Float64(wdg_int))
+        push!(kvs, OpenDSS.Transformers.kV())
+        # R in P\percent resistance of this winding on the rated kVA base
+        push!(rs, OpenDSS.Transformers.R())
+    end
+    rating_kva = OpenDSS.Transformers.kVA()
+    OpenDSS.CktElement.YPrim()  # 8x8 for two windings, three phase + neutral
+    # find the neutral indices in Yprim and Kron reduce to 6x6?
+    # only need upper right block (to get impedance from i-to-j)? 
 end
 
 
