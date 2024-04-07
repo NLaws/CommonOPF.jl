@@ -17,6 +17,26 @@ get_phases(bus::AbstractString) = sort!(collect(parse(Int,ph) for ph in split(bu
 
 
 """
+    kron_reduce(M::AbstractMatrix)::Matrix
+
+Given a 4x4 matrix remove the 4th row and column to create a 3x3 matrix.
+
+The new values in the 3x3 are:
+```julia
+M_new[i,j] = M[i,j] - M[i,4] *  M[4,j] / M[4,4]  
+```
+where `i` and `j` are in the `Set((1,2,3))`.
+"""
+function kron_reduce(M::AbstractMatrix)::Matrix
+    M_new = zeros(3,3)
+    for i = 1:3, j = 1:3
+        M_new[i,j] = M[i,j] - M[i,4] *  M[4,j] / M[4,4]
+    end
+    return M_new
+end
+
+
+"""
     dsstxt_to_sparse_array(fp::String, first_data_row::Int = 5)
 
 convert a SystemY.txt file from OpenDSS to a julia matrix.

@@ -17,3 +17,8 @@ z_s &= \frac{1}{3} z_0 + \frac{2}{3} z_1
 z_m &= \frac{1}{3} (z_0- z_1)
 \end{aligned}  
 ```
+
+# Kron Reduction
+```@docs
+kron_reduce
+```
