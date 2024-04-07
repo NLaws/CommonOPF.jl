@@ -127,8 +127,12 @@ function dss_to_Network(dssfilepath::AbstractString)::Network
     OpenDSS.dss("""
         clear
         compile $dssfilepath
+        solve
     """)
     cd(work_dir)
+    Y = OpenDSS.Circuit.SystemY()  # ordered by OpenDSS object definitions
+    # Vector{String} w/values like "BUS1.1"
+    node_order = [lowercase(s) for s in OpenDSS.Circuit.YNodeOrder()] 
     
     net_dict = Dict{Symbol, Any}(
         :Network => Dict(
@@ -138,6 +142,7 @@ function dss_to_Network(dssfilepath::AbstractString)::Network
             # :Sbase => Tranformer value?,
         ),
         :Conductor => opendss_lines(),
+        :Transformer => opendss_transformers(Y, node_order)
     )
 
     Network(net_dict)
@@ -172,8 +177,10 @@ function opendss_lines()::Vector{Dict{Symbol, Any}}
         # constructor to take advantage of the validation therein.)
 
         # TODO serialize Network to yaml? s.t. don't have to parse dss every time
+        # TODO sort r and x matrices and phases in to numerical order
         push!(conductor_dicts, Dict(
             :busses => (b1, b2),
+            :name => OpenDSS.Lines.Name(),
             :phases => phases,
             :rmatrix => OpenDSS.Lines.RMatrix(),
             :xmatrix => OpenDSS.Lines.XMatrix(),
@@ -202,35 +209,64 @@ function opendss_source_bus()::String
 end
 
 
-# julia> OpenDSS.Transformers.
-# AllLossesByType  AllNames         CoreType         Count            First
-# Idx              IsDelta          LossesByType     MaxTap           MinTap
-# Name             Next             NumTaps          NumWindings      R
-# RdcOhms          Rneut            Tap              Wdg              WdgCurrents
-# WdgVoltages      XfmrCode         Xhl              Xht              Xlt
-# Xneut            eval             include          kV               kVA
-# strWdgCurrents
+"""
+
+Given two bus names, the OpenDSS.Circuit.SystemY(), and the OpenDSS.Circuit.YNodeOrder() return the sub-matrix of Y that correspondes to the bus names sorted in numerical phase order.
+
+!!! note
+    The OpenDSS Y matrix is in 1/impedance units (as defined in the OpenDSS model), like 1,000-ft/ohms.
+
+TODO expand matrices to 3x3 with zeros in this method?
+"""
+function phase_admittance(bus1::String, bus2::String, Y::Matrix{ComplexF64}, node_order::Vector{String})
+    y_busses = strip_phases.(node_order)
+    b1_indices = findall(x -> x == bus1, y_busses)
+    b2_indices = findall(x -> x == bus2, y_busses)
+    b1_phases = [phs[1] for phs in get_phases.(node_order[b1_indices])]
+    b2_phases = [phs[1] for phs in get_phases.(node_order[b2_indices])]
+    # TODO need order of each phase set?
+    return Y[b1_indices, b2_indices], union(b1_phases, b2_phases)
+end
+
 
 # TODO transformers need to work with rij and xij methods s.t. they work in KVL definitions
-function opendss_transformers()
-    OpenDSS.Transformers.First()
-    # BusNames can have phases like bname.1.2
-    busses = OpenDSS.CktElement.BusNames()
-    # Xhl in percent of kVA of first winding (reactance is between windings)
-    x_pct = OpenDSS.Transformers.Xhl()
-    kvs = Float64[]
-    rs = Float64[]
-    for wdg_int in 1:Int(OpenDSS.Transformers.NumWindings())
-        # set the wdg to get individual resistances and kVs
-        OpenDSS.Transformers.Wdg(Float64(wdg_int))
-        push!(kvs, OpenDSS.Transformers.kV())
-        # R in P\percent resistance of this winding on the rated kVA base
-        push!(rs, OpenDSS.Transformers.R())
+function opendss_transformers(
+        Y::Matrix{ComplexF64}, 
+        node_order::Vector{String}
+    )::Vector{Dict{Symbol, Any}}
+
+    trfx_dicts = Dict{Symbol, Any}[]
+    trfx_number = OpenDSS.Transformers.First()
+    while trfx_number > 0
+
+        # BusNames can have phases like bname.1.2
+        busses = [lowercase(s) for s in OpenDSS.CktElement.BusNames()]
+        bus1, bus2 = busses[1], busses[2]
+        # num_phases = OpenDSS.CktElement.NumPhases()
+        Y_trfx, phases = phase_admittance(bus1, bus2, Y, node_order)
+        rmatrix, xmatrix = real(Y_trfx), imag(Y_trfx)
+
+        # TODO can have more than two windings, so change Transformer properties?
+        # kvs = Float64[]
+        # for wdg_int in 1:Int(OpenDSS.Transformers.NumWindings())
+        #     # set the wdg to get individual kVs
+        #     OpenDSS.Transformers.Wdg(Float64(wdg_int))
+        #     push!(kvs, OpenDSS.Transformers.kV())
+        # end
+        # rating_kva = OpenDSS.Transformers.kVA()
+
+        push!(trfx_dicts, Dict(
+            :busses => (bus1, bus2),
+            :name => OpenDSS.Transformers.Name(),
+            :phases => phases,
+            :rmatrix => rmatrix,
+            :xmatrix => xmatrix,
+        ))
+        trfx_number = OpenDSS.Transformers.Next()
     end
-    rating_kva = OpenDSS.Transformers.kVA()
-    OpenDSS.CktElement.YPrim()  # 8x8 for two windings, three phase + neutral
-    # find the neutral indices in Yprim and Kron reduce to 6x6?
-    # only need upper right block (to get impedance from i-to-j)? 
+
+    return trfx_dicts
+    
 end
 
 

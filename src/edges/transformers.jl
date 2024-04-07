@@ -23,6 +23,7 @@ Series impedance defaults to zero.
     # required values
     busses::Tuple{String, String}
     # optional values
+    name::Union{String, Missing} = missing
     high_kv::Real = 1.0
     low_kv::Real = 1.0
     phases::Union{Vector{Int}, Missing} = missing
