@@ -97,19 +97,19 @@ function Network(d::Dict; directed::Union{Bool,Missing}=missing)
     if any((!ismissing(e.phases) for e in edges))
         net_type = CommonOPF.MultiPhase
     end
-    busses = CommonOPF.AbstractBus[]
+    bus_vec = CommonOPF.AbstractBus[]
     for BusType in subtypes(CommonOPF.AbstractBus)
         dkey = Symbol(split(string(BusType), ".")[end])   # left-strip CommonOPF.
         if dkey in keys(d)
-            busses = vcat(busses, build_busses(d[dkey], BusType))
+            bus_vec = vcat(bus_vec, build_busses(d[dkey], BusType))
         end
     end
     # NEXT all tests, examples need new keys to match type names
 
     # make the graph
     g = make_graph(edges; directed=directed)
-    if length(busses) > 0
-        fill_node_attributes!(g, busses)
+    if length(bus_vec) > 0
+        fill_node_attributes!(g, bus_vec)
     end
     return Network(g, d[:Network], net_type)
 end

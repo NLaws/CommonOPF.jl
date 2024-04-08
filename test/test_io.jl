@@ -3,6 +3,10 @@
     @testset "dss_to_Network" begin
         dssfilepath = joinpath("data", "ieee13", "IEEE13Nodeckt.dss")
         net = CommonOPF.dss_to_Network(dssfilepath)
+
+        @test net["671"][:Load].kws2 == [1155.0 / 3]
+        @test net["670"][:Load].kws1 == [17.0]
+        @test net["670"][:Load].kvars3 == [68.0]
         # TODO compare to data/yaml_inputs/ieee13_multi_phase.yaml (which was manually constructed)
         # can use dict equality for all conductors?
     end

@@ -13,7 +13,15 @@ function strip_phases(bus::AbstractString)::AbstractString
 end
 
 
-get_phases(bus::AbstractString) = sort!(collect(parse(Int,ph) for ph in split(bus[findfirst('.', bus)+1:end], ".")))
+"""
+    get_phases(bus::AbstractString)
+
+If a period occurs in the `bus` string then return a Vector{Int} of the values after the period;
+else return `nothing`.
+"""
+get_phases(bus::AbstractString) = occursin(".", bus) ? 
+    sort!(collect(parse(Int,ph) for ph in split(bus[findfirst('.', bus)+1:end], "."))) : 
+    nothing
 
 
 """
@@ -115,6 +123,89 @@ end
 
 
 """
+    opendss_loads(;disable::Bool=true)::Vector{Dict{Symbol, Any}}
+
+Construct a vector of dicts to pass to the `Network` builder for the `Load` structs.
+If `disable` then all loads are disabled, which is necessary to exclude the load impedances from the 
+OpenDSS SystemY matrix.
+
+!!! note
+    Determining OpenDSS phase numbers (not number of phases) is tricky: if the 
+    OpenDSS.CktElement.BusNames() do not have the dot-phases, like "671.2.3", then one must find the 
+    number of phases (e.g. NPhases = OpenDSS.Loads.Phases()) and then the phases are 1, ..., NPhases.
+"""
+function opendss_loads(;disable::Bool=true)::Vector{Dict{Symbol, Any}}
+
+    # we track load busses to merge any multiphase unbalanced loads into one 
+    # CommonOPF.Load then at the end just return the vector of dicts.
+    loads = Dict{String, Dict{Symbol, Any}}()
+    load_number = OpenDSS.Loads.First()
+    while load_number > 0
+        # how do we get load bus phase numbers?
+        bus = OpenDSS.CktElement.BusNames()[1]
+        phases = get_phases(bus)
+        if isnothing(phases)
+            phases = collect(1:OpenDSS.Loads.Phases())
+        end
+
+        kw_per_phase = OpenDSS.Loads.kW() / length(phases)
+        kvar_per_phase = OpenDSS.Loads.kvar() / length(phases)
+
+        kws1 = 1 in phases ? [kw_per_phase] : missing
+        kws2 = 2 in phases ? [kw_per_phase] : missing
+        kws3 = 3 in phases ? [kw_per_phase] : missing
+
+        kvars1 = 1 in phases ? [kvar_per_phase] : missing
+        kvars2 = 2 in phases ? [kvar_per_phase] : missing
+        kvars3 = 3 in phases ? [kvar_per_phase] : missing
+
+        # TODO time-series loads
+
+        bus = strip_phases(bus)
+        if !(bus in keys(loads))
+            loads[bus] = Dict(
+                :bus => bus,
+                :kws1 => kws1,
+                :kws2 => kws2,
+                :kws3 => kws3,
+                :kvars1 => kvars1,
+                :kvars2 => kvars2,
+                :kvars3 => kvars3,
+            )
+        else  # add to existing bus load (accounting for missing values)
+            loads[bus][:kws1] = ismissing(loads[bus][:kws1]) ? kws1 : loads[bus][:kws1] + (
+                ismissing(kws1) ? [0.0] : kws1
+            )
+            loads[bus][:kws2] = ismissing(loads[bus][:kws2]) ? kws2 : loads[bus][:kws2] + (
+                ismissing(kws2) ? [0.0] : kws2
+            )
+            loads[bus][:kws3] = ismissing(loads[bus][:kws3]) ? kws3 : loads[bus][:kws3] + (
+                ismissing(kws3) ? [0.0] : kws3
+            )
+
+            loads[bus][:kvars1] = ismissing(loads[bus][:kvars1]) ? kvars1 : loads[bus][:kvars1] + (
+                ismissing(kvars1) ? [0.0] : kvars1
+            )
+            loads[bus][:kvars2] = ismissing(loads[bus][:kvars2]) ? kvars2 : loads[bus][:kvars2] + (
+                ismissing(kvars2) ? [0.0] : kvars2
+            )
+            loads[bus][:kvars3] = ismissing(loads[bus][:kvars3]) ? kvars3 : loads[bus][:kvars3] + (
+                ismissing(kvars3) ? [0.0] : kvars3
+            )
+        end
+
+        if disable
+            OpenDSS.CktElement.Enabled(false)
+        end
+
+        load_number = OpenDSS.Loads.Next()
+    end
+
+    return collect(values(loads))
+end
+
+"""
+
     dss_to_Network(dssfilepath::AbstractString)::Network
 
 Using a OpenDSS command to compile the `dssfilepath` we load in the data from .dss files and parse
@@ -130,6 +221,8 @@ function dss_to_Network(dssfilepath::AbstractString)::Network
         solve
     """)
     cd(work_dir)
+    # must disable loads before getting Y s.t. the load impedances are excluded
+    load_dicts = opendss_loads(;disable=true)
     Y = OpenDSS.Circuit.SystemY()  # ordered by OpenDSS object definitions
     # Vector{String} w/values like "BUS1.1"
     node_order = [lowercase(s) for s in OpenDSS.Circuit.YNodeOrder()] 
@@ -142,6 +235,7 @@ function dss_to_Network(dssfilepath::AbstractString)::Network
             # :Sbase => Tranformer value?,
         ),
         :Conductor => opendss_lines(),
+        :Load => load_dicts,
         :Transformer => opendss_transformers(Y, node_order)
     )
 
