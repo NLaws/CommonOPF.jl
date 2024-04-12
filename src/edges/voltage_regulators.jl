@@ -96,4 +96,8 @@ function check_edges!(regulators::AbstractVector{VoltageRegulator})::Bool
     return good
 end
 
-# methods for constraining regulated voltage? will need the voltage variable and model
+# TODO methods for constraining regulated voltage, pass in model and variable references
+function regulator_with_fixed_tap_ratio() end
+function regulator_with_fixed_voltage() end
+function regulator_with_continuous_voltage_variable() end
+function regulator_with_discrete_voltage_variables() end

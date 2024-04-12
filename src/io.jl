@@ -340,15 +340,6 @@ function opendss_transformers(
         Y_trfx, phases = phase_admittance(bus1, bus2, Y, node_order)
         rmatrix, xmatrix = real(Y_trfx), imag(Y_trfx)
 
-        # TODO can have more than two windings, so change Transformer properties?
-        # kvs = Float64[]
-        # for wdg_int in 1:Int(OpenDSS.Transformers.NumWindings())
-        #     # set the wdg to get individual kVs
-        #     OpenDSS.Transformers.Wdg(Float64(wdg_int))
-        #     push!(kvs, OpenDSS.Transformers.kV())
-        # end
-        # rating_kva = OpenDSS.Transformers.kVA()
-
         push!(trfx_dicts, Dict(
             :busses => (bus1, bus2),
             :name => OpenDSS.Transformers.Name(),
