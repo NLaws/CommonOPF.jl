@@ -131,8 +131,7 @@ function Network(fp::String)
     Network(d)
 end
 
-# TODO make sure all these methods are tested
-# make it so Network[edge_tup] returns the data dict
+# make it so Network[(bus1, bus2)] returns the edge struct
 Base.getindex(net::Network, idx::Tuple{String, String}) = net.graph[idx[1], idx[2]]
 
 
@@ -141,7 +140,7 @@ function Base.setindex!(net::Network, edge::CommonOPF.AbstractEdge, idx::Tuple{S
 end
 
 
-# make it so Network[node_string] returns the data dict
+# make it so Network[node_string] returns the bus struct
 Base.getindex(net::Network, idx::String) = net.graph[idx]
 
 
@@ -221,6 +220,9 @@ real_load_busses(net::Network{SinglePhase}) = collect(b for b in load_busses(net
 
 
 reactive_load_busses(net::Network{SinglePhase}) = collect(b for b in load_busses(net) if !ismissing(net[b][:Load].kvars1))
+
+total_load_kw(net::Network{SinglePhase}) = sum(net[load_bus][:Load].kws1 for load_bus in real_load_busses(net))
+total_load_kvar(net::Network{SinglePhase}) = sum(net[load_bus][:Load].kvars1 for load_bus in real_load_busses(net))
 
 
 """

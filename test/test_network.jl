@@ -25,6 +25,8 @@
     # loads
     @test net["b3"][:Load].kws1 == [5.6]
     @test net["b2"][:Load].kvars1 == [1.2]
+    @test total_load_kw(net) == [11.2]
+    @test total_load_kvar(net) == [2.4]
     # the safe getter looks like:
     @test net["b3", :kws, 1] == [5.6]
     @test net["b3", :kvars, 1] == [1.2]

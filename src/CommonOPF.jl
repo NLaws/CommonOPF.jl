@@ -92,6 +92,8 @@ export
     is_connected,
     real_load_busses,
     reactive_load_busses,
+    total_load_kw,
+    total_load_kvar,
     
     # test Networks
     Network_IEEE13_SinglePhase,

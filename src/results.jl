@@ -70,3 +70,13 @@ function get_variable_values(model_key, var_name::String, m::JuMP.AbstractModel,
     end
     return d
 end
+
+
+# """
+#     check_any_results_at_bounds(r::Results, net::Network)
+
+# warn if any results are at their bounds
+# """
+# function check_any_results_at_bounds(r::Results, net::Network)
+
+# end

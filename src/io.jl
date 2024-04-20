@@ -304,8 +304,10 @@ end
 
 
 """
+    phase_admittance(bus1::String, bus2::String, Y::Matrix{ComplexF64}, node_order::Vector{String})
 
-Given two bus names, the OpenDSS.Circuit.SystemY(), and the OpenDSS.Circuit.YNodeOrder() return the sub-matrix of Y that correspondes to the bus names sorted in numerical phase order.
+Given two bus names, the OpenDSS.Circuit.SystemY(), and the OpenDSS.Circuit.YNodeOrder() return the 
+sub-matrix of Y that correspondes to the bus names sorted in numerical phase order.
 
 !!! note
     The OpenDSS Y matrix is in 1/impedance units (as defined in the OpenDSS model), like 1,000-ft/ohms.
@@ -347,6 +349,7 @@ function opendss_transformers(
             :rmatrix => rmatrix,
             :xmatrix => xmatrix,
         ))
+        
         trfx_number = OpenDSS.Transformers.Next()
     end
 

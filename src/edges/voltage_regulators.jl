@@ -1,5 +1,3 @@
-# use these in LoadFlow first to confirm test results
-# then in BFM to continue the transition to Network from Inputs
 """
     struct VoltageRegulator <: AbstractEdge
         # required values

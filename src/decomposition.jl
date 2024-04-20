@@ -34,7 +34,7 @@ function split_network(net::Network, bus::String)::Tuple{Network, Network}
     in_buses = collect(all_inneighbors(g, bus, String[]))
     out_busses = collect(all_outneighbors(g, bus, String[], String[]))
     # in/out_busses do not have bus, but sub_busses does have bus
-    # we want to keep bus in both Inputs
+    # we want to keep bus in both Networks
 
     sub_busses, sub_edges = induced_subgraph(g, vcat(out_busses, bus))
     net_above = make_sub_network(net, sub_edges, out_busses)
@@ -73,6 +73,71 @@ function split_network(net::Network, bus::String, out_busses::Vector{String})::T
     net_below.substation_bus = bus
 
     return net_above, net_below
+end
+
+
+"""
+    init_split_networks!(nets::Vector{Network{SinglePhase}}; init_vs::Dict = Dict())
+
+Set the load on the upstream leaf noades equal to the sum of all the loads in the
+downstream inputs. It is important that the order of `nets` is from leaf branches to trunk branches
+so that the sums of loads take into account all downstream sub-trees.
+
+if `init_vs` is provided, the `net.v0` is set for the `Input` with its `net.substation_bus` equal 
+    to the key in `init_vs`
+```julia
+init_vs = Dict(
+    "sub_bus_1" => 0.98
+)
+
+for net in nets
+    if net.substation_bus in keys(init_vs)
+        net.v0 = init_vs[net.substation_bus]
+    end
+end
+```
+"""
+function init_split_networks!(nets::Vector{Network{SinglePhase}}; init_vs::Dict = Dict())
+    for net in nets
+        if net.substation_bus in keys(init_vs)
+            net.v0 = init_vs[net.substation_bus]
+        end
+        leafs = CommonOPF.leaf_busses(net)
+        for other_net in nets
+            if other_net.substation_bus in leafs
+                if isempty(load_busses(other_net))
+                    @warn "The sub network with head bus $(other_net.substation_bus) has no load busses.\
+                    \nThis indicates that there are probably lines with no loads on the ends in the larger network.\
+                    \nTry using CommonOPF.trim_tree! to eliminate the deadend branches."
+                else
+                    if other_net.substation_bus in load_busses(net)
+                        net[other_net.substation_bus][:Load].kws1 += total_load_kw(other_net)
+                        net[other_net.substation_bus][:Load].kvars1 += total_load_kvar(other_net)
+                    else
+                        net[other_net.substation_bus][:Load] = CommonOPF.Load(;
+                            bus=other_net.substation_bus,
+                            kws1=total_load_kw(other_net),
+                            kvars1=total_load_kvar(other_net),
+                        )
+                    end
+                end
+            end
+        end
+    end
+    true
+end
+
+
+"""
+    init_split_networks!(mg::MetaGraphsNext.MetaGraph; init_vs::Dict = Dict())
+
+Use the `:load_sum_order` in `mg` to `init_split_networks!` in the correct order, i.e. set the loads
+at the leaf - substation connections as sums of all the loads (and the voltages at substations)
+"""
+function init_split_networks!(mg::MetaGraphsNext.MetaGraph; init_vs::Dict = Dict())
+    lso = mg.graph_data[:load_sum_order]
+    nets = [mg[v] for v in lso]
+    init_split_networks!(nets; init_vs = init_vs)
 end
 
 
@@ -191,7 +256,7 @@ function split_at_busses(net::Network, at_busses::Vector{String})::MetaGraphsNex
     # create the load_sum_order, a breadth first search from the leafs
     vs, depths = vertices_from_deepest_to_source(mg, 1)
     mg.graph_data[:load_sum_order] = vs
-    # init_inputs!(mg)  # TODO
+    init_split_networks!(mg)
     if Graphs.ne(mg) != length(mg.vertex_properties) - 1
         @warn "The MetaDiGraph created is not a tree."
     end
@@ -252,7 +317,7 @@ end
 #     # create the load_sum_order, a breadth first search from the leafs
 #     vs, depths = vertices_from_deepest_to_source(mg, 1)
 #     set_prop!(mg, :load_sum_order, vs)
-#     init_inputs!(mg)
+#     init_split_networks!(mg)
 #     if mg.graph.ne != length(mg.vprops) - 1
 #         @warn "The MetaDiGraph created is not a tree."
 #     end
