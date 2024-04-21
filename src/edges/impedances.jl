@@ -42,6 +42,19 @@ function rij(i::AbstractString, j::AbstractString, net::Network)
 end
 
 
+function rij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
+    r = resistance(net[(i,j)])
+    if isa(r, AbstractMatrix) 
+        if size(r) == (1,1)
+            return r[1,1]
+        else
+            throw(@error "Edge ($i, $j) has a multiphase impedance matrix in a single phase network.")
+        end
+    end
+    return r
+end
+
+
 """
     rij_per_unit(i::AbstractString, j::AbstractString, net::Network)
 
@@ -50,7 +63,7 @@ end
 Resistance of edge i-j normalized by `net.Zbase`
 """
 function rij_per_unit(i::AbstractString, j::AbstractString, net::Network)
-    resistance(net[(i,j)]) / net.Zbase
+    rij(i, j, net) / net.Zbase
 end
 
 
@@ -64,13 +77,26 @@ function xij(i::AbstractString, j::AbstractString, net::Network)
 end
 
 
+function xij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
+    x = reactance(net[(i,j)])
+    if isa(x, AbstractMatrix) 
+        if size(x) == (1,1)
+            return x[1,1]
+        else
+            throw(@error "Edge ($i, $j) has a multiphase impedance matrix in a single phase network.")
+        end
+    end
+    return x
+end
+
+
 """
     xij_per_unit(i::AbstractString, j::AbstractString, net::Network)
 
 Reactance of edge i-j normalized by `net.Zbase`
 """
 function xij_per_unit(i::AbstractString, j::AbstractString, net::Network)
-    reactance(net[(i,j)]) / net.Zbase
+    xij(i, j, net) / net.Zbase
 end
 
 
