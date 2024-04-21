@@ -142,6 +142,32 @@ end
 
 
 """
+    connect_subgraphs_at_busses(net::Network{SinglePhase}, at_busses::Vector{String}, subgraphs::Vector{Vector})
+
+The splitting_busses algorithm does not include over laps in subgraphs.
+But, we want overlaps at the splitting busses for solving the decomposed branch flow model.
+So here we add the overlapping splitting busses to each sub graph.
+"""
+function connect_subgraphs_at_busses(net::Network{SinglePhase}, at_busses::Vector{String}, subgraphs::Vector{Vector})
+    g = net.graph
+    new_subgs = deepcopy(subgraphs)
+    for (i, subgraph) in enumerate(subgraphs)
+        for b in subgraph
+            bs_to_add = intersect(outneighbors(g, b), at_busses)
+            if !isempty(bs_to_add)
+                for ba in bs_to_add
+                    if !(ba in new_subgs[i])
+                        push!(new_subgs[i], ba)
+                    end
+                end
+            end
+        end
+    end
+    return new_subgs
+end
+
+
+"""
     splitting_busses(net::Network, source::String; threshold::Int64=10)
 
 Determine the busses to split a tree graph on by searching upward from the deepest leafs first
@@ -323,4 +349,15 @@ end
 #     end
 
 #     return mg
+# end
+
+
+# """
+#     build_metagraph(net::Network{SinglePhase}, source::String; max_busses::Int64=10)
+
+# return MetaDiGraph by splitting the `Network` via `splitting_busses`
+# """
+# function build_metagraph(net::Network{SinglePhase}, source::String; max_busses::Int64=10)
+#     splitting_bs, subgraphs = splitting_busses(net, source; max_busses=max_busses)  
+#     split_at_busses(net, splitting_bs, subgraphs)
 # end

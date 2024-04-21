@@ -24,6 +24,31 @@ get_phases(bus::AbstractString) = occursin(".", bus) ?
     nothing
 
 
+function opendss_bus_phases(bus1::String, bus2::String)::Vector{Int}
+    if occursin(".", bus1)
+        phases = get_phases(bus1)
+    elseif occursin(".", bus2)
+        phases = get_phases(bus2)
+    else  # no phases in bus names, infer phases from number of phases
+        phases = collect(1:OpenDSS.Lines.Phases())
+    end
+    return phases
+end
+
+
+function opendss_regulator_transformers()::Vector{String}
+    n = OpenDSS.RegControls.First()
+    names = String[]
+    while n > 0
+        push!(names, 
+            OpenDSS.RegControls.Transformer()
+        )
+        n = OpenDSS.RegControls.Next()
+    end
+    return names
+end
+
+
 """
     kron_reduce(M::AbstractMatrix)::Matrix
 
@@ -236,7 +261,8 @@ function dss_to_Network(dssfilepath::AbstractString)::Network
         ),
         :Conductor => opendss_lines(),
         :Load => load_dicts,
-        :Transformer => opendss_transformers(Y, node_order)
+        :Transformer => opendss_transformers(Y, node_order),
+        :VoltageRegulator => opendss_regulators(),
     )
 
     Network(net_dict)
@@ -257,13 +283,7 @@ function opendss_lines()::Vector{Dict{Symbol, Any}}
 
         b1 = strip_phases(bus1)
         b2 = strip_phases(bus2)
-        if occursin(".", bus1)
-            phases = get_phases(bus1)
-        elseif occursin(".", bus2)
-            phases = get_phases(bus2)
-        else  # no phases in bus names, infer phases from number of phases
-            phases = collect(1:OpenDSS.Lines.Phases())
-        end
+        phases = opendss_bus_phases(bus1, bus2)
 
         # The Conductor validator is expecting Vector{Vector{Float64}} for R and X like 
         # :xmatrix => [[1.0179], [0.5017, 1.0478], [0.4236, 0.3849, 1.0348]] 
@@ -330,10 +350,14 @@ function opendss_transformers(
         Y::Matrix{ComplexF64}, 
         node_order::Vector{String}
     )::Vector{Dict{Symbol, Any}}
-
+    reg_transformers = opendss_regulator_transformers()
     trfx_dicts = Dict{Symbol, Any}[]
     trfx_number = OpenDSS.Transformers.First()
     while trfx_number > 0
+        if OpenDSS.Transformers.Name() in reg_transformers
+            trfx_number = OpenDSS.Transformers.Next()
+            continue
+        end
 
         # BusNames can have phases like bname.1.2
         busses = [lowercase(s) for s in OpenDSS.CktElement.BusNames()]
@@ -358,21 +382,63 @@ function opendss_transformers(
 end
 
 
-# TODO regulated_busses(net::Network) to use in KVL definitions
-# julia> OpenDSS.RegControls.
-# AllNames       CTPrimary      Count          Delay          First          ForwardBand
-# ForwardR       ForwardVreg    ForwardX       Idx            IsInverseTime  IsReversible
-# MaxTapChange   MonitoredBus   Name           Next           PTRatio        Reset
-# ReverseBand    ReverseR       ReverseVreg    ReverseX       TapDelay       TapNumber
-# TapWinding     Transformer    VoltageLimit   Winding        eval           include
-
-function opendss_regulators()
+function opendss_regulators()::Vector{Dict{Symbol, Any}}
     # vreg: Voltage regulator setting, in VOLTS, for the winding being controlled. Multiplying this
     # value times the ptratio should yield the voltage across the WINDING of the controlled
     # transformer. Default is 120.0
-    OpenDSS.RegControls.PTRatio() * OpenDSS.RegControls.ForwardVreg()
+    reg_dicts = Dict{Tuple{String, String}, Dict{Symbol, Any}}()
+    reg_number = OpenDSS.RegControls.First()
 
-    # if MonitoredBus is an empty string then use the Transformer to get the regulated bus
-    OpenDSS.RegControls.Transformer()
-    OpenDSS.RegControls.Winding()
+    while reg_number > 0
+        OpenDSS.Transformers.Name(OpenDSS.RegControls.Transformer())
+
+        OpenDSS.Transformers.Wdg(2.0)  # we want kV of 2nd winding, assuming two windings only
+        vreg_pu = round(
+            OpenDSS.RegControls.PTRatio() * OpenDSS.RegControls.ForwardVreg() / (
+            OpenDSS.Transformers.kV() * 1_000 ), 
+        digits=5)
+
+        # if MonitoredBus is an empty string then use the Transformer to get the regulated bus
+        OpenDSS.RegControls.Transformer()
+
+        bus1, bus2 = [lowercase(s) for s in OpenDSS.CktElement.BusNames()]
+        phases = opendss_bus_phases(bus1, bus2)
+        bus1 = strip_phases(bus1)
+        bus2 = strip_phases(bus2)
+        reg_edge = (bus1, bus2)
+
+        rmatrix, xmatrix = zeros(3,3), zeros(3,3)
+
+        # impedance values aren't exactly right but they're something
+        for i in phases
+            rmatrix[i,i] = OpenDSS.Transformers.RdcOhms()
+            xmatrix[i,i] = OpenDSS.Transformers.Xhl() * OpenDSS.Transformers.kVA()
+        end
+
+        OpenDSS.Transformers.Wdg(1.0)  # we want first winding kVA for impedances
+        if !(reg_edge in keys(reg_dicts))
+            reg_dicts[reg_edge] = Dict(
+                :busses => (bus1, bus2),
+                :name => OpenDSS.RegControls.Name(),
+                :phases => phases,
+                :rmatrix => rmatrix,
+                :xmatrix => xmatrix,
+                :vreg_pu => vreg_pu,
+            )
+        else
+            if !issubset(phases, reg_dicts[reg_edge][:phases])
+                # merge into existing regulator
+                reg_dicts[reg_edge][:phases] = union(phases, reg_dicts[reg_edge][:phases])
+                for i in phases
+                    reg_dicts[reg_edge][:rmatrix][i,i] = OpenDSS.Transformers.RdcOhms()
+                    reg_dicts[reg_edge][:xmatrix][i,i] = OpenDSS.Transformers.Xhl() * OpenDSS.Transformers.kVA()
+                end
+            else
+                @warn "Not parsing regulator $(OpenDSS.RegControls.Name()) because on already exists between its terminals."
+            end
+        end
+
+        reg_number = OpenDSS.RegControls.Next()
+    end
+    return collect(values(reg_dicts))
 end

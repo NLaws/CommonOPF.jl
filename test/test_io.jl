@@ -7,6 +7,13 @@
         @test net["671"][:Load].kws2 == [1155.0 / 3]
         @test net["670"][:Load].kws1 == [17.0]
         @test net["670"][:Load].kvars3 == [68.0]
+
+        # need to merge the phases together for regulator edges
+        # and the transformers get overwritten (b/c they're parsed first, which is actually what we
+        # want, maybe should silence the warnings about "Replacing existing data in edge"
+        @test isa(net[("650", "rg60")], CommonOPF.VoltageRegulator)
+        @test net[("650", "rg60")].vreg_pu ≈ 1.01667
+
         # TODO compare to data/yaml_inputs/ieee13_multi_phase.yaml (which was manually constructed)
         # can use dict equality for all conductors?
     end
