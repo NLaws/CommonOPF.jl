@@ -83,19 +83,22 @@ If `directed` is missing then the graph is directed only if the number of busses
 
 """
 function Network(d::Dict; directed::Union{Bool,Missing}=missing)
-    edges = CommonOPF.AbstractEdge[]
+    edge_structs = CommonOPF.AbstractEdge[]
     for EdgeType in subtypes(CommonOPF.AbstractEdge)
         dkey = Symbol(split(string(EdgeType), ".")[end])  # left-strip CommonOPF.
         if dkey in keys(d)
-            edges = vcat(edges, CommonOPF.build_edges(d[dkey], EdgeType))
+            edge_structs = vcat(edge_structs, CommonOPF.build_edges(d[dkey], EdgeType))
         elseif EdgeType in REQUIRED_EDGES
             throw(error("Missing required input $(string(dkey))"))
         end
     end
     # Single vs. MultiPhase is determined by edge.phases
     net_type = CommonOPF.SinglePhase
-    if any((!ismissing(e.phases) for e in edges))
-        net_type = CommonOPF.MultiPhase
+    if any((!ismissing(e.phases) for e in edge_structs))
+        net_phases = Set([e.phases for e in edge_structs if !ismissing(e.phases)])
+        if length(net_phases) > 1
+            net_type = CommonOPF.MultiPhase
+        end
     end
     bus_vec = CommonOPF.AbstractBus[]
     for BusType in subtypes(CommonOPF.AbstractBus)
@@ -107,7 +110,7 @@ function Network(d::Dict; directed::Union{Bool,Missing}=missing)
     # NEXT all tests, examples need new keys to match type names
 
     # make the graph
-    g = make_graph(edges; directed=directed)
+    g = make_graph(edge_structs; directed=directed)
     if length(bus_vec) > 0
         fill_node_attributes!(g, bus_vec)
     end
