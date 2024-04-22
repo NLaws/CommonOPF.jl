@@ -360,11 +360,11 @@ function opendss_transformers(
         end
 
         # BusNames can have phases like bname.1.2
-        busses = [lowercase(s) for s in OpenDSS.CktElement.BusNames()]
-        bus1, bus2 = busses[1], busses[2]
+        bus1, bus2 = [lowercase(s) for s in OpenDSS.CktElement.BusNames()]
         # num_phases = OpenDSS.CktElement.NumPhases()
         Y_trfx, phases = phase_admittance(bus1, bus2, Y, node_order)
-        rmatrix, xmatrix = real(Y_trfx), imag(Y_trfx)
+        Z = inv(Y_trfx)
+        rmatrix, xmatrix = abs.(real(Z)), -1*imag(Z)
 
         push!(trfx_dicts, Dict(
             :busses => (bus1, bus2),
@@ -397,9 +397,6 @@ function opendss_regulators()::Vector{Dict{Symbol, Any}}
             OpenDSS.RegControls.PTRatio() * OpenDSS.RegControls.ForwardVreg() / (
             OpenDSS.Transformers.kV() * 1_000 ), 
         digits=5)
-
-        # if MonitoredBus is an empty string then use the Transformer to get the regulated bus
-        OpenDSS.RegControls.Transformer()
 
         bus1, bus2 = [lowercase(s) for s in OpenDSS.CktElement.BusNames()]
         phases = opendss_bus_phases(bus1, bus2)
@@ -442,3 +439,4 @@ function opendss_regulators()::Vector{Dict{Symbol, Any}}
     end
     return collect(values(reg_dicts))
 end
+
