@@ -243,11 +243,11 @@ function dss_to_Network(dssfilepath::AbstractString)::Network
     OpenDSS.dss("""
         clear
         compile $dssfilepath
-        solve
     """)
     cd(work_dir)
     # must disable loads before getting Y s.t. the load impedances are excluded
     load_dicts = opendss_loads(;disable=true)
+    OpenDSS.Solution.Solve()
     Y = OpenDSS.Circuit.SystemY()  # ordered by OpenDSS object definitions
     # Vector{String} w/values like "BUS1.1"
     node_order = [lowercase(s) for s in OpenDSS.Circuit.YNodeOrder()] 
@@ -361,15 +361,29 @@ function opendss_transformers(
 
         # BusNames can have phases like bname.1.2
         bus1, bus2 = [lowercase(s) for s in OpenDSS.CktElement.BusNames()]
-        # num_phases = OpenDSS.CktElement.NumPhases()
+        
         Y_trfx, phases = phase_admittance(bus1, bus2, Y, node_order)
-        Z = inv(Y_trfx)
+        # TODO should use OpenDSS.CktElement.YPrim() here? 
+        # see https://drive.google.com/file/d/1cNc7sFwxUZAuNT3JtUy4vVCeiME0NxJO/view?usp=drive_link
+        
+        # have to back-out the tap ratio that OpenDSS embeds in Y
+        # except for the source transformer :shrug:
+        kV1, kV2 = 1.0, 1.0
+        if bus1 != opendss_source_bus()
+            OpenDSS.Transformers.Wdg(1.0) 
+            kV1 = OpenDSS.Transformers.kV()
+            OpenDSS.Transformers.Wdg(2.0) 
+            kV2 = OpenDSS.Transformers.kV()
+        end
+        Z = inv(Y_trfx) * kV1 / kV2
         rmatrix, xmatrix = abs.(real(Z)), -1*imag(Z)
 
         push!(trfx_dicts, Dict(
             :busses => (bus1, bus2),
             :name => OpenDSS.Transformers.Name(),
             :phases => phases,
+            :high_kv => kV1,
+            :low_kv => kV2,
             :rmatrix => rmatrix,
             :xmatrix => xmatrix,
         ))
@@ -440,3 +454,12 @@ function opendss_regulators()::Vector{Dict{Symbol, Any}}
     return collect(values(reg_dicts))
 end
 
+
+function opendss_capacitors()::Vector{Dict{Symbol, Any}}
+    cap_number = OpenDSS.Capacitors.First()
+    cap_dicts = Dict{Symbol, Any}[]
+    while cap_number > 0
+
+    end
+    return cap_dicts
+end
