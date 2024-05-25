@@ -48,10 +48,11 @@ end
 
 
 """
-    split_inputs(net::Network, bus::String, out_busses::Vector{String})::Tuple{Network, Network}
+    split_network(net::Network, bus::String, out_busses::Vector{String})::Tuple{Network, Network}
 
 Split `net` into `net_above` and `net_below` where `net_below` has only `out_busses` and `net_above` 
-has `union( [bus], setdiff(busses(net), out_busses) )`.
+has `union( [bus], setdiff(busses(net), out_busses) )`. We want to keep bus in both networks because
+there can be multiple branches out of bus that are not in out_busses.
 
 Note that `out_busses` must contain `bus`
 """
@@ -291,65 +292,70 @@ function split_at_busses(net::Network, at_busses::Vector{String})::MetaGraphsNex
 end
 
 
-# """
-#     split_at_busses(net::Network, at_busses::Vector{String}, with_busses::Vector{Vector{String}})
+"""
+    split_at_busses(net::Network, at_busses::Vector{String}, with_busses::Vector{Vector{String}})
 
-# Split up `p` using the `at_busses` as each new `substation_bus` and containing the corresponding `with_busses`.
-# The `at_busses` and `with_busses` can be determined using `splitting_busses`.
+Split up `p` using the `at_busses` as each new `substation_bus` and containing the corresponding `with_busses`.
+The `at_busses` and `with_busses` can be determined using `splitting_busses`.
 
-# NOTE: this variation of splt_at_busses allows for more than two splits at the same bus; whereas the other
-# implementation of split_at_busses only splits the network into two parts for everything above and
-# everything below a splitting bus.
-# """
-# function split_at_busses(net::Network, at_busses::Vector{String}, with_busses::Vector{Vector}; add_connections=true)
-#     unique!(at_busses)
-#     mg = MetaDiGraph()
-#     if add_connections
-#         with_busses = connect_subgraphs_at_busses(p, at_busses, with_busses)
-#     end
-#     # initial split
-#     p_above, p_below = BranchFlowModel.split_inputs(p, at_busses[1], with_busses[1]);
-#     add_vertex!(mg, :p, p_above)
-#     add_vertex!(mg, :p, p_below)
-#     add_edge!(mg, 1, 2)
-#     set_indexing_prop!(mg, :p)
+NOTE: this variation of splt_at_busses allows for more than two splits at the same bus; whereas the other
+implementation of split_at_busses only splits the network into two parts for everything above and
+everything below a splitting bus.
+"""
+function split_at_busses(net::Network, at_busses::Vector{String}, with_busses::Vector{Vector})
+    unique!(at_busses)
+    mg = MetaGraphsNext.MetaGraph(
+        Graphs.DiGraph(), 
+        label_type=Integer,
+        vertex_data_type=Network,
+        graph_data=Dict{Symbol, Any}()
+    )
+    
+    # fill in overlapping busses to ensure connectivity is maintained
+    with_busses = connect_subgraphs_at_busses(net, at_busses, with_busses)
+    
+    # initial split (at_busses[1] is in both networks)
+    net_above, net_below = split_network(net, at_busses[1], with_busses[1]);
+    MetaGraphsNext.add_vertex!(mg, 1, net_above)
+    MetaGraphsNext.add_vertex!(mg, 2, net_below)
+    MetaGraphsNext.add_edge!(mg, 1, 2)
 
-#     for (i, (b, sub_bs)) in enumerate(zip(at_busses[2:end], with_busses[2:end]))
-#         # find the vertex to split
-#         vertex = 0
-#         for v in vertices(mg)
-#             if b in mg[v, :p].busses
-#                 vertex = v
-#                 break
-#             end
-#         end
-#         p_above, p_below = BranchFlowModel.split_inputs(mg[vertex, :p], b, sub_bs);
-#         set_prop!(mg, vertex, :p, p_above)  # replace the already set :p, which preserves inneighbors
-#         add_vertex!(mg, :p, p_below)  # vertex i+2
-#         if !isempty(outdegree(mg, vertex))
-#             # already have edge(s) for vertex -> outneighbors(mg, vertex)
-#             # but now i+2 could be the parent for some of the outneighbors(mg, vertex)
-#             outns = copy(outneighbors(mg, vertex))
-#             for neighb in outns
-#                 if !( mg[neighb, :p].substation_bus in mg[vertex, :p].busses )
-#                     # mv the edge to the new intermediate node
-#                     rem_edge!(mg, vertex, neighb)
-#                     add_edge!(mg, i+2, neighb)
-#                 end
-#             end
-#         end
-#         add_edge!(mg, vertex, i+2)  # p_above -> p_below
-#     end
-#     # create the load_sum_order, a breadth first search from the leafs
-#     vs, depths = vertices_from_deepest_to_source(mg, 1)
-#     set_prop!(mg, :load_sum_order, vs)
-#     init_split_networks!(mg)
-#     if mg.graph.ne != length(mg.vprops) - 1
-#         @warn "The MetaDiGraph created is not a tree."
-#     end
+    for (i, (splitting_bus, sub_bs)) in enumerate(zip(at_busses[2:end], with_busses[2:end]))
+        # find the vertex to split
+        vertex = 0
+        for v in MetaGraphsNext.vertices(mg)
+            if splitting_bus in busses(mg[v])
+                vertex = v
+                break
+            end
+        end
+        net_above, net_below = split_network(mg[vertex], splitting_bus, sub_bs);
+        mg[vertex] = net_above  # replace the already set net, which preserves inneighbors
+        MetaGraphsNext.add_vertex!(mg, i+2, net_below)  # vertex i+2
+        if !isempty(MetaGraphsNext.outdegree(mg, vertex))
+            # already have edge(s) for vertex -> outneighbors(mg, vertex)
+            # but now i+2 could be the parent for some of the outneighbors(mg, vertex)
+            outns = copy(MetaGraphsNext.outneighbors(mg, vertex))
+            for neighb in outns
+                if !( mg[neighb].substation_bus in busses(mg[vertex]) )
+                    # mv the edge to the new intermediate node
+                    MetaGraphsNext.rem_edge!(mg, vertex, neighb)
+                    MetaGraphsNext.add_edge!(mg, i+2, neighb)
+                end
+            end
+        end
+        MetaGraphsNext.add_edge!(mg, vertex, i+2)  # net_above -> net_below
+    end
+    # create the load_sum_order, a breadth first search from the leafs
+    vs, depths = vertices_from_deepest_to_source(mg, 1)
+    mg.graph_data[:load_sum_order] = vs
+    init_split_networks!(mg)
+    if Graphs.ne(mg) != length(mg.vertex_properties) - 1
+        @warn "The MetaDiGraph created is not a tree."
+    end
 
-#     return mg
-# end
+    return mg
+end
 
 
 # """

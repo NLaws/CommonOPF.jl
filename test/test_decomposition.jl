@@ -100,5 +100,26 @@
         @test ("d", "f") in edges(net_above)
     end
 
+    @testset "ieee13 single phase splitting" begin
+        dssfilepath = "data/ieee13/ieee13_makePosSeq/Master.dss"
+        net = dss_to_Network(dssfilepath)
+
+        @test length(busses(net)) == 16
+        splitting_bs, subgraph_bs = CommonOPF.splitting_busses(net, "sourcebus"; max_busses=7)  # 671 and rg60
+        @test length(splitting_bs) == 2
+        @test splitting_bs[1] == "671" && splitting_bs[2] == "rg60"
+        @test length(subgraph_bs) == 2
+        @test length(subgraph_bs[1]) == 7
+        @test length(subgraph_bs[2]) == 7
+        @test isempty(intersect(subgraph_bs[1], subgraph_bs[2]))
+
+        mg = CommonOPF.split_at_busses(net, splitting_bs, subgraph_bs)
+        @test length(busses(mg[1])) == 3  # "rg60", "sourcebus", "650", 
+        @test length(busses(mg[2])) == 7
+        @test length(busses(mg[3])) == 8  # get one more bus then max_busses from adding connection @ 671
+
+        @test intersect(busses(mg[2]), busses(mg[3]))[1] == "671"
+        @test intersect(busses(mg[1]), busses(mg[3]))[1] == "rg60"
+    end
 
 end
