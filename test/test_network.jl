@@ -161,7 +161,8 @@ end
     fp = joinpath("data", "yaml_inputs", "ieee13_multi_phase.yaml")
     net = Network(fp)
     @test is_connected(net)
-    # TODO Bus 634 is not in the graph after adding edges
     @test i_to_j("671", net) == ["670"]
     # TODO 670 can be reduced out to make 632 --> 670
+
+    @test phases_into_bus(net, "684") == Set([1, 3])
 end

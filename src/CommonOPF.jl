@@ -77,6 +77,7 @@ export
 
     i_to_j,
     j_to_k,
+    phases_into_bus,
     kron_reduce,
 
     info_max_Ppu_Qpu,

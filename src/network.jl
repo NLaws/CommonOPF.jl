@@ -193,6 +193,16 @@ edges(net::AbstractNetwork) = collect(MetaGraphsNext.edge_labels(net.graph))
 Graphs.inneighbors(net::Network, bus::String) = MetaGraphsNext.inneighbor_labels(net.graph, bus)
 Graphs.outneighbors(net::Network, bus::String) = MetaGraphsNext.outneighbor_labels(net.graph, bus)
 
+
+function phases_into_bus(net::Network, bus::String)::Set{Int64}
+    phase_set = Set{Int64}()
+    for in_bus in inneighbors(net, bus)
+        union!(phase_set, net[(in_bus, bus)].phases)
+    end
+    return phase_set
+end
+
+
 """
     i_to_j(j::String, net::Network)
 
