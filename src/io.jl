@@ -24,18 +24,6 @@ get_phases(bus::AbstractString) = occursin(".", bus) ?
     nothing
 
 
-function opendss_bus_phases(bus1::String, bus2::String)::Vector{Int}
-    if occursin(".", bus1)
-        phases = get_phases(bus1)
-    elseif occursin(".", bus2)
-        phases = get_phases(bus2)
-    else  # no phases in bus names, infer phases from number of phases
-        phases = collect(1:OpenDSS.Lines.Phases())
-    end
-    return phases
-end
-
-
 function opendss_regulator_transformers()::Vector{String}
     n = OpenDSS.RegControls.First()
     names = String[]
@@ -70,42 +58,21 @@ end
 
 
 """
-    dsstxt_to_sparse_array(fp::String, first_data_row::Int = 5)
+    dss_impedance_matrices_to_three_phase(fp::String, first_data_row::Int = 5)
 
-convert a SystemY.txt file from OpenDSS to a julia matrix.
-assumes that Y is symmetric.
+resize OpenDSS matrices to 3x3 and sort values by numerical phase order
 """
-function dsstxt_to_sparse_array(fp::String, first_data_row::Int = 5)
-
-    rows = Int[]
-    cols = Int[]
-    real = Float64[]
-    imag = Float64[]
-
-    for (i, line) in enumerate(eachline(fp))
-
-        if i < first_data_row continue end
-        line = replace(line, " "=>"")  # "[1,1]=50500+j-50500"
-        N = length(line)
-        if N == 0 continue end
-
-        append!(rows, tryparse(Int64,
-                chop(line, head=findfirst("[", line)[end], tail=N-findfirst(",", line)[end]+1)
-        ))
-
-        append!(cols, tryparse(Int64,
-                chop(line, head=findfirst(",", line)[end], tail=N-findfirst("]", line)[end]+1)
-        ))
-
-        append!(real, tryparse(Float64,
-                chop(line, head=findfirst("=", line)[end], tail=N-findfirst("+", line)[end]+1)
-        ))
-
-        append!(imag, tryparse(Float64,
-                chop(line, head=findfirst("j", line)[end], tail=0)
-        ))
+function dss_impedance_matrices_to_three_phase(
+    dss_rmatrix::AbstractMatrix{Float64}, 
+    dss_xmatrix::AbstractMatrix{Float64}, 
+    phases::AbstractVector{Int}
+    )::Tuple{Matrix{Float64}, Matrix{Float64}}
+    r, x = zeros(3,3), zeros(3,3)
+    for (i, phs1) in enumerate(phases), (j, phs2) in enumerate(phases)
+        r[phs1, phs2] = dss_rmatrix[i, j]
+        x[phs1, phs2] = dss_xmatrix[i, j]
     end
-    return convert(Array{Complex, 2}, Symmetric(sparse(rows, cols, complex.(real, imag)), :L))
+    return r, x
 end
 
 
@@ -160,7 +127,7 @@ OpenDSS SystemY matrix.
     number of phases (e.g. NPhases = OpenDSS.Loads.Phases()) and then the phases are 1, ..., NPhases.
 """
 function opendss_loads(;disable::Bool=true)::Vector{Dict{Symbol, Any}}
-
+    OpenDSS.Circuit.SetActiveClass("Load")  # have to do this to use CktElement stuff
     # we track load busses to merge any multiphase unbalanced loads into one 
     # CommonOPF.Load then at the end just return the vector of dicts.
     loads = Dict{String, Dict{Symbol, Any}}()
@@ -250,7 +217,8 @@ function dss_to_Network(dssfilepath::AbstractString)::Network
     OpenDSS.Solution.Solve()
     Y = OpenDSS.Circuit.SystemY()  # ordered by OpenDSS object definitions
     # Vector{String} w/values like "BUS1.1"
-    node_order = [lowercase(s) for s in OpenDSS.Circuit.YNodeOrder()] 
+    node_order = [lowercase(s) for s in OpenDSS.Circuit.YNodeOrder()]
+    num_phases = opendss_circuit_num_phases()
     
     net_dict = Dict{Symbol, Any}(
         :Network => Dict(
@@ -259,17 +227,23 @@ function dss_to_Network(dssfilepath::AbstractString)::Network
             :Vbase => OpenDSS.Vsources.BasekV() * 1e3,
             # :Sbase => Tranformer value?,
         ),
-        :Conductor => opendss_lines(),
+        :Conductor => opendss_lines(num_phases),
         :Load => load_dicts,
-        :Transformer => opendss_transformers(Y, node_order),
-        :VoltageRegulator => opendss_regulators(),
+        :Transformer => opendss_transformers(num_phases, Y, node_order),
+        :VoltageRegulator => opendss_regulators(num_phases, Y, node_order),
     )
 
     Network(net_dict)
 end
 
 
-function opendss_lines()::Vector{Dict{Symbol, Any}}
+"""
+    opendss_lines(num_phases::Int)::Vector{Dict{Symbol, Any}}
+
+Parse all OpenDSS.Lines into dictionaries to be used in constructing CommonOPF.Conductor
+"""
+function opendss_lines(num_phases::Int)::Vector{Dict{Symbol, Any}}
+    OpenDSS.Circuit.SetActiveClass("Line")  # have to do this to use CktElement stuff
     conductor_dicts = Dict{Symbol, Any}[]
     line_number = OpenDSS.Lines.First()
     while line_number > 0
@@ -277,29 +251,33 @@ function opendss_lines()::Vector{Dict{Symbol, Any}}
         bus2 = OpenDSS.Lines.Bus2()
         # impedance can be defined in several different ways in OpenDSS.
         # We take the phase impedance matrices and let OpenDSS handle all the ways.
-        # Note that we have to extract phases from bus names. If no phases are specified then we
-        # look at the Nphases and assume that 1 phases means phase 1, 2 phases means phases 1 and 2,
-        # in that order for the impedance matrices.
+        
+        # NodeOrder is list of node names in the order the nodes appear in the Y matrix.
+        phases = OpenDSS.CktElement.NodeOrder()[1:OpenDSS.CktElement.NumPhases()]
+        rmatrix, xmatrix = dss_impedance_matrices_to_three_phase(
+            OpenDSS.Lines.RMatrix(), OpenDSS.Lines.XMatrix(), phases
+        )
 
-        b1 = strip_phases(bus1)
-        b2 = strip_phases(bus2)
-        phases = opendss_bus_phases(bus1, bus2)
-
-        # The Conductor validator is expecting Vector{Vector{Float64}} for R and X like 
-        # :xmatrix => [[1.0179], [0.5017, 1.0478], [0.4236, 0.3849, 1.0348]] 
-        # (We could define Conductors directly using the struct but we should use the Network
-        # constructor to take advantage of the validation therein.)
-
-        # TODO serialize Network to yaml? s.t. don't have to parse dss every time
-        # TODO sort r and x matrices and phases in to numerical order
-        push!(conductor_dicts, Dict(
-            :busses => (b1, b2),
-            :name => OpenDSS.Lines.Name(),
-            :phases => phases,
-            :rmatrix => OpenDSS.Lines.RMatrix(),
-            :xmatrix => OpenDSS.Lines.XMatrix(),
-            :length => OpenDSS.Lines.Length()
-        ))
+        if num_phases == 1
+            i = collect(phases)[1]
+            push!(conductor_dicts, Dict(
+                :busses => (strip_phases(bus1), strip_phases(bus2)),
+                :name => OpenDSS.Lines.Name(),
+                :phases => phases,
+                :r1 => rmatrix[i, i],
+                :x1 => xmatrix[i, i],
+                :length => OpenDSS.Lines.Length()
+            ))
+        else
+            push!(conductor_dicts, Dict(
+                :busses => (strip_phases(bus1), strip_phases(bus2)),
+                :name => OpenDSS.Lines.Name(),
+                :phases => phases,
+                :rmatrix => rmatrix,
+                :xmatrix => xmatrix,
+                :length => OpenDSS.Lines.Length()
+            ))
+        end
         
         line_number = OpenDSS.Lines.Next()
     end
@@ -323,6 +301,12 @@ function opendss_source_bus()::String
 end
 
 
+function opendss_circuit_num_phases()::Int
+    OpenDSS.Vsources.First()
+    return OpenDSS.Vsources.Phases()
+end
+
+
 """
     phase_admittance(bus1::String, bus2::String, Y::Matrix{ComplexF64}, node_order::Vector{String})
 
@@ -331,26 +315,47 @@ sub-matrix of Y that correspondes to the bus names sorted in numerical phase ord
 
 !!! note
     The OpenDSS Y matrix is in 1/impedance units (as defined in the OpenDSS model), like 1,000-ft/ohms.
-
-TODO expand matrices to 3x3 with zeros in this method?
 """
 function phase_admittance(bus1::String, bus2::String, Y::Matrix{ComplexF64}, node_order::Vector{String})
     y_busses = strip_phases.(node_order)
     b1_indices = findall(x -> x == bus1, y_busses)
     b2_indices = findall(x -> x == bus2, y_busses)
-    b1_phases = [phs[1] for phs in get_phases.(node_order[b1_indices])]
-    b2_phases = [phs[1] for phs in get_phases.(node_order[b2_indices])]
-    # TODO need order of each phase set?
-    return Y[b1_indices, b2_indices], union(b1_phases, b2_phases)
+    return Y[b1_indices, b2_indices]
 end
 
 
-# TODO transformers need to work with rij and xij methods s.t. they work in KVL definitions
+"""
+    transformer_impedance(Y::Matrix{ComplexF64}, node_order::Vector{String})
+
+Extract the transformer impedance from the "system Y" matrix, removing the turns ratio that OpenDSS
+embeds in the admittance values.
+"""
+function transformer_impedance(Y::Matrix{ComplexF64}, node_order::Vector{String}, bus1::String, bus2::String, phases::AbstractVector{Int})
+    # BusNames can have phases like bname.1.2
+    # see https://drive.google.com/file/d/1cNc7sFwxUZAuNT3JtUy4vVCeiME0NxJO/view?usp=drive_link
+    Y_trfx = phase_admittance(bus1, bus2, Y, node_order)
+    kV1, kV2 = 1.0, 1.0
+    # have to back-out the tap ratio that OpenDSS embeds in Y
+    # except for the source transformer :shrug:
+    if bus1 != opendss_source_bus()
+        OpenDSS.Transformers.Wdg(1.0) 
+        kV1 = OpenDSS.Transformers.kV()
+        OpenDSS.Transformers.Wdg(2.0) 
+        kV2 = OpenDSS.Transformers.kV()
+    end
+    Z = inv(Y_trfx) * kV1 / kV2
+    r, x = dss_impedance_matrices_to_three_phase(abs.(real(Z)), -1*imag(Z), phases)
+    return r, x, kV1, kV2
+end
+
+
 function opendss_transformers(
+        num_phases::Int,
         Y::Matrix{ComplexF64}, 
         node_order::Vector{String}
     )::Vector{Dict{Symbol, Any}}
     reg_transformers = opendss_regulator_transformers()
+    OpenDSS.Circuit.SetActiveClass("Transformer")  # have to do this to use CktElement stuff
     trfx_dicts = Dict{Symbol, Any}[]
     trfx_number = OpenDSS.Transformers.First()
     while trfx_number > 0
@@ -359,34 +364,32 @@ function opendss_transformers(
             continue
         end
 
-        # BusNames can have phases like bname.1.2
         bus1, bus2 = [lowercase(s) for s in OpenDSS.CktElement.BusNames()]
-        
-        Y_trfx, phases = phase_admittance(bus1, bus2, Y, node_order)
-        # TODO should use OpenDSS.CktElement.YPrim() here? 
-        # see https://drive.google.com/file/d/1cNc7sFwxUZAuNT3JtUy4vVCeiME0NxJO/view?usp=drive_link
-        
-        # have to back-out the tap ratio that OpenDSS embeds in Y
-        # except for the source transformer :shrug:
-        kV1, kV2 = 1.0, 1.0
-        if bus1 != opendss_source_bus()
-            OpenDSS.Transformers.Wdg(1.0) 
-            kV1 = OpenDSS.Transformers.kV()
-            OpenDSS.Transformers.Wdg(2.0) 
-            kV2 = OpenDSS.Transformers.kV()
-        end
-        Z = inv(Y_trfx) * kV1 / kV2
-        rmatrix, xmatrix = abs.(real(Z)), -1*imag(Z)
+        phases = OpenDSS.CktElement.NodeOrder()[1:OpenDSS.CktElement.NumPhases()]
+        rmatrix, xmatrix, kV1, kV2 = transformer_impedance(Y, node_order, bus1, bus2, phases)
 
-        push!(trfx_dicts, Dict(
-            :busses => (bus1, bus2),
-            :name => OpenDSS.Transformers.Name(),
-            :phases => phases,
-            :high_kv => kV1,
-            :low_kv => kV2,
-            :rmatrix => rmatrix,
-            :xmatrix => xmatrix,
-        ))
+        if num_phases == 1
+            i = collect(phases)[1]
+            push!(trfx_dicts, Dict(
+                :busses => (bus1, bus2),
+                :name => OpenDSS.Transformers.Name(),
+                :phases => phases,
+                :high_kv => kV1,
+                :low_kv => kV2,
+                :resistance => rmatrix[i, i],
+                :reactance => xmatrix[i, i],
+            ))
+        else
+            push!(trfx_dicts, Dict(
+                :busses => (bus1, bus2),
+                :name => OpenDSS.Transformers.Name(),
+                :phases => phases,
+                :high_kv => kV1,
+                :low_kv => kV2,
+                :rmatrix => rmatrix,
+                :xmatrix => xmatrix,
+            ))
+        end
         
         trfx_number = OpenDSS.Transformers.Next()
     end
@@ -396,7 +399,11 @@ function opendss_transformers(
 end
 
 
-function opendss_regulators()::Vector{Dict{Symbol, Any}}
+function opendss_regulators(
+    num_phases::Int,
+    Y::Matrix{ComplexF64}, 
+    node_order::Vector{String},
+    )::Vector{Dict{Symbol, Any}}
     # vreg: Voltage regulator setting, in VOLTS, for the winding being controlled. Multiplying this
     # value times the ptratio should yield the voltage across the WINDING of the controlled
     # transformer. Default is 120.0
@@ -413,39 +420,47 @@ function opendss_regulators()::Vector{Dict{Symbol, Any}}
         digits=5)
 
         bus1, bus2 = [lowercase(s) for s in OpenDSS.CktElement.BusNames()]
-        phases = opendss_bus_phases(bus1, bus2)
+        phases = OpenDSS.CktElement.NodeOrder()[1:OpenDSS.CktElement.NumPhases()]
         bus1 = strip_phases(bus1)
         bus2 = strip_phases(bus2)
         reg_edge = (bus1, bus2)
 
-        rmatrix, xmatrix = zeros(3,3), zeros(3,3)
-
-        # impedance values aren't exactly right but they're something
-        for i in phases
-            rmatrix[i,i] = OpenDSS.Transformers.RdcOhms()
-            xmatrix[i,i] = OpenDSS.Transformers.Xhl() * OpenDSS.Transformers.kVA()
-        end
-
+        rmatrix, xmatrix, kV1, kV2 = transformer_impedance(Y, node_order, bus1, bus2, phases)
+        
         OpenDSS.Transformers.Wdg(1.0)  # we want first winding kVA for impedances
         if !(reg_edge in keys(reg_dicts))
-            reg_dicts[reg_edge] = Dict(
-                :busses => (bus1, bus2),
-                :name => OpenDSS.RegControls.Name(),
-                :phases => phases,
-                :rmatrix => rmatrix,
-                :xmatrix => xmatrix,
-                :vreg_pu => vreg_pu,
-            )
+            i = collect(phases)[1]
+            if num_phases == 1
+                reg_dicts[reg_edge] = Dict(
+                    :busses => (bus1, bus2),
+                    :name => OpenDSS.RegControls.Name(),
+                    :high_kv => kV1,
+                    :low_kv => kV2,
+                    :phases => phases,
+                    :resistance => rmatrix[i, i],
+                    :reactance => xmatrix[i, i],
+                    :vreg_pu => vreg_pu,
+                )
+            else
+                reg_dicts[reg_edge] = Dict(
+                    :busses => (bus1, bus2),
+                    :name => OpenDSS.RegControls.Name(),
+                    :high_kv => kV1,
+                    :low_kv => kV2,
+                    :phases => phases,
+                    :rmatrix => rmatrix,
+                    :xmatrix => xmatrix,
+                    :vreg_pu => vreg_pu,
+                )
+            end
         else
             if !issubset(phases, reg_dicts[reg_edge][:phases])
                 # merge into existing regulator
                 reg_dicts[reg_edge][:phases] = union(phases, reg_dicts[reg_edge][:phases])
-                for i in phases
-                    reg_dicts[reg_edge][:rmatrix][i,i] = OpenDSS.Transformers.RdcOhms()
-                    reg_dicts[reg_edge][:xmatrix][i,i] = OpenDSS.Transformers.Xhl() * OpenDSS.Transformers.kVA()
-                end
+                reg_dicts[reg_edge][:rmatrix] += rmatrix
+                reg_dicts[reg_edge][:xmatrix] += xmatrix
             else
-                @warn "Not parsing regulator $(OpenDSS.RegControls.Name()) because on already exists between its terminals."
+                @warn "Not parsing regulator $(OpenDSS.RegControls.Name()) because a regulator already exists between its terminals."
             end
         end
 

@@ -8,23 +8,23 @@
 
     @testset "warn_singlephase_conductors_and_copy_templates" begin
         CommonOPF.warn_singlephase_conductors_and_copy_templates([c1, c2])
-        @test resistance_per_length(c1) == resistance_per_length(c2) == 0.1
-        @test resistance(c1) == 0.1 * 1.2
-        @test resistance(c2) == 0.1 * 20
-        @test reactance_per_length(c1) == reactance_per_length(c2) == 0.2
-        @test reactance(c1) == 0.2 * 1.2
-        @test reactance(c2) == 0.2 * 20
+        @test CommonOPF.resistance_per_length(c1, CommonOPF.SinglePhase) == CommonOPF.resistance_per_length(c2, CommonOPF.SinglePhase) == 0.1
+        @test CommonOPF.resistance(c1, CommonOPF.SinglePhase) == 0.1 * 1.2
+        @test CommonOPF.resistance(c2, CommonOPF.SinglePhase) == 0.1 * 20
+        @test CommonOPF.reactance_per_length(c1, CommonOPF.SinglePhase) == CommonOPF.reactance_per_length(c2, CommonOPF.SinglePhase) == 0.2
+        @test CommonOPF.reactance(c1, CommonOPF.SinglePhase) == 0.2 * 1.2
+        @test CommonOPF.reactance(c2, CommonOPF.SinglePhase) == 0.2 * 20
     end
 
     @testset "check_edges! for single phase Conductors" begin
         # check_edges! should do excactly what warn_singlephase_conductors_and_copy_templates did 
         CommonOPF.check_edges!([c1, c2])
-        @test resistance_per_length(c1) == resistance_per_length(c2) == 0.1
-        @test resistance(c1) == 0.1 * 1.2
-        @test resistance(c2) == 0.1 * 20
-        @test reactance_per_length(c1) == reactance_per_length(c2) == 0.2
-        @test reactance(c1) == 0.2 * 1.2
-        @test reactance(c2) == 0.2 * 20
+        @test CommonOPF.resistance_per_length(c1, CommonOPF.SinglePhase) == CommonOPF.resistance_per_length(c2, CommonOPF.SinglePhase) == 0.1
+        @test CommonOPF.resistance(c1, CommonOPF.SinglePhase) == 0.1 * 1.2
+        @test CommonOPF.resistance(c2, CommonOPF.SinglePhase) == 0.1 * 20
+        @test CommonOPF.reactance_per_length(c1, CommonOPF.SinglePhase) == CommonOPF.reactance_per_length(c2, CommonOPF.SinglePhase) == 0.2
+        @test CommonOPF.reactance(c1, CommonOPF.SinglePhase) == 0.2 * 1.2
+        @test CommonOPF.reactance(c2, CommonOPF.SinglePhase) == 0.2 * 20
     end
 end
 

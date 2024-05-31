@@ -50,8 +50,8 @@ function remove_bus!(j::String, net::Network{SinglePhase})
     c1, c2 = net[(i, j)], net[(j, k)]
     @assert typeof(c1) == CommonOPF.Conductor == typeof(c2) "remove_bus! can only combine two conductors"
     # make the new values
-    r_ik = resistance(c1) + resistance(c2)
-    x_ik = reactance(c1)  + reactance(c2)
+    r_ik = resistance(c1, network_phase_type(net)) + resistance(c2, network_phase_type(net))
+    x_ik = reactance(c1, network_phase_type(net))  + reactance(c2, network_phase_type(net))
     ik_len = c1.length + c2.length
     # delete the old values
     delete!(net.graph, i, j)
@@ -93,8 +93,8 @@ function remove_bus!(j::String, net::Network{MultiPhase})
     @assert typeof(c1) == CommonOPF.Conductor == typeof(c2) "remove_bus! can only combine two conductors"
     @assert c1.phases == c2.phases "remove_bus! only works with two conductors that have matching phases"
     # make the new values
-    rmatrix_ik = resistance(c1) + resistance(c2)
-    xmatrix_ik = reactance(c1)  + reactance(c2)
+    rmatrix_ik = resistance(c1, network_phase_type(net)) + resistance(c2, network_phase_type(net))
+    xmatrix_ik = reactance(c1, network_phase_type(net))  + reactance(c2, network_phase_type(net))
     ik_len = c1.length + c2.length
     # delete the old values
     delete!(net.graph, i, j)
@@ -238,8 +238,8 @@ function combine_parallel_lines!(net::Network{MultiPhase})
                 # amps1, amps2 = p.Isquared_up_bounds[linecode1], p.Isquared_up_bounds[linecode2]
                 # new values
                 new_len = (c1.length + c2.length) / 2
-                new_rmatrix = (resistance(c1) + resistance(c2)) ./ new_len
-                new_xmatrix = (reactance(c1) + reactance(c2)) ./ new_len
+                new_rmatrix = (resistance(c1, network_phase_type(net)) + resistance(c2, network_phase_type(net))) ./ new_len
+                new_xmatrix = (reactance(c1, network_phase_type(net)) + reactance(c2, network_phase_type(net))) ./ new_len
                 new_phases = sort([c1.phases[1], c2.phases[1]])
                 
                 # add the new values
@@ -257,8 +257,18 @@ function combine_parallel_lines!(net::Network{MultiPhase})
                 # amps1, amps2 = p.Isquared_up_bounds[linecode1], p.Isquared_up_bounds[linecode2]
                 # new values
                 new_len = (c1.length + c2.length + c3.length) / 3
-                new_rmatrix = (resistance(c1) + resistance(c2) + resistance(c3)) ./ new_len
-                new_xmatrix = (reactance(c1) + reactance(c2) + reactance(c3)) ./ new_len
+                
+                new_rmatrix = (
+                    resistance(c1, network_phase_type(net)) + 
+                    resistance(c2, network_phase_type(net)) + 
+                    resistance(c3, network_phase_type(net))
+                ) ./ new_len
+
+                new_xmatrix = (
+                    reactance(c1, network_phase_type(net)) + 
+                    reactance(c2, network_phase_type(net)) + 
+                    reactance(c3, network_phase_type(net))
+                ) ./ new_len
                 
                 net[(b1, b2)] = CommonOPF.Conductor(;
                     name = "combined_parallel_lines_from_$(b1)_to_$(b2)",

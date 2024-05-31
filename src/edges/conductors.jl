@@ -122,8 +122,7 @@ else
     - `validate_multiphase_edges!(conductors)`
 """
 function check_edges!(conductors::AbstractVector{Conductor})
-    # check multiphase conductors
-    if any((!ismissing(c.phases) for c in conductors))
+    if any((!ismissing(c.phases) for c in conductors)) && length(phases_union(conductors)) > 1
         validate_multiphase_edges!(conductors)
     else
         warn_singlephase_conductors_and_copy_templates(conductors)
@@ -260,7 +259,7 @@ function validate_multiphase_edges!(conds::AbstractVector{Conductor})::Bool
         end
         template_cond = conds[template_index]
         for c in filter(c -> !ismissing(c.template) && c.template == template_name, conds)
-            if Set(sort(c.phases)) != Set(sort(template_cond.phases))
+            if Set(c.phases) != Set(template_cond.phases)
                 @warn """Conductor with name $(c.name) and phases $(c.phases) has template $(c.template) 
                          with phases $(template_cond.phases). Not copying template impedance matrices."""
                 good = false

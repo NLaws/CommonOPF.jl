@@ -1,17 +1,17 @@
 """
-    resistance(e::AbstractEdge) = 0.0
+    resistance(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
 
 Default resistance for subtypes of `AbstractEdge`
 """
-resistance(e::AbstractEdge) = 0.0
+resistance(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
 
 
 """
-    reactance(e::AbstractEdge) = 0.0
+    reactance(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
 
 Default reactance for subtypes of `AbstractEdge`
 """
-reactance(e::AbstractEdge) = 0.0
+reactance(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
 
 
 """
@@ -19,7 +19,7 @@ reactance(e::AbstractEdge) = 0.0
 
 Default resistance_per_length for subtypes of `AbstractEdge`
 """
-resistance_per_length(e::AbstractEdge) = 0.0
+resistance_per_length(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
 
 
 """
@@ -27,7 +27,7 @@ resistance_per_length(e::AbstractEdge) = 0.0
 
 Default reactance_per_length for subtypes of `AbstractEdge`
 """
-reactance_per_length(e::AbstractEdge) = 0.0
+reactance_per_length(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
 
 
 """
@@ -38,12 +38,17 @@ reactance_per_length(e::AbstractEdge) = 0.0
 Resistance of edge i-j
 """
 function rij(i::AbstractString, j::AbstractString, net::Network)
-    resistance(net[(i,j)])
+    resistance(net[(i,j)], network_phase_type(net))
 end
 
 
+"""
+    rij(i::AbstractString, j::AbstractString, net:::Network{SinglePhase})
+
+Scalar resistance of edge i-j
+"""
 function rij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-    r = resistance(net[(i,j)])
+    r = resistance(net[(i,j)], network_phase_type(net))
     if isa(r, AbstractMatrix) 
         if size(r) == (1,1)
             return r[1,1]
@@ -73,12 +78,17 @@ end
 Reactance of edge i-j
 """
 function xij(i::AbstractString, j::AbstractString, net::Network)
-    reactance(net[(i,j)])
+    reactance(net[(i,j)], network_phase_type(net))
 end
 
 
+"""
+    xij(i::AbstractString, j::AbstractString, net:::Network{SinglePhase})
+
+Scalar reactance of edge i-j
+"""
 function xij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-    x = reactance(net[(i,j)])
+    x = reactance(net[(i,j)], network_phase_type(net))
     if isa(x, AbstractMatrix) 
         if size(x) == (1,1)
             return x[1,1]
@@ -101,15 +111,35 @@ end
 
 
 """
-    resistance_per_length(c::Conductor)
+    zij(i::AbstractString, j::AbstractString, net::Network)::Matrix{ComplexF64}
+
+Impedance matrix of edge (i,j)
+"""
+function zij(i::AbstractString, j::AbstractString, net::Network)::Matrix{ComplexF64}
+    return resistance(net[(i, j)], network_phase_type(net)) + reactance(net[(i, j)], network_phase_type(net))im
+end
+
+
+"""
+zij_per_unit(i::AbstractString, j::AbstractString, net::Network)::Matrix{ComplexF64}
+
+Impedance matrix of edge (i,j) in per-unit (normalized with `net.Zbase`)
+"""
+function zij_per_unit(i::AbstractString, j::AbstractString, net::Network)
+    zij(i, j, net) / net.Zbase
+end
+
+
+"""
+    resistance_per_length(c::Conductor, phase_type::Type{T}) where {T <: Phases}
 
     if ismissing(c.phases)  # single phase
         return c.r1
     end
     return c.rmatrix
 """
-function resistance_per_length(c::Conductor)
-    if ismissing(c.phases)  # single phase
+function resistance_per_length(c::Conductor, phase_type::Type{T}) where {T <: Phases}
+    if phase_type == SinglePhase
         return c.r1
     end
     return c.rmatrix
@@ -123,19 +153,19 @@ end
 
 The absolute resistance of the conductor (in the units provided by the user)
 """
-function resistance(c::Conductor)
-    resistance_per_length(c) * c.length
+function resistance(c::Conductor, phase_type::Type{T}) where {T <: Phases}
+    resistance_per_length(c, phase_type) * c.length
 end
 """
     reactance_per_length(c::Conductor)
 
-    if ismissing(c.phases)  # single phase
+    if phase_type == SinglePhase
         return c.x1
     end
     return c.xmatrix
 """
-function reactance_per_length(c::Conductor)
-    if ismissing(c.phases)  # single phase
+function reactance_per_length(c::Conductor, phase_type::Type{T}) where {T <: Phases}
+    if phase_type == SinglePhase
         return c.x1
     end
     return c.xmatrix
@@ -149,41 +179,53 @@ end
 
 The absolute reactance of the conductor (in the units provided by the user)
 """
-function reactance(c::Conductor)
-    reactance_per_length(c) * c.length
+function reactance(c::Conductor, phase_type::Type{T}) where {T <: Phases}
+    reactance_per_length(c, phase_type) * c.length
 end
 
 
 """
     resistance(vr::VoltageRegulator)
 
-    vr.resistance
+    if phase_type == SinglePhase
+        return vr.resistance
+    end
+    return vr.rmatrix
 """
-function resistance(vr::VoltageRegulator)
-    vr.resistance
+function resistance(vr::VoltageRegulator, phase_type::Type{T}) where {T <: Phases}
+    if phase_type == SinglePhase
+        return vr.resistance
+    end
+    return vr.rmatrix
 end
 
 
 """
     reactance(vr::VoltageRegulator)
 
-    vr.reactance
+    if phase_type == SinglePhase
+        return vr.reactance
+    end
+    return vr.xmatrix
 """
-function reactance(vr::VoltageRegulator)
-    vr.reactance
+function reactance(vr::VoltageRegulator, phase_type::Type{T}) where {T <: Phases}
+    if phase_type == SinglePhase
+        return vr.reactance
+    end
+    return vr.xmatrix
 end
 
 
 """
     resistance(trfx::Transformer)
 
-    if ismissing(trfx.phases)  # single phase
+    if phase_type == SinglePhase
         return trfx.resistance
     end
     return trfx.rmatrix
 """
-function resistance(trfx::Transformer)
-    if ismissing(trfx.phases)  # single phase
+function resistance(trfx::Transformer, phase_type::Type{T}) where {T <: Phases}
+    if phase_type == SinglePhase
         return trfx.resistance
     end
     return trfx.rmatrix
@@ -193,53 +235,14 @@ end
 """
     reactance(trfx::Transformer)
 
-    if ismissing(trfx.phases)  # single phase
+    if phase_type == SinglePhase
         return trfx.reactance
     end
     return trfx.xmatrix
 """
-function reactance(trfx::Transformer)
-    if ismissing(trfx.phases)  # single phase
+function reactance(trfx::Transformer, phase_type::Type{T}) where {T <: Phases}
+    if phase_type == SinglePhase
         return trfx.reactance
     end
     return trfx.xmatrix
-end
-
-
-"""
-    function zij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})::Tuple{Real, Real}
-
-Impedance for single phase models. 
-
-Returns `(r1, x1) * length / net.Zbase` for the `Conductor` at `net[(i, j)]`.
-
-TODO convert impedance methods to dispatch on edge type
-TODO MultiPhase
-"""
-function zij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})::Tuple{Real, Real}
-    # only have Conductor edges now, later add impedances of other devices
-    conductor = net[(i, j)]
-    if ismissing(conductor)
-        throw(ErrorException("No conductor found for edge ($i, $j)"))
-    elseif typeof(conductor) != CommonOPF.Conductor
-        throw(@error "Was looking for a Conductor in edge ($i, $j) but found a $(typeof(conductor))")
-    end
-    # TODO should instead dispatch on edge type
-    # check for template 
-    if !ismissing(conductor.template)
-        conds = collect(conductors(net))
-        results = filter(cond -> !ismissing(cond.name) && cond.name == conductor.template, conds)
-        if length(results) == 0
-            throw(ErrorException("No conductor template with name $conductor.template found."))
-        end
-        template_conductor = results[1]
-        r1, x1 = template_conductor.r1, template_conductor.x1
-    else  # get impedance from the conductor
-        r1, x1 = conductor.r1, conductor.x1
-    end
-    if ismissing(r1) || ismissing(x1)
-        throw(ErrorException("Missing at least one of r1 and x1 for edge ($i, $j)"))
-    end
-    L = conductor.length
-    return (r1 * L / net.Zbase, x1 * L / net.Zbase)
 end

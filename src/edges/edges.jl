@@ -127,3 +127,6 @@ function validate_multiphase_edges!(edges::AbstractVector{<:AbstractEdge})::Bool
     end
     return good
 end
+
+
+phases_union(edges::AbstractVector{<:AbstractEdge}) = union([e.phases for e in edges if !ismissing(e.phases)]...)

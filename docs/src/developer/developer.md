@@ -73,11 +73,13 @@ To add a new Edge device:
     ```
     For multiphase models each subtype of `AbstractEdge` must have `rmatrix` and `xmatrix`
     properties. If you also specify `resistance` and `reactance` fields then you can take advantage
-    of `validate_multiphase_edges!` for your type. (Note that [Conductor](@ref) is a special case because
-    we permit specification of the sequence impedances.)
+    of the default `validate_multiphase_edges!`. You can also implement your own
+    `validate_multiphase_edges!` that dispatches on your type. See for example
+    `validate_multiphase_edges!(conds::AbstractVector{Conductor})`. Note that 
 2. define methods that dispatch on your type like
     - `resistance(your_edge::YourType)`
     - `reactance(your_edge::YourType)`
 3. OPTIONALLY define a `check_edges!(edges::AbstractVector{YourType})` method
     - `check_edges!` is used in the `Network` builder after unpacking user input dicts into
-      `YourType` constructor
+      `YourType` constructor. `check_edges!` is where you can use the default
+      `validate_multiphase_edges!` for example.

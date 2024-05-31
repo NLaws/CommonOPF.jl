@@ -26,10 +26,10 @@ end
     @test all(typeof(ctb) == TestEdgeType for ctb in concrete_test_edges)
     @test length(concrete_test_edges) == length(edge_dicts)
     e1 = concrete_test_edges[1]
-    @test resistance(e1) == 0
-    @test reactance(e1) == 0
-    @test resistance_per_length(e1) == 0
-    @test reactance_per_length(e1) == 0
+    @test CommonOPF.resistance(e1, CommonOPF.SinglePhase) == 0
+    @test CommonOPF.reactance(e1, CommonOPF.SinglePhase) == 0
+    @test CommonOPF.resistance_per_length(e1, CommonOPF.SinglePhase) == 0
+    @test CommonOPF.reactance_per_length(e1, CommonOPF.SinglePhase) == 0
 # end
 
 
@@ -41,8 +41,8 @@ end
         resistance=0.5
     )
     @test CommonOPF.check_edges!([t1]) == true
-    @test resistance(t1) == t1.resistance
-    @test reactance(t1) == t1.reactance
+    @test CommonOPF.resistance(t1, CommonOPF.SinglePhase) == t1.resistance
+    @test CommonOPF.reactance(t1, CommonOPF.SinglePhase) == t1.reactance
     # multiphase
     t1.phases = [2,3]
      # fill_impedance_matrices! is called in check_edges! via validate_multiphase_edges!
@@ -68,8 +68,8 @@ end
     vr.turn_ratio = missing
     vr.vreg_pu = 1.04
     @test CommonOPF.check_edges!([vr]) == true
-    @test resistance(vr) == vr.resistance
-    @test reactance(vr) == vr.reactance
+    @test CommonOPF.resistance(vr, CommonOPF.SinglePhase) == vr.resistance
+    @test CommonOPF.reactance(vr, CommonOPF.SinglePhase) == vr.reactance
 
     # multiphase
     vr.phases = [2,3]

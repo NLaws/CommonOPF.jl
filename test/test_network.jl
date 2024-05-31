@@ -57,8 +57,6 @@
     for log in test_logger.logs
         @test any(( occursin(msg, log.message) for msg in expected_msgs ))
     end
-    @test_throws "No conductor template" zij("b2", "b3", net)
-    @test_throws "Missing at least one of r1" zij("b1", "b2", net)
     CommonOPF.check_missing_templates(net)
     @test occursin("Missing templates", test_logger.logs[end].message)
     @test voltage_regulator_edges(net) == [("b3", "b4")]
@@ -113,7 +111,7 @@ end
     @test length(conds) == 1
     cond = conds[1]
     @test cond.rmatrix[1,2] == cond.rmatrix[2,1] == 0.15
-    @test cond.rmatrix[3,1] == cond.rmatrix[1,3] == 0.16
+    @test cond.rmatrix[3,1] == cond.rmatrix[1,3] == 0.16    
     @test cond.rmatrix[3,2] == cond.rmatrix[2,3] == 0.17
     @test cond.rmatrix[1,1] == 0.31
     @test cond.rmatrix[2,2] == 0.32

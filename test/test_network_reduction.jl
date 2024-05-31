@@ -97,8 +97,8 @@
         @test ("b", "e") in edges(net)
         @test ("b", "f") in edges(net)
         @test net[("b", "e")].length == 2
-        @test resistance(net[("b", "e")]) == 2
-        @test reactance(net[("b", "e")]) == 2
+        @test CommonOPF.resistance(net[("b", "e")], CommonOPF.SinglePhase) == 2
+        @test CommonOPF.reactance(net[("b", "e")], CommonOPF.SinglePhase) == 2
 
         # remove the load at bus e and test for removal of edges (b, c) and (c, e)
         net = Network(net_dict)
@@ -171,8 +171,8 @@
         @test ("b", "e") in edges(net)
         @test ("b", "f") in edges(net)
         @test net[("b", "e")].length == 2
-        @test resistance(net[("b", "e")]) ≈ [4/3 -2/3 0; -2/3 4/3 0; 0 0 0]
-        @test reactance(net[("b", "e")]) ≈ [4/3 -2/3 0; -2/3 4/3 0; 0 0 0]
+        @test CommonOPF.resistance(net[("b", "e")], CommonOPF.MultiPhase) ≈ [4/3 -2/3 0; -2/3 4/3 0; 0 0 0]
+        @test CommonOPF.reactance(net[("b", "e")], CommonOPF.MultiPhase) ≈ [4/3 -2/3 0; -2/3 4/3 0; 0 0 0]
 
         # repeat multiphase with phase mismatch on b-c-e branch
         net_dict = Dict(

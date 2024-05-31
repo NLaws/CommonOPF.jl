@@ -89,7 +89,7 @@ function check_edges!(regulators::AbstractVector{VoltageRegulator})::Bool
         @warn "You must provide either vreg_pu or turn_ratio for each VoltageRegulator."
         good = false
     end
-    if any((!ismissing(reg.phases) for reg in regulators))
+    if any((!ismissing(reg.phases) for reg in regulators)) && length(phases_union(regulators)) > 1
         good = validate_multiphase_edges!(regulators)
     end
     return good

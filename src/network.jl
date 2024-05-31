@@ -39,6 +39,9 @@ mutable struct Network{T<:Phases} <: AbstractNetwork
 end
 
 
+network_phase_type(net::Network{T}) where {T} = T
+
+
 """
     function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict) 
 
@@ -107,7 +110,6 @@ function Network(d::Dict; directed::Union{Bool,Missing}=missing)
             bus_vec = vcat(bus_vec, build_busses(d[dkey], BusType))
         end
     end
-    # NEXT all tests, examples need new keys to match type names
 
     # make the graph
     g = make_graph(edge_structs; directed=directed)
@@ -230,9 +232,15 @@ voltage_regulator_edges(net::AbstractNetwork) = collect(e for e in edges(net) if
 
 
 real_load_busses(net::Network{SinglePhase}) = collect(b for b in load_busses(net) if !ismissing(net[b][:Load].kws1))
+real_load_busses(net::Network{MultiPhase}) = collect(
+    b for b in load_busses(net) if !ismissing(net[b][:Load].kws1) || !ismissing(net[b][:Load].kws2) || !ismissing(net[b][:Load].kws3)
+)
 
 
 reactive_load_busses(net::Network{SinglePhase}) = collect(b for b in load_busses(net) if !ismissing(net[b][:Load].kvars1))
+reactive_load_busses(net::Network{MultiPhase}) = collect(
+    b for b in load_busses(net) if !ismissing(net[b][:Load].kvars1) || !ismissing(net[b][:Load].kvars2) || !ismissing(net[b][:Load].kvars3)
+)
 
 total_load_kw(net::Network{SinglePhase}) = sum(net[load_bus][:Load].kws1 for load_bus in real_load_busses(net))
 total_load_kvar(net::Network{SinglePhase}) = sum(net[load_bus][:Load].kvars1 for load_bus in real_load_busses(net))
