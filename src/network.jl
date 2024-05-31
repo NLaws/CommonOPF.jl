@@ -98,7 +98,7 @@ function Network(d::Dict; directed::Union{Bool,Missing}=missing)
     # Single vs. MultiPhase is determined by edge.phases
     net_type = CommonOPF.SinglePhase
     if any((!ismissing(e.phases) for e in edge_structs))
-        net_phases = Set([e.phases for e in edge_structs if !ismissing(e.phases)])
+        net_phases = phases_union(edge_structs)
         if length(net_phases) > 1
             net_type = CommonOPF.MultiPhase
         end

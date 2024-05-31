@@ -82,7 +82,6 @@
         dssfilepath = joinpath("data", "ieee13", "ieee13_makePosSeq", "Master.dss")
         net = CommonOPF.dss_to_Network(dssfilepath)
         for (i,j) in edges(net)
-            println(net[(i,j)])
             @test typeof(rij(i, j, net)) <: Number
         end
         
