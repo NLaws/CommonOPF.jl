@@ -75,6 +75,7 @@ end
     fp = joinpath("data", "yaml_inputs", "basic_multi_phase.yaml")
     net = Network(fp)
     @test typeof(net) == Network{CommonOPF.MultiPhase}
+    @test net.Ntimesteps == 3
 
     # test the different ways to define impedance
 

@@ -1,6 +1,7 @@
 Network:
   substation_bus: b1
   Sbase: 1e6
+  Ntimesteps: 3
 
 Conductor:
   - name: cond1-symmetric
