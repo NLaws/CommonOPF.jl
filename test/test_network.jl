@@ -164,5 +164,5 @@ end
     @test i_to_j("671", net) == ["670"]
     # TODO 670 can be reduced out to make 632 --> 670
 
-    @test phases_into_bus(net, "684") == Set([1, 3])
+    @test phases_into_bus(net, "684") == [1, 3]
 end
