@@ -10,6 +10,7 @@ makedocs(
         "User Documentation" => "index.md",
         "Inputs" => "inputs.md",
         "The Network Model" => "network.md",
+        "Variables for Mathematical Programs" => "variables.md",
         "Results" => "results.md",
         "Methods" => [
             "impedances.md",

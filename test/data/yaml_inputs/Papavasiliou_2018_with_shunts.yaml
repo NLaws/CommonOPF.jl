@@ -2,8 +2,8 @@ Network:
   substation_bus: 0
   Sbase: 1000
   Zbase: 1
-  v_uplim: 1.1
-  v_lolim: 0.9
+  v_upper: 1.1
+  v_lower: 0.9
 
 Conductor:
 

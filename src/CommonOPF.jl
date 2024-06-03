@@ -10,8 +10,8 @@ import Parameters: @with_kw
 import InteractiveUtils: subtypes
 import OpenDSSDirect as OpenDSS
 
-const SBASE_DEFAULT = 1_000_000
-const VBASE_DEFAULT = 12_470
+const SBASE_DEFAULT = 1
+const VBASE_DEFAULT = 1
 const DEFAULT_AMP_LIMIT = 1000.0
 const VARIABLE_NAMES = String[
     "net_real_power_injection",
@@ -116,6 +116,8 @@ include("edges/edges.jl")
 include("edges/conductors.jl")
 include("edges/transformers.jl")
 include("edges/voltage_regulators.jl")
+
+include("bounds.jl")
 
 include("network.jl")
 include("edges/impedances.jl")  # Network type in signatures, move the struct to types?
