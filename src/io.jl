@@ -343,7 +343,8 @@ function transformer_impedance(Y::Matrix{ComplexF64}, node_order::Vector{String}
         OpenDSS.Transformers.Wdg(2.0) 
         kV2 = OpenDSS.Transformers.kV()
     end
-    Z = inv(Y_trfx) * kV1 / kV2
+    # NOTE ignoring off diagonal terms since they cause numerical issues in IEEE13 source transformer
+    Z = inv(Diagonal(Y_trfx)) * kV1 / kV2
     r, x = dss_impedance_matrices_to_three_phase(abs.(real(Z)), -1*imag(Z), phases)
     return r, x, kV1, kV2
 end

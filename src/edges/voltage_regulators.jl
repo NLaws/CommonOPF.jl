@@ -8,7 +8,7 @@
         phases::Union{Vector{Int}, Missing} = missing
         reactance::Real = 0.0
         resistance::Real = 0.0
-        vreg_pu::Union{Real, Missing} = missing
+        vreg_pu::Union{Real, AbstractVector{<:Number}, Missing} = missing
         turn_ratio::Union{Real, Missing} = missing
     end
 
@@ -63,7 +63,7 @@ VoltageRegulator:
     phases::Union{Vector{Int}, Missing} = missing
     reactance::Real = 0.0
     resistance::Real = 0.0
-    vreg_pu::Union{Real, Missing} = missing
+    vreg_pu::Union{Real, AbstractVector{<:Number}, Missing} = missing
     turn_ratio::Union{Real, Missing} = missing
     rmatrix::Union{AbstractArray, Missing} = missing
     xmatrix::Union{AbstractArray, Missing} = missing
