@@ -47,6 +47,8 @@ with_logger(test_logger) do
 
     include("test_results.jl")
 
+    include("test_shunts.jl")
+
 end # outer-most testset
 end # with_logger
 

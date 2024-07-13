@@ -123,11 +123,13 @@ Construct a `Network` from a yaml at the file path `fp`.
 """
 function Network(fp::String)
     # parse inputs
-    if endswith(lowercase(fp), "yaml") ||  endswith(lowercase(fp), "yml")
+    if endswith(lowercase(fp), ".yaml") ||  endswith(lowercase(fp), ".yml")
         d = load_yaml(fp)
+    elseif endswith(lowercase(fp), ".dss")
+        return CommonOPF.dss_to_Network(fp)
     else
         # TODO json
-        throw(error("Only parsing yaml (or yml) files so far."))
+        throw(error("Only parsing yaml (or yml) and dss files so far."))
     end
     Network(d)
 end
@@ -229,13 +231,15 @@ voltage_regulator_edges(net::AbstractNetwork) = collect(e for e in edges(net) if
 
 real_load_busses(net::Network{SinglePhase}) = collect(b for b in load_busses(net) if !ismissing(net[b][:Load].kws1))
 real_load_busses(net::Network{MultiPhase}) = collect(
-    b for b in load_busses(net) if !ismissing(net[b][:Load].kws1) || !ismissing(net[b][:Load].kws2) || !ismissing(net[b][:Load].kws3)
+    b for b in load_busses(net) 
+    if !ismissing(net[b][:Load].kws1) || !ismissing(net[b][:Load].kws2) || !ismissing(net[b][:Load].kws3)
 )
 
 
 reactive_load_busses(net::Network{SinglePhase}) = collect(b for b in load_busses(net) if !ismissing(net[b][:Load].kvars1))
 reactive_load_busses(net::Network{MultiPhase}) = collect(
-    b for b in load_busses(net) if !ismissing(net[b][:Load].kvars1) || !ismissing(net[b][:Load].kvars2) || !ismissing(net[b][:Load].kvars3)
+    b for b in load_busses(net) 
+        if !ismissing(net[b][:Load].kvars1) || !ismissing(net[b][:Load].kvars2) || !ismissing(net[b][:Load].kvars3)
 )
 
 total_load_kw(net::Network{SinglePhase}) = sum(net[load_bus][:Load].kws1 for load_bus in real_load_busses(net))
@@ -258,7 +262,9 @@ function leaf_busses(net::Network)
 end
 
 
-conductors(net::AbstractNetwork) = collect( net[ekey] for ekey in edges(net) if net[ekey] isa CommonOPF.Conductor )
+conductors(net::AbstractNetwork) = collect(
+    net[ekey] for ekey in edges(net) if net[ekey] isa CommonOPF.Conductor
+)
 
 
 function conductors_with_attribute_value(net::AbstractNetwork, attr::Symbol, val::Any)::AbstractVector{CommonOPF.Conductor}
@@ -274,8 +280,7 @@ end
 """
     fill_node_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractBus})
 
-For each concrete bus in `vals` store a dict of key,val pairs for the bus attributes in a symbol key
-like :Load for CommonOPF.Load TODO just store the type
+For each concrete bus in `vals` store the concrete bus in the graph at `concrete_bus.node`.
 """
 function fill_node_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractBus})
     for node in vals
@@ -285,7 +290,6 @@ function fill_node_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVe
                 "You will have to manually add bus $(node.bus) if you want it in the graph."
             continue
         end
-        node_fieldnames = fieldnames(typeof(node))
         type = split(string(typeof(node)), ".")[end]  # e.g. "CommonOPF.Load" -> "Load"
         if !isempty( get(g[node.bus], Symbol(type), []) )
             @warn "Replacing existing attributes $(g[node.bus][Symbol(type)]) in node $(node.bus)"

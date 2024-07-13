@@ -63,16 +63,18 @@ end
 resize OpenDSS matrices to 3x3 and sort values by numerical phase order
 """
 function dss_impedance_matrices_to_three_phase(
-    dss_rmatrix::AbstractMatrix{Float64}, 
-    dss_xmatrix::AbstractMatrix{Float64}, 
+    dss_rmatrix::AbstractMatrix{Float64},
+    dss_xmatrix::AbstractMatrix{Float64},
+    dss_cmatrix::AbstractMatrix{Float64}, 
     phases::AbstractVector{Int}
-    )::Tuple{Matrix{Float64}, Matrix{Float64}}
-    r, x = zeros(3,3), zeros(3,3)
+    )::Tuple{Matrix{Float64}, Matrix{Float64}, Matrix{Float64}}
+    r, x, c = zeros(3,3), zeros(3,3), zeros(3,3)
     for (i, phs1) in enumerate(phases), (j, phs2) in enumerate(phases)
         r[phs1, phs2] = dss_rmatrix[i, j]
         x[phs1, phs2] = dss_xmatrix[i, j]
+        c[phs1, phs2] = dss_cmatrix[i, j]
     end
-    return r, x
+    return r, x, c
 end
 
 
@@ -220,6 +222,7 @@ function dss_to_Network(dssfilepath::AbstractString)::Network
     node_order = [lowercase(s) for s in OpenDSS.Circuit.YNodeOrder()]
     num_phases = opendss_circuit_num_phases()
     
+    conductors = opendss_lines(num_phases)
     net_dict = Dict{Symbol, Any}(
         :Network => Dict(
             :substation_bus => opendss_source_bus(),
@@ -227,10 +230,11 @@ function dss_to_Network(dssfilepath::AbstractString)::Network
             :Vbase => OpenDSS.Vsources.BasekV() * 1e3,
             # :Sbase => Tranformer value?,
         ),
-        :Conductor => opendss_lines(num_phases),
+        :Conductor => conductors,
         :Load => load_dicts,
         :Transformer => opendss_transformers(num_phases, Y, node_order),
         :VoltageRegulator => opendss_regulators(num_phases, Y, node_order),
+        :ShuntAdmittance => opendss_shunts(num_phases, conductors)
     )
 
     Network(net_dict)
@@ -254,9 +258,11 @@ function opendss_lines(num_phases::Int)::Vector{Dict{Symbol, Any}}
         
         # NodeOrder is list of node names in the order the nodes appear in the Y matrix.
         phases = OpenDSS.CktElement.NodeOrder()[1:OpenDSS.CktElement.NumPhases()]
-        rmatrix, xmatrix = dss_impedance_matrices_to_three_phase(
-            OpenDSS.Lines.RMatrix(), OpenDSS.Lines.XMatrix(), phases
+        rmatrix, xmatrix, cmatrix = dss_impedance_matrices_to_three_phase(
+            OpenDSS.Lines.RMatrix(), OpenDSS.Lines.XMatrix(), OpenDSS.Lines.CMatrix(), phases
         )
+        # TODO cmatrix into ShuntAdmittance? cmatrix is line capacitive susceptance -> divide it by
+        # 2 to get bus shunt susceptance.
 
         if num_phases == 1
             i = collect(phases)[1]
@@ -266,6 +272,7 @@ function opendss_lines(num_phases::Int)::Vector{Dict{Symbol, Any}}
                 :phases => phases,
                 :r1 => rmatrix[i, i],
                 :x1 => xmatrix[i, i],
+                :c1 => cmatrix[i, i],
                 :length => OpenDSS.Lines.Length()
             ))
         else
@@ -275,6 +282,7 @@ function opendss_lines(num_phases::Int)::Vector{Dict{Symbol, Any}}
                 :phases => phases,
                 :rmatrix => rmatrix,
                 :xmatrix => xmatrix,
+                :cmatrix => cmatrix,
                 :length => OpenDSS.Lines.Length()
             ))
         end
@@ -282,6 +290,35 @@ function opendss_lines(num_phases::Int)::Vector{Dict{Symbol, Any}}
         line_number = OpenDSS.Lines.Next()
     end
     return conductor_dicts
+end
+
+
+"""
+
+Parse the line cmatrix values into shunt susceptance values (placing )
+"""
+function opendss_shunts(num_phases::Int, conductors::Vector{Dict{Symbol, Any}})::Vector{Dict{Symbol, Any}}
+    # for now using the line into the bus to get the shunt susceptance (not clear if we should
+    # average together the other line susceptances that are connected to the bus)
+    shunt_dicts = Dict{Symbol, Any}[]
+    f = 2π*60 * 1e-9  # nanofarads to siemens
+    for c in conductors
+        bus = c[:busses][2]
+
+        if num_phases == 1
+            push!(shunt_dicts, Dict(
+                :bus => bus,
+                :b => ismissing(c[:c1]) ? 0.0 : c[:c1] * c[:length] / 2 * f
+            ))
+        else
+            push!(shunt_dicts, Dict(
+                :bus => bus,
+                :bmatrix => ismissing(c[:cmatrix]) ? zeros(3,3) : c[:cmatrix] * c[:length] / 2 * f
+            ))
+        end
+    end
+    
+    return shunt_dicts
 end
 
 
@@ -345,7 +382,7 @@ function transformer_impedance(Y::Matrix{ComplexF64}, node_order::Vector{String}
     end
     # NOTE ignoring off diagonal terms since they cause numerical issues in IEEE13 source transformer
     Z = inv(Diagonal(Y_trfx)) * kV1 / kV2
-    r, x = dss_impedance_matrices_to_three_phase(abs.(real(Z)), -1*imag(Z), phases)
+    r, x, _ = dss_impedance_matrices_to_three_phase(abs.(real(Z)), -1*imag(Z), zeros(3,3), phases)
     return r, x, kV1, kV2
 end
 

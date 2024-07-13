@@ -93,6 +93,9 @@ Conductor:
     The order of the `phases` is assumed to match the order of the `rmatrix` and `xmatrix`. For
     example using the example just above the 3x3 `rmatrix` looks like 
     ``[0.31, 0, 0.15; 0, 0, 0; 0.15, 0, 0.32]``
+
+Conductors also have a `cmatrix` attribute that is used when parsing OpenDSS models. The `cmatrix`
+is used to define `ShuntAdmittance` values for busses.
 """
 @with_kw mutable struct Conductor <: AbstractEdge
     # mutable because we set the rmatrix and xmatrix later in some cases
@@ -106,8 +109,10 @@ Conductor:
     x0::Union{Real, Missing} = missing
     r1::Union{Real, Missing} = missing
     x1::Union{Real, Missing} = missing
+    c1::Union{Real, Missing} = missing
     rmatrix::Union{AbstractArray, Missing} = missing
     xmatrix::Union{AbstractArray, Missing} = missing
+    cmatrix::Union{AbstractArray, Missing} = missing
     length::Union{Real, Missing} = missing
     amps_limit::Union{Real, Missing} = missing
 end
@@ -266,6 +271,7 @@ function validate_multiphase_edges!(conds::AbstractVector{Conductor})::Bool
             end
             c.xmatrix = template_cond.xmatrix
             c.rmatrix = template_cond.rmatrix
+            c.cmatrix = template_cond.cmatrix
         end
     end
 

@@ -53,13 +53,14 @@ export
     next_bus_above_with_outdegree_more_than_one,
     paths_between,
 
-    # impedance
+    # impedance and shunt admittance
     rij,
     rij_per_unit,
     xij,
     xij_per_unit,
     zij,
     zij_per_unit,
+    yj,
 
     # io
     dss_to_Network,
@@ -121,6 +122,7 @@ include("bounds.jl")
 
 include("network.jl")
 include("edges/impedances.jl")  # Network type in signatures, move the struct to types?
+include("busses/shunt_admittances.jl")
 include("network_reduction.jl")
 include("decomposition.jl")
 

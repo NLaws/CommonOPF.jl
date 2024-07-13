@@ -19,7 +19,7 @@ function build_busses(
         d[:bus] = string(d[:bus])
     end
     busses = ConcreteBusType[ConcreteBusType(;bdict...) for bdict in dicts]
-    check_busses!(busses)  # dispatch on Vector{}
+    check_busses!(busses)  # dispatch on AbstractVector{ConcreteBusType}
     return busses
 end
 

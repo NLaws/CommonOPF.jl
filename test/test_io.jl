@@ -71,8 +71,14 @@
         @test CommonOPF.OpenDSS.CktElement.BusNames() == ["632.2.3", "645.2.3"]
         dss_rmatrix = CommonOPF.OpenDSS.Lines.RMatrix()
         dss_xmatrix = CommonOPF.OpenDSS.Lines.XMatrix()
+        dss_cmatrix = CommonOPF.OpenDSS.Lines.CMatrix()
         phases = CommonOPF.OpenDSS.CktElement.NodeOrder()[1:CommonOPF.OpenDSS.CktElement.NumPhases()]
-        r, x = CommonOPF.dss_impedance_matrices_to_three_phase(dss_rmatrix, dss_xmatrix, phases)
+        r, x = CommonOPF.dss_impedance_matrices_to_three_phase(
+            dss_rmatrix, 
+            dss_xmatrix, 
+            dss_cmatrix, 
+            phases
+        )
         @test r[2,2] == dss_rmatrix[1,1]
         @test x[3,2] == dss_xmatrix[2,1]
 
