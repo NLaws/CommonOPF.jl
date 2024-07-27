@@ -198,6 +198,7 @@ function opendss_loads(;disable::Bool=true)::Vector{Dict{Symbol, Any}}
     return collect(values(loads))
 end
 
+
 """
 
     dss_to_Network(dssfilepath::AbstractString)::Network
@@ -303,6 +304,7 @@ function opendss_shunts(num_phases::Int, conductors::Vector{Dict{Symbol, Any}}):
     shunt_dicts = Dict{Symbol, Any}[]
     f = 2π*60 * 1e-9  # nanofarads to siemens
     for c in conductors
+        in_bus = c[:busses][1]
         bus = c[:busses][2]
 
         if num_phases == 1
@@ -316,7 +318,24 @@ function opendss_shunts(num_phases::Int, conductors::Vector{Dict{Symbol, Any}}):
                 :bmatrix => ismissing(c[:cmatrix]) ? zeros(3,3) : c[:cmatrix] * c[:length] / 2 * f
             ))
         end
+
+        # hack in source bus shunt admittance
+        if in_bus == opendss_source_bus()
+            if num_phases == 1
+                push!(shunt_dicts, Dict(
+                    :bus => in_bus,
+                    :b => ismissing(c[:c1]) ? 0.0 : c[:c1] * c[:length] / 2 * f
+                ))
+            else
+                push!(shunt_dicts, Dict(
+                    :bus => in_bus,
+                    :bmatrix => ismissing(c[:cmatrix]) ? zeros(3,3) : c[:cmatrix] * c[:length] / 2 * f
+                ))
+            end
+        end
+        
     end
+    
     
     return shunt_dicts
 end
@@ -328,6 +347,7 @@ end
 Return the OpenDSS.Vsources.First() -> OpenDSS.Bus.Name
 """
 function opendss_source_bus()::String
+    OpenDSS.Circuit.SetActiveClass("VSource")
     OpenDSS.Vsources.First()
     source_bus = OpenDSS.Bus.Name()
     if OpenDSS.Vsources.Count() != 1
