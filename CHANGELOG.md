@@ -1,7 +1,12 @@
 # CommonOPF Changelog
 
-## dev
-- add `VoltageRegulator` and `ShuntAdmittance` as a new bus inputs
+## v0.4.1
+- add codecov to ci
+- more documentation, tests, and port some decomposition methods from BranchFlowModel.jl
+- improve OpenDSS -> `Network` parsing
+- expand `Network{MultiPhase}` support (for BranchFlowModel.jl)
+- add `VariableBounds`
+- add `VoltageRegulator`,  `Capacitor`, and `ShuntAdmittance` as a new bus inputs
 - add `VariableContainer = Dict{Int, Dict{String, Any}}` and `VARIABLE_NAMES`
 - add `Network.var_name_map` for parsing results
 - rm all `Inputs` associated stuff
