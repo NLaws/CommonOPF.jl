@@ -97,9 +97,12 @@ export
     # test Networks
     Network_IEEE13_SinglePhase,
     Network_Papavasiliou_2018,
+
+    # variables
     VARIABLE_NAMES,
     VariableContainer,
     add_time_vector_variables!,
+    add_complex_vector_of_phase_variable!,
 
     # decomposition
     split_network
