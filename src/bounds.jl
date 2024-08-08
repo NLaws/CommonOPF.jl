@@ -16,12 +16,16 @@ i_lower = -1.5 * Sbase / Vbase
 ```
 """
 mutable struct VariableBounds
-    s_upper::Real
-    s_lower::Real
-    v_upper::Real
-    v_lower::Real
-    i_upper::Real
-    i_lower::Real
+    s_upper_real::Union{Real, Missing}
+    s_lower_real::Union{Real, Missing}
+    s_upper_imag::Union{Real, Missing}
+    s_lower_imag::Union{Real, Missing}
+    
+    v_upper_mag::Union{Real, Missing}
+    v_lower_mag::Union{Real, Missing}
+
+    i_upper_mag::Union{Real, Missing}
+    i_lower_mag::Union{Real, Missing}
 end
 
 
@@ -32,22 +36,27 @@ Check for the keys of the `VariableBounds` struct in the `ntwk` dictionary; othe
 default values as described in [`VariableBounds`](@ref).
 """
 function VariableBounds(ntwk::Dict)
-    Sbase = get(ntwk, :Sbase, SBASE_DEFAULT)
-    Vbase = get(ntwk, :Vbase, VBASE_DEFAULT)
+    s_upper_real = get(ntwk, :s_upper_real, missing)
+    s_lower_real = get(ntwk, :s_lower_real, missing)
+    s_upper_imag = get(ntwk, :s_upper_imag, missing)
+    s_lower_imag = get(ntwk, :s_lower_imag, missing)
 
-    s_upper = get(ntwk, :s_upper,  1.1 * Sbase)
-    s_lower = get(ntwk, :s_lower, -1.1 * Sbase)
-    v_upper = get(ntwk, :v_upper,  1.1 * Vbase)
-    v_lower = get(ntwk, :v_lower, -1.1 * Vbase)
-    i_upper = get(ntwk, :i_upper,  1.5 * Sbase / Vbase)
-    i_lower = get(ntwk, :i_lower, -1.5 * Sbase / Vbase)
+    v_upper_mag = get(ntwk, :v_upper_mag, missing)
+    v_lower_mag = get(ntwk, :v_lower_mag, missing)
+
+    i_upper_mag = get(ntwk, :i_upper_mag, missing)
+    i_lower_mag = get(ntwk, :i_lower_mag, missing)
 
     return VariableBounds(
-        s_upper,
-        s_lower,
-        v_upper,
-        v_lower,
-        i_upper,
-        i_lower
+        s_upper_real,
+        s_lower_real,
+        s_upper_imag,
+        s_lower_imag,
+
+        v_upper_mag,
+        v_lower_mag,
+
+        i_upper_mag,
+        i_lower_mag
     )
 end
