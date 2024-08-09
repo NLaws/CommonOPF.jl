@@ -15,6 +15,7 @@ makedocs(
         "Methods" => [
             "impedances.md",
             "graph_methods.md",
+            "decomposition.md"
         ],
         "Math" => "math.md",
         "Developer" => [
