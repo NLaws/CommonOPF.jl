@@ -43,6 +43,11 @@ function split_network(net::Network, bus::String)::Tuple{Network, Network}
     net_below = make_sub_network(net, sub_edges, in_buses)
     net_below.substation_bus = bus
 
+    # if there is a Load at bus we need to remove it from net_below (o.w. it's redundant)
+    if bus in load_busses(net_below)
+        delete!(net_below[bus], :Load)
+    end
+
     return net_above, net_below
 end
 
