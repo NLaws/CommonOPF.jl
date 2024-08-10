@@ -114,7 +114,6 @@ include("io.jl")
 
 include("busses/busses.jl")
 include("busses/loads.jl")
-include("busses/shunts.jl")
 
 include("edges/edges.jl")
 include("edges/conductors.jl")
@@ -125,7 +124,7 @@ include("bounds.jl")
 
 include("network.jl")
 include("edges/impedances.jl")  # Network type in signatures, move the struct to types?
-include("busses/shunt_admittances.jl")
+include("busses/shunt_admittances.jl")  # Network type in signatures
 include("network_reduction.jl")
 include("decomposition.jl")
 
