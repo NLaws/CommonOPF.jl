@@ -1,5 +1,9 @@
 # CommonOPF Changelog
 
+## dev
+- add `multiphase_variable_container` methods for bus and edge variables
+    - make variable indexing order consistent across single and multiphase models (bus/edge, time, phase)
+
 ## v0.4.1
 - add codecov to ci
 - more documentation, tests, and port some decomposition methods from BranchFlowModel.jl

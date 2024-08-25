@@ -9,6 +9,7 @@ import YAML
 import Parameters: @with_kw
 import InteractiveUtils: subtypes
 import OpenDSSDirect as OpenDSS
+import DataStructures: DefaultDict
 
 const SBASE_DEFAULT = 1
 const VBASE_DEFAULT = 1
@@ -97,6 +98,8 @@ export
     # variables
     VARIABLE_NAMES,
     VariableContainer,
+    multiphase_bus_variable_container,
+    multiphase_edge_variable_container,
     add_time_vector_variables!,
     add_complex_vector_of_phase_variable!,
 

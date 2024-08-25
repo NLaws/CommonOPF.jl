@@ -3,16 +3,20 @@
 
 Limits for decision variables in mathematical programs. Upper and lower values can be specified for
 power, current, and voltage variables. The `VariableBounds` struct is attached to `Network.bounds`
-upon creation of the `Network`. Default values are set using `Sbase` and `Vbase` as follows:
+upon creation of the `Network`. 
 ```julia
-v_upper = 2.0 * Vbase
-v_lower = 0.0
+mutable struct VariableBounds
+    s_upper_real::Union{Real, Missing}
+    s_lower_real::Union{Real, Missing}
+    s_upper_imag::Union{Real, Missing}
+    s_lower_imag::Union{Real, Missing}
+    
+    v_upper_mag::Union{Real, Missing}
+    v_lower_mag::Union{Real, Missing}
 
-s_upper =  1.1 * Sbase
-s_lower = -1.1 * Sbase
-
-i_upper =  1.5 * Sbase / Vbase
-i_lower = -1.5 * Sbase / Vbase
+    i_upper_mag::Union{Real, Missing}
+    i_lower_mag::Union{Real, Missing}
+end
 ```
 """
 mutable struct VariableBounds
