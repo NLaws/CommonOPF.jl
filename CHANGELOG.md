@@ -2,7 +2,9 @@
 
 ## dev
 - add `multiphase_variable_container` methods for bus and edge variables
-    - make variable indexing order consistent across single and multiphase models (bus/edge, time, phase)
+    - make variable indexing order consistent across single and multiphase models (bus/edge, time,
+      phase)
+- rm `VariableContainer`
 
 ## v0.4.1
 - add codecov to ci

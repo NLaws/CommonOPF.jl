@@ -25,7 +25,6 @@ const VARIABLE_NAMES = String[
     "current_magnitude",
     "current_magnitude_squared",
 ]
-VariableContainer = Dict{String, Dict{Int, Any}}  # edge/bus String, time step Int, variable(s)
 
 export 
     dsstxt_to_sparse_array,
@@ -97,7 +96,6 @@ export
 
     # variables
     VARIABLE_NAMES,
-    VariableContainer,
     multiphase_bus_variable_container,
     multiphase_edge_variable_container,
     add_time_vector_variables!,

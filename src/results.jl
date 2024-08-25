@@ -45,7 +45,7 @@ time-vector or matrix values. When `var_name` ends with "_squared" we return the
 """
 function get_variable_values(model_key, var_name::String, m::JuMP.AbstractModel, net::Network{SinglePhase}; digits=8)
     d = Dict()
-    if var in [:Pj, :Qj, :vsqrd]
+    if var_name in [:Pj, :Qj, :vsqrd]
         vals = value.(m[model_key])  # time, bus 
         for b in busses(net)
             d[b] = round.(vals[b,:].data, digits=digits)
@@ -55,18 +55,18 @@ function get_variable_values(model_key, var_name::String, m::JuMP.AbstractModel,
                 d[b] *= net.Sbase  # scale powers back to absolute units TODO in BFM
             end
         end
-    elseif var in [:Pij, :Qij, :lij]  # TODO make these a const in CommonOPF TODO in BFM
-        vals = value.(m[var])
+    elseif var_name in [:Pij, :Qij, :lij]  # TODO make these a const in CommonOPF TODO in BFM
+        vals = value.(m[var_name])
         for ek in edges(net)
             d[ek] = round.(vals[ek,:].data, digits=digits)
-            if var == :lij
+            if var_name == :lij
                 d[ek] = sqrt.(d[ek])
             else
                 d[ek] *= net.Sbase  # scale powers back to absolute units
             end
         end
     else
-        @warn "$var is not a valid variable symbol"
+        @warn "$var_name is not a valid variable symbol"
     end
     return d
 end
