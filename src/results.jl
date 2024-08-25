@@ -18,7 +18,7 @@ function Results(m::JuMP.AbstractModel, net::Network)
     end
     # then check for any of the VARIABLE_NAMES
     for vname in vnames
-        if vname in m.obj_dict
+        if vname in keys(m.obj_dict)
             d[vname] = get_variable_values(vname, vname, m, net)
         end
     end
