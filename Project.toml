@@ -16,6 +16,7 @@ Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 
 [compat]
+DataStructures = "0.18"
 Graphs = "1.8"
 JuMP = "1"
 MetaGraphsNext = "0.7"
