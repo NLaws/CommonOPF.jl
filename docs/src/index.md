@@ -13,5 +13,5 @@ The primary work flow for CommonOPF is:
 1. User inputs (in JSON, YAML, or Dict) or passed to a `Network` builder.
 2. The `Network` is used to build a power flow model in JuMP, using methods like `busses(net::Network)`
 3. The JuMP model is solved
-4. The model and network are passed to `CommonOPF.Results` to produce a consistent results struct
-   across the modeling libraries
+4. The model and network are passed to `opf_results` to get results in a dictionary like the
+   variable containers in the JuMP model

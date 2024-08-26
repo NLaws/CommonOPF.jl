@@ -36,8 +36,8 @@ end
 """
     function VariableBounds(ntwk::Dict)
 
-Check for the keys of the `VariableBounds` struct in the `ntwk` dictionary; otherwise fill in
-default values as described in [`VariableBounds`](@ref).
+Check for the keys of the `VariableBounds` struct in the `ntwk` dictionary. Any missing bounds are
+set to `missing`.
 """
 function VariableBounds(ntwk::Dict)
     s_upper_real = get(ntwk, :s_upper_real, missing)

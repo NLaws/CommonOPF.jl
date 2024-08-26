@@ -4,7 +4,8 @@
 - add `multiphase_variable_container` methods for bus and edge variables
     - make variable indexing order consistent across single and multiphase models (bus/edge, time,
       phase)
-- rm `VariableContainer`
+- rm `VariableContainer` and `Network.var_name_map`
+- add `Network.var_names` and `opf_results`
 
 ## v0.4.1
 - add codecov to ci

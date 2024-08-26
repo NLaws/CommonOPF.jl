@@ -4,23 +4,6 @@ across power flow models. Currently the main functionality that relies on variab
 is `Results`. Note that you do not have to use the CommonOPF variable access patterns to use the
 `Network` model and other methods like the graph analysis stuff.
 
-### Variable Names
-The CommonOPF variable names are stored as strings in `VARIABLE_NAMES`:
-```@example
-using CommonOPF
-for var_name in CommonOPF.VARIABLE_NAMES
-    println(var_name)
-end
-```
-By default the `VARIABLE_NAMES` are used to check for model variable values. Alternatively, one can
-fill in the `Network.var_name_map` to use custom variable names in the `JuMP.Model`. The
-`var_name_map` is keyed on the `VARIABLE_NAMES` and any value provided will be used to check for
-model variable values. For example:
-```julia
-my_network.var_name_map = Dict("voltage_magnitude_squared" => :w)
-```
-will indicate to the `CommonOPF.Results` method to look in `model[:w]` for the
-`"voltage_magnitude_squared"` values.
 
 ### Variable Containers
 CommonOPF provides a variable container pattern for the `JuMP.Model`s built in the CommonOPF

@@ -8,7 +8,7 @@
         v0::Union{Real, AbstractVecOrMat{<:Number}}
         Ntimesteps::Int
         bounds::VariableBounds
-        var_name_map::Dict{String, Any}
+        var_names::AbstractVector{Symbol}
     end
 
 The `Network` model is used to store all the inputs required to create power flow and optimal power
@@ -23,6 +23,8 @@ values).
 A Network can be created directly, via a `Dict`, or a filepath. The minimum inputs must have a
 vector of [Conductor](@ref) specifications and a `Network` key containing at least the
 `substation_bus`. See [Input Formats](@ref) for more details.
+
+`var_names` is empty be default. It is used in the results getters like `opf_results`.
 """
 mutable struct Network{T<:Phases} <: AbstractNetwork
     graph::MetaGraphsNext.AbstractGraph
@@ -33,7 +35,7 @@ mutable struct Network{T<:Phases} <: AbstractNetwork
     v0::Union{Real, AbstractVecOrMat{<:Number}}
     Ntimesteps::Int
     bounds::VariableBounds
-    var_name_map::Dict{String, Any}
+    var_names::AbstractVector{Symbol}
 end
 
 
@@ -62,7 +64,7 @@ function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict, net_type::Type)
         v0,
         Ntimesteps,
         bounds,
-        Dict{String, Any}()
+        Vector{Symbol}()
     )
 end
 

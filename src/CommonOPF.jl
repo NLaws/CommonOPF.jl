@@ -100,6 +100,7 @@ export
     multiphase_edge_variable_container,
     add_time_vector_variables!,
     add_complex_vector_of_phase_variable!,
+    opf_results,
 
     # decomposition
     split_network,

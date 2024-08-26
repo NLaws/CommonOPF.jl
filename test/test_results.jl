@@ -1,6 +1,6 @@
 @testset "Results" begin
 
-    # TODO test Network.var_name_map and VARIABLE_NAMES
+    # TODO test Network.var_names
     # TODO test get_variable_values with vectors and matrices
     m = Model()
     m.obj_dict[:vsqrd] = Dict("bus1" => [1.123456789])
