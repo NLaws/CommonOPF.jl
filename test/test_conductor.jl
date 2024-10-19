@@ -26,6 +26,24 @@
         @test CommonOPF.reactance(c1, CommonOPF.SinglePhase) == 0.2 * 1.2
         @test CommonOPF.reactance(c2, CommonOPF.SinglePhase) == 0.2 * 20
     end
+
+    @testset "admittance methods" begin
+        z_magnitude = (
+            CommonOPF.resistance(c1, CommonOPF.SinglePhase)^2 
+            + CommonOPF.reactance(c1, CommonOPF.SinglePhase)^2
+        )
+        @test CommonOPF.conductance(c1, CommonOPF.SinglePhase) ≈ 
+            CommonOPF.resistance(c1, CommonOPF.SinglePhase) / z_magnitude
+        
+        @test CommonOPF.susceptance(c1, CommonOPF.SinglePhase) ≈ 
+            -CommonOPF.reactance(c1, CommonOPF.SinglePhase) / z_magnitude
+
+        @test CommonOPF.conductance_per_length(c1, CommonOPF.SinglePhase) ≈ 
+            CommonOPF.conductance(c1, CommonOPF.SinglePhase) / c1.length
+
+        @test CommonOPF.susceptance_per_length(c1, CommonOPF.SinglePhase) ≈ 
+            CommonOPF.susceptance(c1, CommonOPF.SinglePhase) / c1.length
+    end
 end
 
 

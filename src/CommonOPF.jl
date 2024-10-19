@@ -126,6 +126,7 @@ include("bounds.jl")
 
 include("network.jl")
 include("edges/impedances.jl")  # Network type in signatures, move the struct to types?
+include("edges/admittances.jl")  # Network type in signatures, move the struct to types?
 include("busses/shunt_admittances.jl")  # Network type in signatures
 include("network_reduction.jl")
 include("decomposition.jl")

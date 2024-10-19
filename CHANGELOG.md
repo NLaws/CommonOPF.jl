@@ -1,6 +1,7 @@
 # CommonOPF Changelog
 
 ## dev
+- add src/edges/admittances.jl with `conductance`, `susceptance`, `bij`, `gij`, `yij`, and more methods.
 - add `multiphase_variable_container` methods for bus and edge variables
     - make variable indexing order consistent across single and multiphase models (bus/edge, time,
       phase)
