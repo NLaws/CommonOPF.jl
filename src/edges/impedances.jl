@@ -111,17 +111,17 @@ end
 
 
 """
-    zij(i::AbstractString, j::AbstractString, net::Network)::Matrix{ComplexF64}
+    zij(i::AbstractString, j::AbstractString, net::Network)
 
 Impedance matrix of edge (i,j)
 """
-function zij(i::AbstractString, j::AbstractString, net::Network)::Matrix{ComplexF64}
+function zij(i::AbstractString, j::AbstractString, net::Network)
     return resistance(net[(i, j)], network_phase_type(net)) + reactance(net[(i, j)], network_phase_type(net))im
 end
 
 
 """
-zij_per_unit(i::AbstractString, j::AbstractString, net::Network)::Matrix{ComplexF64}
+zij_per_unit(i::AbstractString, j::AbstractString, net::Network)
 
 Impedance matrix of edge (i,j) in per-unit (normalized with `net.Zbase`)
 """

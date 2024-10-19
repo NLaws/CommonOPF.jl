@@ -43,6 +43,7 @@
 
         @test CommonOPF.susceptance_per_length(c1, CommonOPF.SinglePhase) ≈ 
             CommonOPF.susceptance(c1, CommonOPF.SinglePhase) / c1.length
+
     end
 end
 
@@ -66,14 +67,6 @@ end
         x0=4,
         length=20,
         phases=[1],
-    )
-    c3 = CommonOPF.Conductor(;
-        busses=("b2", "b3"), 
-        name="edge2", 
-        rmatrix=[[1], [2,3]],
-        xmatrix=[[1], [2,3]],
-        length=20,
-        phases=[2,3],
     )
 
     @testset "validate_multiphase_edges!" begin
@@ -133,6 +126,14 @@ end
     end
 
     @testset "unpack_input_matrices!" begin
+        c3 = CommonOPF.Conductor(;
+            busses=("b2", "b3"), 
+            name="edge2", 
+            rmatrix=[[1], [2,3]],
+            xmatrix=[[1], [2,3]],
+            length=20,
+            phases=[2,3],
+        )
         CommonOPF.unpack_input_matrices!(c3)
         # first row is all zeros b/c c3.phases == [2,3]
         @test all(c3.rmatrix[1, i] == 0 for i=1:3)
@@ -158,6 +159,28 @@ end
         @test occursin(
             "Unable to process impedance matrices", 
             test_logger.logs[end].message
+        )
+    end
+
+    @testset "admittance methods" begin
+        c3 = CommonOPF.Conductor(;
+            busses=("b2", "b3"), 
+            name="edge2", 
+            rmatrix=[[1], [2,3]],
+            xmatrix=[[1], [2,3]],
+            length=20,
+            phases=[2,3],
+        )
+        CommonOPF.unpack_input_matrices!(c3)
+        z_magnitude = (
+            CommonOPF.resistance(c3, CommonOPF.MultiPhase).^2 
+            + CommonOPF.reactance(c3, CommonOPF.MultiPhase).^2
+        )
+        @test all(
+            CommonOPF.conductance(c3, CommonOPF.MultiPhase) .≈ 
+            CommonOPF.replace_nan(
+                CommonOPF.resistance(c3, CommonOPF.MultiPhase) ./ z_magnitude
+            )
         )
     end
 

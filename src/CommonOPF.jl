@@ -49,13 +49,19 @@ export
     next_bus_above_with_outdegree_more_than_one,
     paths_between,
 
-    # impedance and shunt admittance
+    # impedance and admittance
     rij,
     rij_per_unit,
     xij,
     xij_per_unit,
     zij,
     zij_per_unit,
+    gij,
+    gij_per_unit,
+    bij,
+    bij_per_unit,
+    yij,
+    yij_per_unit,
     yj,
 
     # io

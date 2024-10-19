@@ -1,4 +1,13 @@
 """
+    replace_nan
+
+Replace all values in `v` that are `NaN` with zero. Used to fix division by zero when forming
+admittance for multiphase edges with less than three phases.
+"""
+replace_nan(v) = map(x -> isnan(x) ? zero(x) : x, v)
+
+
+"""
     conductance(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
 
 Default conductance for subtypes of `AbstractEdge`
@@ -48,15 +57,15 @@ end
 Scalar conductance of edge i-j
 """
 function bij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-    r = conductance(net[(i,j)], network_phase_type(net))
-    if isa(r, AbstractMatrix) 
-        if size(r) == (1,1)
-            return r[1,1]
+    b = conductance(net[(i,j)], network_phase_type(net))
+    if isa(b, AbstractMatrix) 
+        if size(b) == (1,1)
+            return b[1,1]
         else
-            throw(@error "Edge ($i, $j) has a multiphase impedance matrix in a single phase network.")
+            throw(@error "Edge ($i, $j) has a multiphase admittance matrix in a single phase network.")
         end
     end
-    return r
+    return b
 end
 
 
@@ -96,7 +105,7 @@ function gij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
             throw(@error "Edge ($i, $j) has a multiphase susceptance matrix in a single phase network.")
         end
     end
-    return x
+    return g
 end
 
 
@@ -111,19 +120,19 @@ end
 
 
 """
-    yij(i::AbstractString, j::AbstractString, net::Network)::Matrix{ComplexF64}
+    yij(i::AbstractString, j::AbstractString, net::Network)
 
-Impedance matrix of edge (i,j)
+admittance matrix of edge (i,j)
 """
-function yij(i::AbstractString, j::AbstractString, net::Network)::Matrix{ComplexF64}
+function yij(i::AbstractString, j::AbstractString, net::Network)
     return conductance(net[(i, j)], network_phase_type(net)) + susceptance(net[(i, j)], network_phase_type(net))im
 end
 
 
 """
-yij_per_unit(i::AbstractString, j::AbstractString, net::Network)::Matrix{ComplexF64}
+    yij_per_unit(i::AbstractString, j::AbstractString, net::Network)
 
-Impedance matrix of edge (i,j) in per-unit (normalized with `net.Zbase`)
+admittance matrix of edge (i,j) in per-unit (multiplied with `net.Zbase`)
 """
 function yij_per_unit(i::AbstractString, j::AbstractString, net::Network)
     yij(i, j, net) * net.Zbase
@@ -142,7 +151,9 @@ function conductance_per_length(c::Conductor, phase_type::Type{T}) where {T <: P
     if phase_type == SinglePhase
         return c.r1 / (c.length^2 * (c.r1^2 + c.x1^2))
     end
-    return c.rmatrix ./ (c.length^2 * (c.rmatrix.^2 + c.xmatrix.^2))
+    return replace_nan(
+        c.rmatrix ./ (c.length^2 * (c.rmatrix.^2 + c.xmatrix.^2))
+    )
 end
 
 
@@ -170,7 +181,9 @@ function susceptance_per_length(c::Conductor, phase_type::Type{T}) where {T <: P
     if phase_type == SinglePhase
         return -c.x1 / (c.length^2 * (c.r1^2 + c.x1^2))
     end
-    return -c.xmatrix ./ (c.length^2 * (c.rmatrix.^2 + c.xmatrix.^2))
+    return replace_nan(
+        -c.xmatrix ./ (c.length^2 * (c.rmatrix.^2 + c.xmatrix.^2))
+    )
 end
 
 
@@ -198,7 +211,9 @@ function conductance(vr::VoltageRegulator, phase_type::Type{T}) where {T <: Phas
     if phase_type == SinglePhase
         return vr.resistance / (vr.resistance.^2 + vr.reactance.^2)
     end
-    return vr.rmatrix ./ (vr.rmatrix^2 + vr.xmatrix^2)
+    return replace_nan(
+        vr.rmatrix ./ (vr.rmatrix^2 + vr.xmatrix^2)
+    )
 end
 
 
@@ -214,7 +229,9 @@ function susceptance(vr::VoltageRegulator, phase_type::Type{T}) where {T <: Phas
     if phase_type == SinglePhase
         return -vr.reactance / (vr.resistance.^2 + vr.reactance.^2)
     end
-    return -vr.xmatrix  ./ (vr.rmatrix.^2 + vr.xmatrix^.2)
+    return replace_nan(
+        -vr.xmatrix  ./ (vr.rmatrix.^2 + vr.xmatrix^.2)
+    )
 end
 
 
@@ -230,7 +247,9 @@ function conductance(trfx::Transformer, phase_type::Type{T}) where {T <: Phases}
     if phase_type == SinglePhase
         return trfx.resistance / (trfx.resistance^2 + trfx.reactance^2)
     end
-    return trfx.rmatrix ./ (trfx.rmatrix.^2 + trfx.xmatrix^.2)
+    return replace_nan(
+        trfx.rmatrix ./ (trfx.rmatrix.^2 + trfx.xmatrix^.2)
+    )
 end
 
 
@@ -246,5 +265,7 @@ function susceptance(trfx::Transformer, phase_type::Type{T}) where {T <: Phases}
     if phase_type == SinglePhase
         return -trfx.reactance / (trfx.resistance^2 + trfx.reactance^2)
     end
-    return -trfx.xmatrix ./ (trfx.rmatrix.^2 + trfx.xmatrix^.2)
+    return replace_nan(
+        -trfx.xmatrix ./ (trfx.rmatrix.^2 + trfx.xmatrix^.2)
+    )
 end

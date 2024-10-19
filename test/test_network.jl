@@ -21,6 +21,7 @@
     end
     @test rij("b1", "b2", net) == 0.301 * 100 == rij("b2", "b3", net) / 2
     @test xij("b1", "b2", net) == 0.627 * 100 == xij("b2", "b3", net) / 2
+    @test zij("b1", "b2", net) ≈ 1 / yij("b1", "b2", net)
 
     # loads
     @test net["b3"][:Load].kws1 == [5.6]
