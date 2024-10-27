@@ -1,6 +1,7 @@
 # CommonOPF Changelog
 
-## dev
+## v0.4.2
+- fix OpenDSSDirect.jl at v0.9.7 because v0.9.8 fails to build on mac chips
 - add src/edges/admittances.jl with `conductance`, `susceptance`, `bij`, `gij`, `yij`, and more methods.
 - add `multiphase_variable_container` methods for bus and edge variables
     - make variable indexing order consistent across single and multiphase models (bus/edge, time,
