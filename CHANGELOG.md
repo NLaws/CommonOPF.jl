@@ -1,7 +1,7 @@
 # CommonOPF Changelog
 
 ## v0.4.3 
-- fix OpenDSSDirect.jl at v0.9.7 because v0.9.8 fails to build on mac chips
+- fix OpenDSSDirect.jl at v0.9.9 because v0.9.8 has some issues
 
 ## v0.4.2 
 - add src/edges/admittances.jl with `conductance`, `susceptance`, `bij`, `gij`, `yij`, and more methods.

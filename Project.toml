@@ -20,7 +20,7 @@ DataStructures = "0.18"
 Graphs = "1.8"
 JuMP = "1"
 MetaGraphsNext = "0.7"
-OpenDSSDirect = "=0.9.7"  # issues with 0.9.8
+OpenDSSDirect = "=0.9.9"  # issues with 0.9.8
 Parameters = "0.12"
 YAML = "0.4"
 julia = "1"
