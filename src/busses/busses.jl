@@ -30,3 +30,13 @@ end
 The default action after build_busses.
 """
 check_busses!(busses::AbstractVector{<:AbstractBus}) = nothing
+
+
+"""
+    connected_busses(j::String, net::Network)::AbstractVector{String}
+
+Return a vector of all the busses connected to bus `j`.
+"""
+function connected_busses(j::String, net::Network)::AbstractVector{String}
+    vcat(i_to_j(j, net), j_to_k(j, net))
+end

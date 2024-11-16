@@ -34,7 +34,6 @@ export
     MultiPhaseVariableContainerType,
     check_paths_for_loads,
     info_max_rpu_xpu,
-    info_max_Ppu_Qpu,
 
     # graphs
     make_graph,
@@ -75,26 +74,32 @@ export
     combine_parallel_lines!,
     trim_above_bus!,
 
+    # attributes of the Network
+    edges,
+    busses,
+    connected_busses,
+    leaf_busses,
+    phases_into_bus,
     i_to_j,
     j_to_k,
-    phases_into_bus,
     kron_reduce,
 
     info_max_Ppu_Qpu,
-    leaf_busses,
     get_variable_values,
     Network,
-    edges,
-    busses,
     conductors,
     conductors_with_attribute_value,
-    load_busses,
     voltage_regulator_edges,
     is_connected,
+
+    # loads
+    load_busses,
     real_load_busses,
     reactive_load_busses,
     total_load_kw,
     total_load_kvar,
+    sj,
+    sj_per_unit,
     
     # test Networks
     Network_IEEE13_SinglePhase,

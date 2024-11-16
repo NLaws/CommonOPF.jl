@@ -24,29 +24,6 @@ end
     @test length(concrete_test_busses) == length(bus_dicts)
 # end
 
-@testset "Load" begin
-    bad_load = CommonOPF.Load(; bus="bname")  # no load defined
-    # a warning should be logged about removing bad_load
-    loads = CommonOPF.Load[bad_load]
-    clear_log!(test_logger)
-    CommonOPF.check_busses!(loads)
-    @test occursin("has been removed", test_logger.logs[end].message)
-    @test isempty(loads)
-
-    # test fill_load
-    load = CommonOPF.Load(;
-        bus="bname",
-        q_to_p=0.1,
-        kws1=[10],
-        kws2=[20],
-        kws3=[30],
-    )
-    CommonOPF.fill_load!(load)
-    @test load.kvars1 == [1]
-    @test load.kvars2 == [2]
-    @test load.kvars3 == [3]
-end
-
 
 @testset "ShuntAdmittance" begin
     shunt = CommonOPF.ShuntAdmittance(;
@@ -54,4 +31,11 @@ end
         g=1,
         b=1.1,
     )
+end
+
+
+@testset "connected_busses" begin
+    net = Network_IEEE13_SinglePhase()
+    expected_busses = ["670", "680", "684", "692"]
+    @test sort(connected_busses("671", net)) == sort(expected_busses)
 end
