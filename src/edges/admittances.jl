@@ -130,6 +130,26 @@ end
 
 
 """
+    yij_per_unit(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
+
+admittance of edge (i,j) in per-unit (multiplied with `net.Zbase`)
+"""
+function yij_per_unit(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
+    yij(i, j, net)[1, 1] * net.Zbase
+end
+
+
+"""
+    yij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
+
+admittance of edge (i,j)
+"""
+function yij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
+    return conductance(net[(i, j)], network_phase_type(net))[1,1] + im * susceptance(net[(i, j)], network_phase_type(net))[1,1]
+end
+
+
+"""
     yij_per_unit(i::AbstractString, j::AbstractString, net::Network)
 
 admittance matrix of edge (i,j) in per-unit (multiplied with `net.Zbase`)
