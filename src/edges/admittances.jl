@@ -42,22 +42,22 @@ susceptance_per_length(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases}
 """
     bij(i::AbstractString, j::AbstractString, net::Network)
 
-    conductance(net[(i,j)])
+    susceptance(net[(i,j)])
 
-conductance of edge i-j
+susceptance of edge i-j
 """
 function bij(i::AbstractString, j::AbstractString, net::Network)
-    conductance(net[(i,j)], network_phase_type(net))
+    susceptance(net[(i,j)], network_phase_type(net))
 end
 
 
 """
     bij(i::AbstractString, j::AbstractString, net:::Network{SinglePhase})
 
-Scalar conductance of edge i-j
+Scalar susceptance of edge i-j
 """
 function bij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-    b = conductance(net[(i,j)], network_phase_type(net))
+    b = susceptance(net[(i,j)], network_phase_type(net))
     if isa(b, AbstractMatrix) 
         if size(b) == (1,1)
             return b[1,1]
@@ -72,9 +72,9 @@ end
 """
     bij_per_unit(i::AbstractString, j::AbstractString, net::Network)
 
-    conductance(net[(i,j)]) * net.Zbase
+    susceptance(net[(i,j)]) * net.Zbase
 
-conductance of edge i-j normalized by `net.Zbase`
+susceptance of edge i-j normalized by `net.Zbase`
 """
 function bij_per_unit(i::AbstractString, j::AbstractString, net::Network)
     bij(i, j, net) * net.Zbase
@@ -84,25 +84,25 @@ end
 """
     gij(i::AbstractString, j::AbstractString, net::Network)
 
-susceptance of edge i-j
+conductance of edge i-j
 """
 function gij(i::AbstractString, j::AbstractString, net::Network)
-    susceptance(net[(i,j)], network_phase_type(net))
+    conductance(net[(i,j)], network_phase_type(net))
 end
 
 
 """
     gij(i::AbstractString, j::AbstractString, net:::Network{SinglePhase})
 
-Scalar susceptance of edge i-j
+Scalar conductance of edge i-j
 """
 function gij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
-    g = susceptance(net[(i,j)], network_phase_type(net))
+    g = conductance(net[(i,j)], network_phase_type(net))
     if isa(g, AbstractMatrix) 
         if size(g) == (1,1)
             return g[1,1]
         else
-            throw(@error "Edge ($i, $j) has a multiphase susceptance matrix in a single phase network.")
+            throw(@error "Edge ($i, $j) has a multiphase conductance matrix in a single phase network.")
         end
     end
     return g
@@ -112,7 +112,7 @@ end
 """
     gij_per_unit(i::AbstractString, j::AbstractString, net::Network)
 
-susceptance of edge i-j normalized by `net.Zbase`
+conductance of edge i-j normalized by `net.Zbase`
 """
 function gij_per_unit(i::AbstractString, j::AbstractString, net::Network)
     gij(i, j, net) * net.Zbase
