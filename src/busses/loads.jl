@@ -106,3 +106,30 @@ end
 function load_from_csv(load::Load)
     throw("NotImplementedError")
 end
+
+
+load_busses(net::AbstractNetwork) = collect(b for b in busses(net) if haskey(net[b], :Load))
+
+
+real_load_busses(net::Network{SinglePhase}) = collect(b for b in load_busses(net) if !ismissing(net[b][:Load].kws1))
+
+
+real_load_busses(net::Network{MultiPhase}) = collect(
+    b for b in load_busses(net) 
+    if !ismissing(net[b][:Load].kws1) || !ismissing(net[b][:Load].kws2) || !ismissing(net[b][:Load].kws3)
+)
+
+
+reactive_load_busses(net::Network{SinglePhase}) = collect(b for b in load_busses(net) if !ismissing(net[b][:Load].kvars1))
+
+
+reactive_load_busses(net::Network{MultiPhase}) = collect(
+    b for b in load_busses(net) 
+        if !ismissing(net[b][:Load].kvars1) || !ismissing(net[b][:Load].kvars2) || !ismissing(net[b][:Load].kvars3)
+)
+
+
+total_load_kw(net::Network{SinglePhase}) = sum(net[load_bus][:Load].kws1 for load_bus in real_load_busses(net))
+
+
+total_load_kvar(net::Network{SinglePhase}) = sum(net[load_bus][:Load].kvars1 for load_bus in real_load_busses(net))

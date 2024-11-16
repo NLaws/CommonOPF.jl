@@ -116,6 +116,7 @@ export
     connect_subgraphs_at_busses
 
 
+include("bounds.jl")
 include("types.jl")
 include("graphs.jl")
 include("io.jl")
@@ -128,17 +129,17 @@ include("edges/conductors.jl")
 include("edges/transformers.jl")
 include("edges/voltage_regulators.jl")
 
-include("bounds.jl")
 
 include("network.jl")
-include("edges/impedances.jl")  # Network type in signatures, move the struct to types?
-include("edges/admittances.jl")  # Network type in signatures, move the struct to types?
-include("busses/shunt_admittances.jl")  # Network type in signatures
+include("edges/impedances.jl")
+include("edges/admittances.jl")
+include("busses/shunt_admittances.jl")
 include("network_reduction.jl")
 include("decomposition.jl")
 
 include("variables.jl")
 include("results.jl")
+include("opendss.jl")
 
 
 end

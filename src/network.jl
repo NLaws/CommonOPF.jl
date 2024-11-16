@@ -1,42 +1,5 @@
-"""
-    struct Network <: AbstractNetwork
-        graph::MetaGraphsNext.AbstractGraph
-        substation_bus::String
-        Sbase::Real
-        Vbase::Real
-        Zbase::Real
-        v0::Union{Real, AbstractVecOrMat{<:Number}}
-        Ntimesteps::Int
-        bounds::VariableBounds
-        var_names::AbstractVector{Symbol}
-    end
-
-The `Network` model is used to store all the inputs required to create power flow and optimal power
-flow models. Underlying the Network model is a `MetaGraphsNext.MetaGraph` that stores the edge and
-node data in the network. 
-
-We leverage the `AbstractNetwork` type to make an intuitive interface for the Network model. For
-example, `edges(network)` returns an iterator of edge tuples with bus name values; (but if we used
-`Graphs.edges(MetaGraph)` we would get an iterator of Graphs.SimpleGraphs.SimpleEdge with integer
-values).
-
-A Network can be created directly, via a `Dict`, or a filepath. The minimum inputs must have a
-vector of [Conductor](@ref) specifications and a `Network` key containing at least the
-`substation_bus`. See [Input Formats](@ref) for more details.
-
-`var_names` is empty be default. It is used in the results getters like `opf_results`.
-"""
-mutable struct Network{T<:Phases} <: AbstractNetwork
-    graph::MetaGraphsNext.AbstractGraph
-    substation_bus::String
-    Sbase::Real
-    Vbase::Real
-    Zbase::Real
-    v0::Union{Real, AbstractVecOrMat{<:Number}}
-    Ntimesteps::Int
-    bounds::VariableBounds
-    var_names::AbstractVector{Symbol}
-end
+# the Network struct is defined in types.jl so that we can use it in function signatures throughout
+# the src code (by including types.jl first in the module).
 
 
 network_phase_type(net::Network{T}) where {T} = T
@@ -229,28 +192,9 @@ j_to_k(j::String, net::Network) = collect(outneighbors(net::Network, j::String))
 busses(net::AbstractNetwork) = collect(MetaGraphsNext.labels(net.graph))
 
 
-load_busses(net::AbstractNetwork) = collect(b for b in busses(net) if haskey(net[b], :Load))
-
-
 voltage_regulator_edges(net::AbstractNetwork) = collect(e for e in edges(net) if isa(net[e], VoltageRegulator))
 # TODO account for reverse flow voltage regulation?
 
-
-real_load_busses(net::Network{SinglePhase}) = collect(b for b in load_busses(net) if !ismissing(net[b][:Load].kws1))
-real_load_busses(net::Network{MultiPhase}) = collect(
-    b for b in load_busses(net) 
-    if !ismissing(net[b][:Load].kws1) || !ismissing(net[b][:Load].kws2) || !ismissing(net[b][:Load].kws3)
-)
-
-
-reactive_load_busses(net::Network{SinglePhase}) = collect(b for b in load_busses(net) if !ismissing(net[b][:Load].kvars1))
-reactive_load_busses(net::Network{MultiPhase}) = collect(
-    b for b in load_busses(net) 
-        if !ismissing(net[b][:Load].kvars1) || !ismissing(net[b][:Load].kvars2) || !ismissing(net[b][:Load].kvars3)
-)
-
-total_load_kw(net::Network{SinglePhase}) = sum(net[load_bus][:Load].kws1 for load_bus in real_load_busses(net))
-total_load_kvar(net::Network{SinglePhase}) = sum(net[load_bus][:Load].kvars1 for load_bus in real_load_busses(net))
 
 
 """
