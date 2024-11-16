@@ -136,9 +136,14 @@ function Network(fp::String)
     Network(d)
 end
 
-# make it so Network[(bus1, bus2)] returns the edge struct
-Base.getindex(net::Network, idx::Tuple{String, String}) = net.graph[idx[1], idx[2]]
-
+# make it so Network[(bus1, bus2)] and Network[(bus2, bus1)] return the edge struct
+function Base.getindex(net::Network, idx::Tuple{String, String}) 
+    try 
+        return net.graph[idx[1], idx[2]] 
+    catch KeyError
+        return net.graph[idx[2], idx[1]] 
+    end
+end
 
 function Base.setindex!(net::Network, edge::CommonOPF.AbstractEdge, idx::Tuple{String, String}) 
     net.graph[idx[1], idx[2]] = edge
