@@ -1,5 +1,10 @@
 # CommonOPF Changelog
 
+## dev on main branch
+- add `sj(j, net)`, and `sj_per_unit` power getters
+- add `connected_busses(n, net)`
+- make it so `Network[(bus1, bus2)]` _and_ `Network[(bus2, bus1)]` return the edge struct
+
 ## v0.4.3 
 - fix OpenDSSDirect.jl at v0.9.9 because v0.9.8 has some issues
 
