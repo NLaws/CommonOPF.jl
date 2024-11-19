@@ -141,7 +141,7 @@ total_load_kvar(net::Network{SinglePhase}) = sum(net[load_bus][:Load].kvars1 for
 Return the complex power injections (negative of load) at bus `j` in kW / kVaR. 
 """
 function sj(j::String, net::Network{SinglePhase})::AbstractVector{ComplexF64}
-    pj, qj = 0.0, 0.0
+    pj, qj = [0.0], [0.0]
     if j in real_load_busses(net)
         pj = -net[j][:Load].kws1
     end
