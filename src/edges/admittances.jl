@@ -186,6 +186,11 @@ end
 If `phase_type` is `SinglePhase` then return scalar conductance per unit length,
 else return 3x3 matrix of conductance per unit length.
 
+    if phase_type == SinglePhase
+        return c.r1 / (c.length^2 * (c.r1^2 + c.x1^2))
+    end
+    return real(inverse_matrix_with_zeros(c.rmatrix + im * c.xmatrix)) / c.length^2
+
 """
 function conductance_per_length(c::Conductor, phase_type::Type{T}) where {T <: Phases}
     if phase_type == SinglePhase

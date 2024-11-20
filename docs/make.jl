@@ -13,13 +13,14 @@ makedocs(
         "Variables for Mathematical Programs" => "variables.md",
         "Results" => "results.md",
         "Methods" => [
-            "impedances.md",
+            "impedance_and_admittance.md",
             "graph_methods.md",
             "decomposition.md"
         ],
         "Math" => "math.md",
         "Developer" => [
             "developer/developer.md",
+            "developer/impedance_and_admittance_methods.md",
             "developer/input_validation.md",
             "developer/jump_variables.md",
         ]
