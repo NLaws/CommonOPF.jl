@@ -172,15 +172,37 @@ end
             phases=[2,3],
         )
         CommonOPF.unpack_input_matrices!(c3)
-        z_magnitude = (
-            CommonOPF.resistance(c3, CommonOPF.MultiPhase).^2 
-            + CommonOPF.reactance(c3, CommonOPF.MultiPhase).^2
-        )
+        # build test values
+        sub_z_per_length_expected = [1 2; 2 3] .+ im * [1 2; 2 3]
+        sub_y_per_length_expected = inv(sub_z_per_length_expected) / c3.length^2
+        z_per_length_expected = zeros(ComplexF64, (3,3))
+        y_per_length_expected = zeros(ComplexF64, (3,3))
+        z_per_length_expected[c3.phases, c3.phases] .= sub_z_per_length_expected
+        y_per_length_expected[c3.phases, c3.phases] .= sub_y_per_length_expected
+
+        y = CommonOPF.conductance(c3, CommonOPF.MultiPhase) .+ 
+            im * CommonOPF.susceptance(c3, CommonOPF.MultiPhase)
+
+        z = CommonOPF.resistance(c3, CommonOPF.MultiPhase) .+ 
+            im * CommonOPF.reactance(c3, CommonOPF.MultiPhase)
+
+        y_per_length = CommonOPF.conductance_per_length(c3, CommonOPF.MultiPhase) .+
+            im * CommonOPF.susceptance_per_length(c3, CommonOPF.MultiPhase)
+
         @test all(
-            CommonOPF.conductance(c3, CommonOPF.MultiPhase) .≈ 
-            CommonOPF.replace_nan(
-                CommonOPF.resistance(c3, CommonOPF.MultiPhase) ./ z_magnitude
-            )
+            y .≈ y_per_length_expected * c3.length
+        )
+
+        @test all(
+            y_per_length .≈ y_per_length_expected
+        )
+
+        @test all(
+            CommonOPF.inverse_matrix_with_zeros(y) .≈ z
+        )
+
+        @test all(
+            CommonOPF.inverse_matrix_with_zeros(y_per_length) .≈ z_per_length_expected * c3.length^2
         )
     end
 

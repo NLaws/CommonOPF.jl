@@ -136,7 +136,8 @@ end
     @test xij("b1", "b2", net) == xij("b2", "b3", net) / 2  # twice as long
     @test rij_per_unit("b1", "b2", net) == rij_per_unit("b2", "b3", net) / 2
     @test xij_per_unit("b1", "b2", net) == xij_per_unit("b2", "b3", net) / 2
-    @test all(inv.(zij("b1", "b2", net)) .≈ yij("b1", "b2", net))
+    z_inverse = CommonOPF.inverse_matrix_with_zeros(zij("b1", "b2", net))
+    @test all(z_inverse .≈ yij("b1", "b2", net))
 
     # test load definitions
     lbs = load_busses(net)
