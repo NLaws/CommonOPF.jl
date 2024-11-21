@@ -22,12 +22,22 @@ function add_time_vector_variables!(
     m::JuMP.AbstractModel, 
     net::Network{SinglePhase}, 
     var_symbol::Symbol, 
-    indices::AbstractVector{T} 
+    indices::AbstractVector{T};
+    set::DataType=Real
 ) where {T}
-    m[var_symbol] = Dict{T, AbstractVector{JuMP.VariableRef}}()
-    for i in indices
-        m[var_symbol][i] = @variable(m, [1:net.Ntimesteps])
+    if set == Real
+        jump_type = JuMP.VariableRef
+    elseif set == ComplexPlane
+        jump_type = GenericAffExpr{ComplexF64, VariableRef}
+    else
+        throw(@error "Got invalid set for creating variables: $set. Only Real and ComplexPlane are supported")
     end
+    m[var_symbol] = Dict{T, AbstractVector{jump_type}}()
+    for i in indices
+        m[var_symbol][i] = @variable(m, [1:net.Ntimesteps]; set=set())
+    end
+    push!(net.var_names, var_symbol)
+    nothing
 end
 
 
