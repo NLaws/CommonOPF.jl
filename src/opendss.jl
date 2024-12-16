@@ -1,7 +1,7 @@
 """
     dss_voltages_pu()
 
-
+return a dict with bus-name keys and per-unit voltages for each phase at each bus.
 """
 function dss_voltages_pu()::Dict
     d = Dict()
@@ -13,7 +13,14 @@ function dss_voltages_pu()::Dict
 end
 
 
-function check_opendss_powers(;tol=1e-6)
+"""
+    check_opendss_powers(;tol=1e-6)
+
+Return bool for whether or not the load powers match the solution powers In other words, confirm hat the
+constant power model was used in the solution. OpenDSS will automatically (and silently) change the
+load models when solving if voltages go outside of bounds (that can be set on the Load objects).
+"""
+function check_opendss_powers(;tol=1e-6)::bool
 
     elements = OpenDSS.Circuit.AllElementNames()
 
