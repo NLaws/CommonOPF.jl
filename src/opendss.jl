@@ -20,7 +20,7 @@ Return bool for whether or not the load powers match the solution powers In othe
 constant power model was used in the solution. OpenDSS will automatically (and silently) change the
 load models when solving if voltages go outside of bounds (that can be set on the Load objects).
 """
-function check_opendss_powers(;tol=1e-6)::bool
+function check_opendss_powers(;tol=1e-6)::Bool
 
     elements = OpenDSS.Circuit.AllElementNames()
 
