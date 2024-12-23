@@ -26,6 +26,14 @@ function inverse_matrix_with_zeros(M::AbstractMatrix{T})::AbstractMatrix{T} wher
 end
 
 
+function make_nan_or_inf_zero(val)
+    if isnan(val) || isinf(val)
+        return 0.0
+    end
+    val
+end
+
+
 """
     conductance(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
 
@@ -194,7 +202,7 @@ else return 3x3 matrix of conductance per unit length.
 """
 function conductance_per_length(c::Conductor, phase_type::Type{T}) where {T <: Phases}
     if phase_type == SinglePhase
-        return c.r1 / (c.length^2 * (c.r1^2 + c.x1^2))
+        return make_nan_or_inf_zero(c.r1 / (c.length^2 * (c.r1^2 + c.x1^2)))
     end
     return real(inverse_matrix_with_zeros(c.rmatrix + im * c.xmatrix)) / c.length^2
 end
@@ -222,7 +230,7 @@ end
 """
 function susceptance_per_length(c::Conductor, phase_type::Type{T}) where {T <: Phases}
     if phase_type == SinglePhase
-        return -c.x1 / (c.length^2 * (c.r1^2 + c.x1^2))
+        return make_nan_or_inf_zero(-c.x1 / (c.length^2 * (c.r1^2 + c.x1^2)))
     end
     return imag(inverse_matrix_with_zeros(c.rmatrix + im * c.xmatrix)) / c.length^2
 end
@@ -250,7 +258,7 @@ end
 """
 function conductance(vr::VoltageRegulator, phase_type::Type{T}) where {T <: Phases}
     if phase_type == SinglePhase
-        return vr.resistance / (vr.resistance.^2 + vr.reactance.^2)
+        return make_nan_or_inf_zero(vr.resistance / (vr.resistance.^2 + vr.reactance.^2))
     end
     return real(inverse_matrix_with_zeros(vr.rmatrix + im * vr.xmatrix))
 end
@@ -266,7 +274,7 @@ end
 """
 function susceptance(vr::VoltageRegulator, phase_type::Type{T}) where {T <: Phases}
     if phase_type == SinglePhase
-        return -vr.reactance / (vr.resistance.^2 + vr.reactance.^2)
+        return make_nan_or_inf_zero(-vr.reactance / (vr.resistance.^2 + vr.reactance.^2))
     end
     return imag(inverse_matrix_with_zeros(vr.rmatrix + im * vr.xmatrix))
 end
@@ -282,7 +290,7 @@ end
 """
 function conductance(trfx::Transformer, phase_type::Type{T}) where {T <: Phases}
     if phase_type == SinglePhase
-        return trfx.resistance / (trfx.resistance^2 + trfx.reactance^2)
+        return make_nan_or_inf_zero(trfx.resistance / (trfx.resistance^2 + trfx.reactance^2))
     end
     return real(inverse_matrix_with_zeros(trfx.rmatrix + im * trfx.xmatrix))
 end
@@ -298,7 +306,7 @@ end
 """
 function susceptance(trfx::Transformer, phase_type::Type{T}) where {T <: Phases}
     if phase_type == SinglePhase
-        return -trfx.reactance / (trfx.resistance^2 + trfx.reactance^2)
+        return make_nan_or_inf_zero(-trfx.reactance / (trfx.resistance^2 + trfx.reactance^2))
     end
     return imag(inverse_matrix_with_zeros(trfx.rmatrix + im * trfx.xmatrix))
 end
