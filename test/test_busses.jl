@@ -36,6 +36,6 @@ end
 
 @testset "connected_busses" begin
     net = Network_IEEE13_SinglePhase()
-    expected_busses = ["670", "680", "684", "692"]
-    @test sort(connected_busses("671", net)) == sort(expected_busses)
+    expected_busses = Set(["670", "680", "684", "692"])
+    @test connected_busses("671", net) == expected_busses
 end
