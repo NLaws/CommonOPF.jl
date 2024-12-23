@@ -34,7 +34,11 @@ function add_time_vector_variables!(
     end
     m[var_symbol] = Dict{T, AbstractVector{jump_type}}()
     for i in indices
-        m[var_symbol][i] = @variable(m, [1:net.Ntimesteps]; set=set())
+        if set == Real  # Real is the default set and the @variable macro does not work with it passed in
+            m[var_symbol][i] = @variable(m, [1:net.Ntimesteps])
+        else
+         m[var_symbol][i] = @variable(m, [1:net.Ntimesteps]; set=set())
+        end
     end
     push!(net.var_names, var_symbol)
     nothing
