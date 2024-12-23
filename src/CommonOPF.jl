@@ -80,6 +80,7 @@ export
     edges,
     busses,
     connected_busses,
+    generator_busses,
     leaf_busses,
     phases_into_bus,
     i_to_j,
@@ -130,6 +131,7 @@ include("io.jl")
 
 include("busses/busses.jl")
 include("busses/loads.jl")
+include("busses/generators.jl")
 
 include("edges/edges.jl")
 include("edges/conductors.jl")

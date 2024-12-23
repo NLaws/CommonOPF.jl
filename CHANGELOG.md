@@ -1,6 +1,7 @@
 # CommonOPF Changelog
 
 ## dev on main branch
+- add `Generator <: AbstractBus` struct for P-V busses in BusInjectionModel.jl
 - add `Yij_per_unit` and `Yij` admittance matrix getters
 - add `sj(j, net)`, and `sj_per_unit` power getters
 - add `connected_busses(n, net)`
