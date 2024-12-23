@@ -310,3 +310,45 @@ function susceptance(trfx::Transformer, phase_type::Type{T}) where {T <: Phases}
     end
     return imag(inverse_matrix_with_zeros(trfx.rmatrix + im * trfx.xmatrix))
 end
+
+
+"""
+    Yij(i::AbstractString, j::AbstractString, net::CommonOPF.Network)::ComplexF64
+
+entry of admittance matrix at i,j
+"""
+function Yij(i::AbstractString, j::AbstractString, net::CommonOPF.Network)::ComplexF64
+    if i != j
+        return -1 .* yij(i, j, net)
+    end
+    # TODO shunt impedance
+    # sum up the y_jk where k is connected to j
+    g, b = 0, 0
+    for k in connected_busses(j, net)
+        y = yij(i, k, net)
+        g += real(y)
+        b += imag(y)
+    end
+    return g + im * b
+end
+
+
+"""
+    Yij_per_unit(i::AbstractString, j::AbstractString, net::CommonOPF.Network)::ComplexF64
+
+entry of admittance matrix at i,j in per-unit (multiplied with `net.Zbase`)
+"""
+function Yij_per_unit(i::AbstractString, j::AbstractString, net::CommonOPF.Network)::ComplexF64
+    if i != j
+        return -1 .* yij_per_unit(i, j, net)
+    end
+    # TODO shunt impedance
+    # sum up the y_jk where k is connected to j
+    g, b = 0, 0
+    for k in connected_busses(j, net)
+        y = yij_per_unit(i, k, net)
+        g += real(y)
+        b += imag(y)
+    end
+    return g + im * b
+end

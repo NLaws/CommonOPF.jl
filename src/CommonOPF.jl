@@ -62,6 +62,8 @@ export
     yij,
     yij_per_unit,
     yj,
+    Yij_per_unit,
+    Yij,
 
     # io
     dss_to_Network,
