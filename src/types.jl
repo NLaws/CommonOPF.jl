@@ -44,7 +44,7 @@ mutable struct Network{T<:Phases} <: AbstractNetwork
     Sbase::Real
     Vbase::Real
     Zbase::Real
-    v0::Union{Real, AbstractVecOrMat{<:Number}}
+    v0::Union{Number, AbstractVecOrMat{<:Number}}
     Ntimesteps::Int
     bounds::VariableBounds
     var_names::AbstractVector{Symbol}
