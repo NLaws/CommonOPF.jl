@@ -83,6 +83,8 @@ export
     generator_busses,
     leaf_busses,
     phases_into_bus,
+    phases_out_of_bus,
+    phases_connected_to_bus,
     i_to_j,
     j_to_k,
     kron_reduce,

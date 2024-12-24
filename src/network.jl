@@ -173,6 +173,22 @@ function phases_into_bus(net::Network, bus::String)::Vector{Int64}
 end
 
 
+function phases_out_of_bus(net::Network, bus::String)::Vector{Int64}
+    phase_set = Set{Int64}()
+    for out_bus in outneighbors(net, bus)
+        union!(phase_set, net[(bus, out_bus)].phases)
+    end
+    return sort(collect(phase_set))
+end
+
+
+function phases_connected_to_bus(net::Network, bus::String)::Vector{Int64}
+    sort(union(
+        phases_into_bus(net, bus), phases_out_of_bus(net, bus)
+    ))
+end
+
+
 """
     i_to_j(j::String, net::Network)
 

@@ -131,7 +131,7 @@ function add_complex_vector_of_phase_variable!(
 
     # fill in variables for complex vectors of phase
     # TODO vectorize variable definitions
-    for phs in phases_into_bus(net, j)
+    for phs in phases_connected_to_bus(net, j)
 
         m[var_symbol][bus_or_edge][time_step][phs] = @variable(m, 
             set = ComplexPlane(), 
