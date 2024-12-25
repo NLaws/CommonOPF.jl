@@ -2,6 +2,7 @@
 
 ## dev
 - add `phases_out_of_bus` and `phases_connected_to_bus` methods
+- add some model building support methods that are shared in BusInjectionModel and BranchFlowModel
 
 ## v0.4.4
 - add `Generator <: AbstractBus` struct for P-V busses in BusInjectionModel.jl
