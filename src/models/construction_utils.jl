@@ -34,7 +34,8 @@ end
 """
     phi_ij(j::String, net::Network, M::AbstractMatrix)
 
-Down-select the matrix M by the phase from i -> j
+Down-select the matrix M by the phase from i -> j, storing `0im` in the missing off-diagonal phase
+indices and `0` in the diagonal missing indices.
 """
 function phi_ij(j::String, net::Network, M::AbstractMatrix)
     N = convert(Matrix{GenericAffExpr{ComplexF64, VariableRef}}, [0 0im 0im; 0im 0. 0im; 0im 0im 0])
@@ -48,7 +49,7 @@ end
 """
     phi_ij(j::String, net::Network, v::AbstractVector)
 
-Down-select the vector v by the phase from i -> j
+Down-select the vector v by the phase from i -> j, storing `0im` in the missing phase indices.
 """
 function phi_ij(j::String, net::Network, v::AbstractVector)
     n = convert(Vector{GenericAffExpr{ComplexF64, VariableRef}}, [0im; 0im; 0im])
