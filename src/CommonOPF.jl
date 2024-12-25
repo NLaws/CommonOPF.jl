@@ -105,6 +105,7 @@ export
     total_load_kvar,
     sj,
     sj_per_unit,
+    power_injection_vector_pu,
     
     # test Networks
     Network_IEEE13_SinglePhase,

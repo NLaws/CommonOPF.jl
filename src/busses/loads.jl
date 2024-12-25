@@ -160,3 +160,31 @@ Return the complex power injections (negative of load) at bus `j` per-unit power
 function sj_per_unit(j::String, net::Network{SinglePhase})::AbstractVector{ComplexF64}
     return sj(j, net) * 1e3 / net.Sbase
 end
+
+
+"""
+    power_injection_vector_pu(j::String, net::Network{MultiPhase})::Tuple{Vector{Vector{<:Real}}, Vector{Vector{<:Real}}}
+
+return the real and reactive power injections as vectors with 3 phase indices and net.Ntimesteps time
+indices like:
+```julia
+Pj, Qj = power_injection_vector_pu(my_bus, net)
+...
+Pj[phase][time_step]
+```
+"""
+function power_injection_vector_pu(j::String, net::Network{MultiPhase})::Tuple{Vector{Vector{<:Real}}, Vector{Vector{<:Real}}}
+    Pj = [zeros(net.Ntimesteps) for _ in 1:3] # first dim is phase, like Pj[phs][t]
+    Qj = [zeros(net.Ntimesteps) for _ in 1:3]
+    if j in real_load_busses(net)
+        for phs in 1:3
+            Pj[phs] = -net[j, :kws, phs] * 1e3 / net.Sbase
+        end
+    end
+    if j in reactive_load_busses(net)
+        for phs in 1:3 
+            Qj[phs] = -net[j, :kvars, phs] * 1e3 / net.Sbase
+        end
+    end
+    return Pj, Qj
+end
