@@ -130,7 +130,6 @@ export
     cj,
     substation_voltage,
     phi_ij,
-    phases_of_vector,
     matrix_phases_to_vec
 
 

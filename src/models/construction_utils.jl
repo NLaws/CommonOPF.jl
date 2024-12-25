@@ -70,20 +70,6 @@ end
 
 
 """
-    phases_of_vector(v::AbstractVector{T}, phases::AbstractVector{Int}) where T
-
-Return only the `phases` of vector `v`.
-"""
-function phases_of_vector(v::AbstractVector{T}, phases::AbstractVector{Int}) where T
-    v2 = T[]
-    for i in phases
-        push!(v2,v[i])
-    end
-    return v2
-end
-
-
-"""
     matrix_phases_to_vec(M::AbstractMatrix{T}, phases::AbstractVector{Int}) where T
 
 Used in defining the KVL constraints, this method returns the entries of `M` at the indices in 
