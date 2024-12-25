@@ -43,6 +43,8 @@ with_logger(test_logger) do
 
     include("test_loads.jl")
 
+    include("test_model_construction_utils.jl")
+
     include("test_network_reduction.jl")
 
     include("test_network.jl")
