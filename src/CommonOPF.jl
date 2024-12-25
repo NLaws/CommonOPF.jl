@@ -123,7 +123,15 @@ export
     splitting_busses,
     split_at_busses,
     init_split_networks!,
-    connect_subgraphs_at_busses
+    connect_subgraphs_at_busses,
+
+    # model building support
+    cj,
+    substation_voltage,
+    phi_ij,
+    phases_of_vector,
+    matrix_phases_to_vec
+
 
 
 include("bounds.jl")
@@ -148,8 +156,9 @@ include("busses/shunt_admittances.jl")
 include("network_reduction.jl")
 include("decomposition.jl")
 
-include("variables.jl")
-include("results.jl")
+include("models/construction_utils.jl")
+include("models/variables.jl")
+include("models/results.jl")
 include("opendss.jl")
 
 
