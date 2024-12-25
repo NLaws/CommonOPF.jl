@@ -27,6 +27,8 @@ mutable struct VariableBounds
     
     v_upper_mag::Union{Real, Missing}
     v_lower_mag::Union{Real, Missing}
+    v_upper_ang::Union{Real, Missing}
+    v_lower_ang::Union{Real, Missing}
 
     i_upper_mag::Union{Real, Missing}
     i_lower_mag::Union{Real, Missing}
@@ -47,6 +49,8 @@ function VariableBounds(ntwk::Dict)
 
     v_upper_mag = get(ntwk, :v_upper_mag, missing)
     v_lower_mag = get(ntwk, :v_lower_mag, missing)
+    v_upper_ang = get(ntwk, :v_upper_ang, missing)
+    v_lower_ang = get(ntwk, :v_lower_ang, missing)
 
     i_upper_mag = get(ntwk, :i_upper_mag, missing)
     i_lower_mag = get(ntwk, :i_lower_mag, missing)
@@ -59,6 +63,8 @@ function VariableBounds(ntwk::Dict)
 
         v_upper_mag,
         v_lower_mag,
+        v_upper_ang,
+        v_lower_ang,
 
         i_upper_mag,
         i_lower_mag
