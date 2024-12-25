@@ -134,7 +134,7 @@ export
 
 
 
-include("bounds.jl")
+include("models/bounds.jl")
 include("types.jl")
 include("graphs.jl")
 include("io.jl")
