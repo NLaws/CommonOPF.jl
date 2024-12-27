@@ -1,8 +1,10 @@
 # CommonOPF Change log
 
-## dev
+## v0.4.5
 - add `phases_out_of_bus` and `phases_connected_to_bus` methods
 - add some model building support methods that are shared in BusInjectionModel and BranchFlowModel
+    - such as `sj_per_unit` for `Network{MultiPhase}`
+- support for multiphase BIM (with rectangular voltage)
 
 ## v0.4.4
 - add `Generator <: AbstractBus` struct for P-V busses in BusInjectionModel.jl
