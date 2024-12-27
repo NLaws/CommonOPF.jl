@@ -22,9 +22,23 @@
 end
 
 
-@testset "sj power getters" begin
+@testset "power getters" begin
+    # SinglePhase
     net = Network_IEEE13_SinglePhase()
+    net.Ntimesteps = 1
     net.Sbase = 1e6
-    @test sj("634", net) ≈ [-133.33 + -im*96.67]
-    @test sj_per_unit("634", net) ≈ [-133.33 + -im*96.67] / 1e3
+    bus = "634"
+    expected_p = -133.33
+    expected_q = -im*96.67
+    @test sj(bus, net) ≈ [expected_p + expected_q]
+    @test sj_per_unit(bus, net) ≈ [expected_p + expected_q] / 1e3
+
+    # MultiPhase
+    dssfilepath = joinpath("data", "ieee13", "IEEE13Nodeckt.dss")
+    net = Network(dssfilepath)
+    net.Ntimesteps = 1
+    net.Sbase = 1e3
+    Pj, Qj = sj_per_unit(bus, net)
+    @test Pj == [[-160.0], [-120.0], [-120.0]]
+    @test Qj == [[-110.0], [-90.0], [-90.0]]
 end
