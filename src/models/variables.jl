@@ -117,6 +117,9 @@ function add_complex_vector_of_phase_variable!(
     upper_bound_mag::Union{Real, Missing} = missing,
     lower_bound_mag::Union{Real, Missing} = missing,
     )
+    if time_step > net.Ntimesteps
+        @warn "Adding a variable to the model at time index $time_step, which is more than net.Ntimesteps."
+    end
 
     j = bus_or_edge  # an edge has two busses: (i, j)
     if isa(bus_or_edge, Tuple{String, String})
