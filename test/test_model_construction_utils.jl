@@ -28,4 +28,22 @@
     v = phi_ij("684", net, v)
     @test v[1] == 1im
     @test v[2] == 0im
+
+    # substation_voltage
+    net.v0 = 1.0
+    v = substation_voltage(net)
+    # real scalar v0 turned into complex vector with 120 deg phase shifts
+    @test all(v .== [1.0 + 0im, -0.5 - im * sqrt(3) / 2, -0.5 + im * sqrt(3) / 2])
+    # similar for real vector
+    net.v0 = convert(Vector{Float64}, [1.01, 1.02, 1.03])
+    v = substation_voltage(net)
+    @test all(v .== [
+        net.v0[1] + 0im, 
+        net.v0[2]*(-0.5 - im * sqrt(3) / 2), 
+        net.v0[3]*(-0.5 + im * sqrt(3) / 2)
+    ])
+    # a complex vector is unmodified
+    net.v0 = [1im, 2im, 3im]
+    v = substation_voltage(net)
+    @test all(v .== net.v0)
 end
