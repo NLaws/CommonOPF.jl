@@ -14,6 +14,13 @@
         @test isa(net[("650", "rg60")], CommonOPF.VoltageRegulator)
         @test net[("650", "rg60")].vreg_pu ≈ 1.01667
 
+        @test :Capacitor in keys(net["675"])
+        @test :Capacitor in keys(net["611"])
+
+        @test net["675"][:Capacitor].kvar1 == net["675"][:Capacitor].kvar2 == net["675"][:Capacitor].kvar3 == 200.0
+        @test net["611"][:Capacitor].kvar1 == net["611"][:Capacitor].kvar2 == 0.0
+        @test net["611"][:Capacitor].kvar3 == 100.0
+
         # TODO compare to data/yaml_inputs/ieee13_multi_phase.yaml (which was manually constructed)
         # can use dict equality for all conductors?
     end

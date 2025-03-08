@@ -51,6 +51,11 @@ CommonOPF.Load
 Base.getindex(net::Network, bus::String, kws_kvars::Symbol, phase::Int)
 ```
 
+## Capacitor
+```@docs
+CommonOPF.Capacitor
+```
+
 ## ShuntAdmittance
 ```@docs
 CommonOPF.ShuntAdmittance

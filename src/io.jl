@@ -231,12 +231,16 @@ function dss_to_Network(dssfilepath::AbstractString)::Network
             :Vbase => OpenDSS.Vsources.BasekV() * 1e3,
             # :Sbase => Tranformer value?,
         ),
+        :Capacitor => opendss_capacitors(),
         :Conductor => conductors,
         :Load => load_dicts,
         :Transformer => opendss_transformers(num_phases, Y, node_order),
         :VoltageRegulator => opendss_regulators(num_phases, Y, node_order),
         :ShuntAdmittance => opendss_shunts(num_phases, conductors)
     )
+    # TODO set v0 from OpenDSS solution with loads (after confirming that the resulting loads are
+    # equal to the inputs, i.e. the load model=1 for constant power and the vmin/maxpu values were
+    # not violated, which causes the load model to change in OpenDSS)
 
     Network(net_dict)
 end
@@ -532,7 +536,25 @@ function opendss_capacitors()::Vector{Dict{Symbol, Any}}
     cap_number = OpenDSS.Capacitors.First()
     cap_dicts = Dict{Symbol, Any}[]
     while cap_number > 0
+        bus1, bus2 = [lowercase(s) for s in OpenDSS.CktElement.BusNames()]
+        phases = OpenDSS.CktElement.NodeOrder()[1:OpenDSS.CktElement.NumPhases()]
+        bus1 = strip_phases(bus1)
+        bus2 = strip_phases(bus2)
+        per_phase_kvar = OpenDSS.Capacitors.kvar() / length(phases)
 
+        if !(bus1 == bus2)
+            @warn "Series capacitors are not modeled. Found one between busses $bus1 and $bus2"
+            cap_number = OpenDSS.Capacitors.Next()
+            continue
+        end
+
+        push!(cap_dicts, Dict(
+            :bus => bus1,
+            :kvar1 => 1 in phases ? per_phase_kvar : 0.0,
+            :kvar2 => 2 in phases ? per_phase_kvar : 0.0,
+            :kvar3 => 3 in phases ? per_phase_kvar : 0.0,
+        ))
+        cap_number = OpenDSS.Capacitors.Next()
     end
     return cap_dicts
 end

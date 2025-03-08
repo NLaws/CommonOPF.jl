@@ -1,5 +1,8 @@
 # CommonOPF Change log
 
+## dev
+- add fixed `Capacitor` model
+
 ## v0.4.5
 - add `phases_out_of_bus` and `phases_connected_to_bus` methods
 - add some model building support methods that are shared in BusInjectionModel and BranchFlowModel

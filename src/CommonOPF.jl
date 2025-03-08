@@ -140,6 +140,7 @@ include("graphs.jl")
 include("io.jl")
 
 include("busses/busses.jl")
+include("busses/capacitors.jl")
 include("busses/loads.jl")
 include("busses/generators.jl")
 

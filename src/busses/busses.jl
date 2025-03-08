@@ -1,6 +1,3 @@
-# all the things that move power from one point to another
-
-
 """
     function  build_busses(dicts::AbstractVector{Dict{Symbol, Any}}, ConcreteBusType::DataType)
 

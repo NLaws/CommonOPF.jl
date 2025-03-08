@@ -28,14 +28,14 @@ edge specifications.
 
 Nodes contain:
 - [Load](@ref)
+- [Capacitor](@ref)
 - [ShuntAdmittance](@ref)
-- [VoltageRegulator](@ref)
 
 Within the network model busses are indexed via bus names like so:
 ```@example
 using CommonOPF
 net = Network_IEEE13_SinglePhase()
-net["670"]
+net["675"]
 ```
 
 ## Network Reduction

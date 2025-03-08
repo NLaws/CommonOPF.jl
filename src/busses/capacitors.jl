@@ -3,11 +3,21 @@
 
 Required fields:
 - `bus::String`
-- `var::Real` reactive power in VAR
+- `kvar1::Real` reactive power in kVaR on phase1
+- `kvar2::Real` reactive power in kVaR on phase2
+- `kvar3::Real` reactive power in kVaR on phase4
+
+Only modeling fixed capacitors so far. Positive kvar values are injected.
 """
 @with_kw struct Capacitor <: AbstractBus
     # required values
     bus::String
-    var::Real
-    # TODO matrices for MultiPhase models
+    # optional values
+    kvar1::Real = 0.0
+    kvar2::Real = 0.0
+    kvar3::Real = 0.0
 end
+
+capacitor_busses(net::Network{SinglePhase}) = collect(
+    b for b in busses(net) if haskey(net[b], :Capacitor)
+)
