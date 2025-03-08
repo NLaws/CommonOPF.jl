@@ -372,7 +372,7 @@ end
     phase_admittance(bus1::String, bus2::String, Y::Matrix{ComplexF64}, node_order::Vector{String})
 
 Given two bus names, the OpenDSS.Circuit.SystemY(), and the OpenDSS.Circuit.YNodeOrder() return the 
-sub-matrix of Y that correspondes to the bus names sorted in numerical phase order.
+sub-matrix of Y that corresponds to the bus names sorted in numerical phase order.
 
 !!! note
     The OpenDSS Y matrix is in 1/impedance units (as defined in the OpenDSS model), like 1,000-ft/ohms.
@@ -391,7 +391,13 @@ end
 Extract the transformer impedance from the "system Y" matrix, removing the turns ratio that OpenDSS
 embeds in the admittance values.
 """
-function transformer_impedance(Y::Matrix{ComplexF64}, node_order::Vector{String}, bus1::String, bus2::String, phases::AbstractVector{Int})
+function transformer_impedance(
+        Y::Matrix{ComplexF64}, 
+        node_order::Vector{String}, 
+        bus1::String, 
+        bus2::String, 
+        phases::AbstractVector{Int},
+    )
     # BusNames can have phases like bname.1.2
     # see https://drive.google.com/file/d/1cNc7sFwxUZAuNT3JtUy4vVCeiME0NxJO/view?usp=drive_link
     Y_trfx = phase_admittance(bus1, bus2, Y, node_order)
@@ -405,7 +411,7 @@ function transformer_impedance(Y::Matrix{ComplexF64}, node_order::Vector{String}
         kV2 = OpenDSS.Transformers.kV()
     end
     # NOTE ignoring off diagonal terms since they cause numerical issues in IEEE13 source transformer
-    Z = inv(Diagonal(Y_trfx)) * kV1 / kV2
+    Z = inverse_matrix_with_zeros(Diagonal(Y_trfx)) * kV1 / kV2
     r, x, _ = dss_impedance_matrices_to_three_phase(abs.(real(Z)), -1*imag(Z), zeros(3,3), phases)
     return r, x, kV1, kV2
 end
@@ -427,6 +433,7 @@ function opendss_transformers(
         end
 
         bus1, bus2 = [lowercase(s) for s in OpenDSS.CktElement.BusNames()]
+        bus1, bus2 = strip_phases(bus1), strip_phases(bus2)
         phases = OpenDSS.CktElement.NodeOrder()[1:OpenDSS.CktElement.NumPhases()]
         rmatrix, xmatrix, kV1, kV2 = transformer_impedance(Y, node_order, bus1, bus2, phases)
 
@@ -534,7 +541,9 @@ end
 
 function opendss_capacitors()::Vector{Dict{Symbol, Any}}
     cap_number = OpenDSS.Capacitors.First()
-    cap_dicts = Dict{Symbol, Any}[]
+    # we track busses to merge any single phase capacitors that share a bus into one capacitor
+    # then at the end just return the vector of dicts.
+    caps = Dict{String, Dict{Symbol, Any}}()
     while cap_number > 0
         bus1, bus2 = [lowercase(s) for s in OpenDSS.CktElement.BusNames()]
         phases = OpenDSS.CktElement.NodeOrder()[1:OpenDSS.CktElement.NumPhases()]
@@ -548,13 +557,19 @@ function opendss_capacitors()::Vector{Dict{Symbol, Any}}
             continue
         end
 
-        push!(cap_dicts, Dict(
-            :bus => bus1,
-            :kvar1 => 1 in phases ? per_phase_kvar : 0.0,
-            :kvar2 => 2 in phases ? per_phase_kvar : 0.0,
-            :kvar3 => 3 in phases ? per_phase_kvar : 0.0,
-        ))
+        if !(bus1 in keys(caps))
+            caps[bus1] = Dict(
+                :bus => bus1,
+                :kvar1 => 1 in phases ? per_phase_kvar : 0.0,
+                :kvar2 => 2 in phases ? per_phase_kvar : 0.0,
+                :kvar3 => 3 in phases ? per_phase_kvar : 0.0,
+            )
+        else  # merge into existing capacitor
+            caps[bus1][:kvar1] += 1 in phases ? per_phase_kvar : 0.0
+            caps[bus1][:kvar2] += 2 in phases ? per_phase_kvar : 0.0
+            caps[bus1][:kvar3] += 3 in phases ? per_phase_kvar : 0.0
+        end
         cap_number = OpenDSS.Capacitors.Next()
     end
-    return cap_dicts
+    return collect(values(caps))
 end

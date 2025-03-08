@@ -17,7 +17,12 @@
         @test :Capacitor in keys(net["675"])
         @test :Capacitor in keys(net["611"])
 
-        @test net["675"][:Capacitor].kvar1 == net["675"][:Capacitor].kvar2 == net["675"][:Capacitor].kvar3 == 200.0
+        kvar1 = net["675"][:Capacitor].kvar1
+        kvar2 = net["675"][:Capacitor].kvar2
+        kvar3 = net["675"][:Capacitor].kvar3
+        
+        @test kvar1 == kvar2 == kvar3 == 200.0
+
         @test net["611"][:Capacitor].kvar1 == net["611"][:Capacitor].kvar2 == 0.0
         @test net["611"][:Capacitor].kvar3 == 100.0
 
@@ -97,6 +102,21 @@
         for (i,j) in edges(net)
             @test typeof(rij(i, j, net)) <: Number
         end
+        
+    end
+
+    @testset "IEEE 8500 Node" begin
+        dssfilepath = joinpath("data", "ieee8500", "Master-unbal.dss")
+        net = CommonOPF.dss_to_Network(dssfilepath)
+
+        kvar1 = net["r42247"][:Capacitor].kvar1
+        kvar2 = net["r42247"][:Capacitor].kvar2
+        kvar3 = net["r42247"][:Capacitor].kvar3
+        
+        @test kvar1 == kvar2 == kvar3 == 300.0
+
+        # TODO much more to test, and some single phase capacitor line issues
+        # e.g.  Warning: Replacing existing data in edge ("q16642", "q16642_cap")
         
     end
 end

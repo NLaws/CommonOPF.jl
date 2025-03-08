@@ -31,9 +31,6 @@ function check_opendss_powers(;tol=1e-6)::Bool
         end
         OpenDSS.Circuit.SetActiveElement(element)
         
-        # Get the bus name where the element is connected
-        bus_name = OpenDSS.CktElement.BusNames()[1]  # Get the first bus name
-        
         # Get the power in kW and kvar
         power = OpenDSS.CktElement.TotalPowers()  # Returns power in kW and kvar for each phase
 

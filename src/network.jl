@@ -258,7 +258,7 @@ function fill_node_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVe
             continue
         end
         type = split(string(typeof(node)), ".")[end]  # e.g. "CommonOPF.Load" -> "Load"
-        if !isempty( get(g[node.bus], Symbol(type), []) )
+        if haskey(g[node.bus], Symbol(type))
             @warn "Replacing existing attributes $(g[node.bus][Symbol(type)]) in node $(node.bus)"
         end
         g[node.bus][Symbol(type)] = node

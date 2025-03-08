@@ -137,7 +137,6 @@ export
 include("models/bounds.jl")
 include("types.jl")
 include("graphs.jl")
-include("io.jl")
 
 include("busses/busses.jl")
 include("busses/capacitors.jl")
@@ -149,6 +148,7 @@ include("edges/conductors.jl")
 include("edges/transformers.jl")
 include("edges/voltage_regulators.jl")
 
+include("io.jl")
 
 include("network.jl")
 include("edges/impedances.jl")
