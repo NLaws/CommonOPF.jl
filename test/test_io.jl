@@ -115,8 +115,22 @@
         
         @test kvar1 == kvar2 == kvar3 == 300.0
 
-        # TODO much more to test, and some single phase capacitor line issues
-        # e.g.  Warning: Replacing existing data in edge ("q16642", "q16642_cap")
+        # we join single phase lines between the same busses into one Conductor
+        # there are three sets of these merged lines (for single phase CapControl in IEEE 8500)
+        joined_edges = [
+            ("q16642", "q16642_cap"),
+            ("l2823592", "l2823592_cap"),
+            ("q16483", "q16483_cap")
+        ]
+        for je in joined_edges
+            @test net[je].phases == [1,2,3]
+            @test net[je].rmatrix == [1.0 0.0 0.0; 0.0 1.0 0.0; 0.0 0.0 1.0]
+            @test net[je].xmatrix == [1.0 0.0 0.0; 0.0 1.0 0.0; 0.0 0.0 1.0]
+            @test net[je].length == 0.001
+        end
+
+        # TODO much more to test
+
         
     end
 end
