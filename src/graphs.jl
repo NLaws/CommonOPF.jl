@@ -21,6 +21,7 @@ For each `edge`` in `vals` store the `edge`` in the graph using the `edge.busses
 b1, b2 = edge.busses
 graph[b1, b2] = edge
 ```
+Existing edges are overwritten with a warning.
 """
 function fill_edges!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractEdge})
     for edge in vals

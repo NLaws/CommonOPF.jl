@@ -36,6 +36,8 @@ function reduce_tree!(net::Network)
     end
     @info("Removed $(length(reducable_buses)) busses.")
 end
+
+
 # TODO reduce_tree!(net::Network{MultiPhase})
 
 
@@ -220,7 +222,7 @@ function combine_parallel_lines!(net::Network{MultiPhase})
                     previous_b = b
                 end
             end
-            # remove all the intermdiate busses s.t. we have two // lines from b1 to b2
+            # remove all the intermediate busses s.t. we have two // lines from b1 to b2
             # Graphs.jl does not support multi-edges, so we collect the extra edges returned from remove_bus!
             extra_conductors = CommonOPF.Conductor[]
             for path in paths

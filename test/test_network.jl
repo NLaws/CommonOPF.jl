@@ -148,7 +148,7 @@ end
     fp = joinpath("data", "yaml_inputs", "multi_phase_missing_vals.yaml")
     expected_msgs = [
         "Unable to process impedance",
-        "Missing templates: [\"cond1-symmetric\"]", 
+        "Missing conductor templates: [\"cond1-symmetric\"]", 
         "1 conductors do not have", 
         "1 conductors are missing phases"
     ]

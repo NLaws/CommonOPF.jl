@@ -91,7 +91,7 @@ end
         clear_log!(test_logger)
         CommonOPF.validate_multiphase_edges!([c1])
         @test occursin(
-            "Missing templates: [\"edge2\"]", 
+            "Missing conductor templates: [\"edge2\"]", 
             test_logger.logs[end].message
         )
 

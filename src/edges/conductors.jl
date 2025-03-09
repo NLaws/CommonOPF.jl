@@ -50,9 +50,9 @@ scaled by the `length` of 200 and normalized by `Zbase`.
 
 Multi-phase conductors can be modeled as symmetrical or asymmetrical components. Similar to OpenDSS,
 line impedances can be specified via the zero and positive sequence impedances, `(r0, x0)` and `(r1,
-x1)` respectively; or via the lower-diagaonal portion of the phase-impedance matrix. 
+x1)` respectively; or via the lower-diagonal portion of the phase-impedance matrix. 
 
-Using the Multi-phase models require specifing `phases` (and the zero and positive sequence
+Using the Multi-phase models requires specifying `phases` (and the zero and positive sequence
 impedances) like:
 ```yaml
 Conductor:
@@ -225,6 +225,7 @@ function validate_multiphase_edges!(conds::AbstractVector{Conductor})::Bool
     n_no_phases = 0
     n_no_impedance = 0
     templates = String[]
+
     for c in conds
         if ismissing(c.phases)
             n_no_phases += 1
@@ -237,7 +238,7 @@ function validate_multiphase_edges!(conds::AbstractVector{Conductor})::Bool
         else  # we have everything we need to define rmatrix, xmatrix
             if !ismissing(c.rmatrix) 
                 if typeof(c.rmatrix) <: Vector
-                    # unpack the Vector{Vector} (lower diagaonal portion of matrix)
+                    # unpack the Vector{Vector} (lower diagonal portion of matrix)
                     unpack_input_matrices!(c)
                 # elseif typeof(c.rmatrix) <: Matrix  # do nothing, we're good
                     # NOTE assuming R and X provided in the same format
@@ -290,5 +291,6 @@ function validate_multiphase_edges!(conds::AbstractVector{Conductor})::Bool
             "see https://nlaws.github.io/CommonOPF.jl/dev/inputs/#CommonOPF.Conductor"
         good = false
     end
+
     return good
 end

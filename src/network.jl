@@ -287,7 +287,7 @@ end
 
 function is_connected(net::Network)::Bool
     length(Graphs.weakly_connected_components(net.graph)) == 1
-    # TODO undirected graphs, strongly_connected_components
+    # TODO undirected graphs, strongly_connected_components, phases
 end
 
 
