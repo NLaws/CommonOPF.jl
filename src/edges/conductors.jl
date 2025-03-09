@@ -179,7 +179,7 @@ function warn_singlephase_conductors_and_copy_templates(conds::AbstractVector{Co
         good = false
     end
     if length(missing_templates) > 0
-        @warn "Missing templates: $(missing_templates)."
+        @warn "Missing conductor templates: $(missing_templates)."
         good = false
     end
     return good
@@ -282,7 +282,7 @@ function validate_multiphase_edges!(conds::AbstractVector{Conductor})::Bool
     end
 
     if length(missing_templates) > 0
-        @warn "Missing templates: $(missing_templates)."
+        @warn "Missing conductor templates: $(missing_templates)."
         good = false
     end
 

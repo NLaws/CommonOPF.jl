@@ -278,7 +278,7 @@ function check_missing_templates(net::Network)
         end
     end
     if length(missing_templates) > 0
-        @warn "Missing templates: $missing_templates"
+        @warn "Missing conductor templates: $missing_templates"
         return false
     end
     return true

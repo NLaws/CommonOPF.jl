@@ -50,7 +50,7 @@
     clear_log!(test_logger)
     expected_msgs = [
         "For single phase conductors you must provide",
-        "Missing templates: [\"cond2\"].",
+        "Missing conductor templates: [\"cond2\"].",
         """Missing required inputs for VoltageRegulators on busses [("b3", "b4")]""",
         "provide either vreg_pu or turn_ratio"
     ]
@@ -59,7 +59,7 @@
         @test any(( occursin(msg, log.message) for msg in expected_msgs ))
     end
     CommonOPF.check_missing_templates(net)
-    @test occursin("Missing templates", test_logger.logs[end].message)
+    @test occursin("Missing conductor templates", test_logger.logs[end].message)
     @test voltage_regulator_edges(net) == [("b3", "b4")]
 
     # extra values

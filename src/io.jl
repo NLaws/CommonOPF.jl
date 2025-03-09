@@ -247,6 +247,84 @@ end
 
 
 """
+    merge_single_phase_lines_between_shared_busses!()
+
+For various reasons (usually to enable some control by phase like CapControl) an OpenDSS model will
+include line definitions that share busses but are defined for each phase between the busses. The
+CommonOPF.Network model does not allow multiple edges between busses. So we merge these lines from
+OpenDSS into a single Conductor.
+"""
+function merge_single_phase_lines_between_shared_busses!(conductor_dicts::Vector{Dict{Symbol, Any}})
+
+    function _can_merge(edges::Vector)::Bool
+        # check if the basic rules for merging more than one conductor dict apply:
+        # 1. no overlapping phases
+        # 2. lengths are all the same (TODO could rescale impedance to merge)
+        # 3. r, x, and c matrices are populated
+        seen_phases = Set{Int}()
+        for e in edges
+            for p in e[:phases]
+                if p in seen_phases
+                    return false  # Found a duplicate phase
+                end
+                push!(seen_phases, p)
+            end
+            if ismissing(e[:rmatrix]) || ismissing(e[:xmatrix]) || ismissing(e[:cmatrix])
+                return false
+            end
+        end
+
+        length_1 = edges[1][:length]
+        for e in edges[2:end]
+            if !(e[:length] ≈ length_1)
+                return false
+            end
+        end
+
+        return true  # No duplicates found
+    end
+
+    function _merge_conductor_dicts(conds::Vector{Dict})::Dict
+        return Dict(
+            :busses => conds[1][:busses],
+            :name => join([get(d, :name, "") for d in conds], "-"),
+            :phases => vcat([d[:phases] for d in conds]...),
+            :rmatrix => sum(d[:rmatrix] for d in conds),
+            :xmatrix => sum(d[:xmatrix] for d in conds),
+            :cmatrix => sum(d[:cmatrix] for d in conds),
+            :length => conds[1][:length]
+        )
+    end
+    
+    # make a map of conductors that share busses like (bus1, bus2) => [cond_dict1, cond_dict2, ...]
+    busses_to_conds = Dict{Tuple{String, String}, Vector{Dict}}()
+    for d in conductor_dicts
+        push!(get!(busses_to_conds, d[:busses], []), d)
+    end
+    # Filter out entries where the busses are not shared
+    filter!(kv -> length(kv[2]) > 1, busses_to_conds)
+
+    # NEXT confirm that each group of conductors don't share phases, merge them into one conductor,
+    # and delete the original conductors from the conductor_dicts -> need to know indices in
+    # conductor_dicts
+    to_remove = Set{UInt64}()
+    for (busses, conds) in busses_to_conds
+        if !(_can_merge(conds))
+            @warn "Cannot merge conductors between busses $busses."
+            continue
+        end
+        push!(to_remove, objectid.(conds)...)
+        push!(conductor_dicts, _merge_conductor_dicts(conds))
+        @info "Successully merged conductors between $busses"
+    end
+    # TODO need to merge single phase capacitors in IEEE 8500 
+
+    # Remove merged dicts from the original list
+    filter!(d -> objectid(d) ∉ to_remove, conductor_dicts)
+end
+
+
+"""
     opendss_lines(num_phases::Int)::Vector{Dict{Symbol, Any}}
 
 Parse all OpenDSS.Lines into dictionaries to be used in constructing CommonOPF.Conductor
@@ -294,6 +372,7 @@ function opendss_lines(num_phases::Int)::Vector{Dict{Symbol, Any}}
         
         line_number = OpenDSS.Lines.Next()
     end
+    merge_single_phase_lines_between_shared_busses!(conductor_dicts)
     return conductor_dicts
 end
 
