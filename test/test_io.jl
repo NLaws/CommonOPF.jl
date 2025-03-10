@@ -1,7 +1,7 @@
 @testset "openDSS parsing" begin
     
     @testset "dss_to_Network" begin
-        dssfilepath = joinpath("data", "ieee13", "IEEE13Nodeckt.dss")
+        dssfilepath = joinpath(@__DIR__, "data", "ieee13", "IEEE13Nodeckt.dss")
         net = CommonOPF.dss_to_Network(dssfilepath)
 
         @test net["671"][:Load].kws2 == [1155.0 / 3]
@@ -77,7 +77,7 @@
         # We test these expectations here using the IEEE13 system.
         CommonOPF.OpenDSS.dss("""
         clear
-        redirect $(joinpath("data", "ieee13", "IEEE13Nodeckt.dss"))
+        redirect $(joinpath(@__DIR__, "data", "ieee13", "IEEE13Nodeckt.dss"))
         """)
         CommonOPF.OpenDSS.Lines.Idx(6)
         @test CommonOPF.OpenDSS.CktElement.BusNames() == ["632.2.3", "645.2.3"]
@@ -97,7 +97,7 @@
         # Single phase circuit impedances from CommonOPF should be scalar values, even though
         # OpenDSS always provides matrices for admittance values, which we tests here with a single
         # phase version of the IEEE13 system.
-        dssfilepath = joinpath("data", "ieee13", "ieee13_makePosSeq", "Master.dss")
+        dssfilepath = joinpath(@__DIR__, "data", "ieee13", "ieee13_makePosSeq", "Master.dss")
         net = CommonOPF.dss_to_Network(dssfilepath)
         for (i,j) in edges(net)
             @test typeof(rij(i, j, net)) <: Number
@@ -106,7 +106,7 @@
     end
 
     @testset "IEEE 8500 Node" begin
-        dssfilepath = joinpath("data", "ieee8500", "Master-unbal.dss")
+        dssfilepath = joinpath(@__DIR__, "data", "ieee8500", "Master-unbal.dss")
         net = CommonOPF.dss_to_Network(dssfilepath)
 
         kvar1 = net["r42247"][:Capacitor].kvar1

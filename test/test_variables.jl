@@ -11,7 +11,7 @@
     @test :var in net.var_names
 
     # multiphase
-    net = Network(joinpath("data", "ieee13", "IEEE13Nodeckt.dss"))
+    net = Network(joinpath(@__DIR__, "data", "ieee13", "IEEE13Nodeckt.dss"))
     net.Ntimesteps = 2
 
     e = edges(net)[1]

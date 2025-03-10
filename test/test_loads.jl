@@ -34,7 +34,7 @@ end
     @test sj_per_unit(bus, net) ≈ [expected_p + expected_q] / 1e3
 
     # MultiPhase
-    dssfilepath = joinpath("data", "ieee13", "IEEE13Nodeckt.dss")
+    dssfilepath = joinpath(@__DIR__, "data", "ieee13", "IEEE13Nodeckt.dss")
     net = Network(dssfilepath)
     net.Ntimesteps = 1
     net.Sbase = 1e3

@@ -8,7 +8,7 @@
     end
 
     @testset "multi phase" begin
-        fp = joinpath("data", "case3_unbalanced.dss")
+        fp = joinpath(@__DIR__, "data", "case3_unbalanced.dss")
         net = Network(fp)
         f = 2π*60 * 1e-9  # nanofarads to siemens
         @test all(imag(yj("primary", net)) .≈ f * [25.0 0 0; 0 25 0; 0 0 25])

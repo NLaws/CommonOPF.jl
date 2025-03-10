@@ -1,9 +1,9 @@
 @testset "Network single phase" begin
     # TODO make/test JSON
-    fp = joinpath("data", "yaml_inputs", "no_conductors.yaml")
+    fp = joinpath(@__DIR__, "data", "yaml_inputs", "no_conductors.yaml")
     @test_throws "Missing required input Conductor" Network(fp)
 
-    fp = joinpath("data", "yaml_inputs", "basic_single_phase.yaml")
+    fp = joinpath(@__DIR__, "data", "yaml_inputs", "basic_single_phase.yaml")
     net = Network(fp)
     es = edges(net)
     @test ("b1", "b2") in es && ("b2", "b3") in es
@@ -46,7 +46,7 @@
     @test sort(reactive_load_busses(net)) == ["b2", "b3"]
 
     # missing input values for conductors and VoltageRegulator
-    fp = joinpath("data", "yaml_inputs", "missing_vals.yaml")
+    fp = joinpath(@__DIR__, "data", "yaml_inputs", "missing_vals.yaml")
     clear_log!(test_logger)
     expected_msgs = [
         "For single phase conductors you must provide",
@@ -63,9 +63,9 @@
     @test voltage_regulator_edges(net) == [("b3", "b4")]
 
     # extra values
-    fp = joinpath("data", "yaml_inputs", "extra_conductor_field.yaml")
+    fp = joinpath(@__DIR__, "data", "yaml_inputs", "extra_conductor_field.yaml")
     @test_throws "got unsupported keyword argument" net = Network(fp)
-    fp = joinpath("data", "yaml_inputs", "bus_not_in_conductors.yaml")
+    fp = joinpath(@__DIR__, "data", "yaml_inputs", "bus_not_in_conductors.yaml")
     net = Network(fp)
     @test occursin("not in the graph after adding edges", test_logger.logs[end].message)
 end
@@ -73,7 +73,7 @@ end
 
 @testset "Network multi-phase" begin
     # TODO make/test JSON
-    fp = joinpath("data", "yaml_inputs", "basic_multi_phase.yaml")
+    fp = joinpath(@__DIR__, "data", "yaml_inputs", "basic_multi_phase.yaml")
     net = Network(fp)
     @test typeof(net) == Network{CommonOPF.MultiPhase}
     @test net.Ntimesteps == 3
@@ -145,7 +145,7 @@ end
 
     # test warnings for missing, required inputs
     clear_log!(test_logger)
-    fp = joinpath("data", "yaml_inputs", "multi_phase_missing_vals.yaml")
+    fp = joinpath(@__DIR__, "data", "yaml_inputs", "multi_phase_missing_vals.yaml")
     expected_msgs = [
         "Unable to process impedance",
         "Missing conductor templates: [\"cond1-symmetric\"]", 
@@ -161,7 +161,7 @@ end
 
 
 @testset "IEEE 13 bus multiphase" begin
-    fp = joinpath("data", "yaml_inputs", "ieee13_multi_phase.yaml")
+    fp = joinpath(@__DIR__, "data", "yaml_inputs", "ieee13_multi_phase.yaml")
     net = Network(fp)
     @test is_connected(net)
     @test i_to_j("671", net) == ["670"]

@@ -1,7 +1,7 @@
 @testset "decomposition" begin
 
     # split_network
-    net = dss_to_Network(joinpath("data", "singlephase38lines", "master.dss"))
+    net = dss_to_Network(joinpath(@__DIR__, "data", "singlephase38lines", "master.dss"))
     # these tests were in BFM using singlephase38lines, which is as simple as dss files get
     # so it is a good network to test the OpenDSS to Network stuff first
     net_above, net_below = split_network(net, "12");

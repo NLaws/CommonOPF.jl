@@ -16,7 +16,7 @@
     @test v == [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     # phi_ij
-    fp = joinpath("data", "yaml_inputs", "ieee13_multi_phase.yaml")
+    fp = joinpath(@__DIR__, "data", "yaml_inputs", "ieee13_multi_phase.yaml")
     net = Network(fp)
     # bus 684 has only phases [1, 3]
     m = phi_ij("684", net, M)
