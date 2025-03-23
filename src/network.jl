@@ -304,6 +304,14 @@ function Network_IEEE13_SinglePhase()
 end
 
 
+function Network_IEEE8500()
+    fp = joinpath(dirname(@__FILE__), 
+        "..", "test", "data", "ieee8500", "Master.dss"
+    )
+    return Network(fp)
+end
+
+
 function Network_Papavasiliou_2018()
     fp = joinpath(dirname(@__FILE__), 
         "..", "test", "data", "yaml_inputs", "Papavasiliou_2018_with_shunts.yaml"
