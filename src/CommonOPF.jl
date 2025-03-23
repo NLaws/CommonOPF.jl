@@ -79,6 +79,7 @@ export
     # attributes of the Network
     edges,
     busses,
+    capacitor_busses,
     connected_busses,
     generator_busses,
     leaf_busses,

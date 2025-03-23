@@ -18,6 +18,6 @@ Only modeling fixed capacitors so far. Positive kvar values are injected.
     kvar3::Real = 0.0
 end
 
-capacitor_busses(net::Network{SinglePhase}) = collect(
+capacitor_busses(net::Network) = collect(
     b for b in busses(net) if haskey(net[b], :Capacitor)
 )
