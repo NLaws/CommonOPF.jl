@@ -129,6 +129,11 @@
             @test net[je].length == 0.001
         end
 
+        n_busses = length(busses(net))
+        # 4875  # nodes include phases
+        reduce_tree!(net)
+        # [ Info: Removed 843 busses.
+        @test n_busses - length(busses(net)) == 843
         # TODO much more to test
 
         
