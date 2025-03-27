@@ -306,7 +306,7 @@ end
 
 function Network_IEEE8500()
     fp = joinpath(dirname(@__FILE__), 
-        "..", "test", "data", "ieee8500", "Master.dss"
+        "..", "test", "data", "ieee8500", "Master-unbal.dss"
     )
     return Network(fp)
 end

@@ -207,7 +207,6 @@ Using a OpenDSS command to compile the `dssfilepath` we load in the data from .d
 the data into a `Network` model.
 """
 function dss_to_Network(dssfilepath::AbstractString)::Network
-    
     # OpenDSS changes the working directory, so we need to change it back
     work_dir = pwd()
     OpenDSS.dss("""
@@ -217,6 +216,7 @@ function dss_to_Network(dssfilepath::AbstractString)::Network
     cd(work_dir)
     # must disable loads before getting Y s.t. the load impedances are excluded
     load_dicts = opendss_loads(;disable=true)
+    OpenDSS.Solution.MaxControlIterations(50)
     OpenDSS.Solution.Solve()
     Y = OpenDSS.Circuit.SystemY()  # ordered by OpenDSS object definitions
     # Vector{String} w/values like "BUS1.1"
@@ -618,6 +618,11 @@ function opendss_regulators(
 end
 
 
+"""
+    opendss_capacitors()::Vector{Dict{Symbol, Any}}
+
+Parse OpenDSS.Capacitors into dicts to be used for constructing `CommonOPF.Capacitor`s
+"""
 function opendss_capacitors()::Vector{Dict{Symbol, Any}}
     cap_number = OpenDSS.Capacitors.First()
     # we track busses to merge any single phase capacitors that share a bus into one capacitor
