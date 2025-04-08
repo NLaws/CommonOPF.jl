@@ -25,11 +25,6 @@ end
     concrete_test_edges = CommonOPF.build_edges(edge_dicts, TestEdgeType)
     @test all(typeof(ctb) == TestEdgeType for ctb in concrete_test_edges)
     @test length(concrete_test_edges) == length(edge_dicts)
-    e1 = concrete_test_edges[1]
-    @test CommonOPF.resistance(e1, CommonOPF.SinglePhase) == 0
-    @test CommonOPF.reactance(e1, CommonOPF.SinglePhase) == 0
-    @test CommonOPF.resistance_per_length(e1, CommonOPF.SinglePhase) == 0
-    @test CommonOPF.reactance_per_length(e1, CommonOPF.SinglePhase) == 0
 # end
 
 

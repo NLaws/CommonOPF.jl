@@ -34,36 +34,52 @@ function make_nan_or_inf_zero(val)
 end
 
 
+function _default_admittances(phase_type::Type{T}) where {T <: Phases}
+    if phase_type == SinglePhase
+        return 0.0
+    end
+    return zeros(3, 3)
+end
+
+
 """
-    conductance(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
+    conductance(::Type{MissingEdge}, phase_type::Type{T}) where {T <: Phases} = 0.0
 
 Default conductance for subtypes of `AbstractEdge`
 """
-conductance(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
+function conductance(::Type{MissingEdge}, phase_type::Type{T}) where {T <: Phases}
+    _default_admittances(phase_type)
+end
 
 
 """
-    susceptance(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
+    susceptance(::Type{MissingEdge}, phase_type::Type{T}) where {T <: Phases} = 0.0
 
 Default susceptance for subtypes of `AbstractEdge`
 """
-susceptance(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
+function susceptance(::Type{MissingEdge}, phase_type::Type{T}) where {T <: Phases}
+    _default_admittances(phase_type)
+end
 
 
 """
-    conductance_per_length(e::AbstractEdge) = 0.0
+    conductance_per_length(::Type{MissingEdge}) = 0.0
 
 Default conductance_per_length for subtypes of `AbstractEdge`
 """
-conductance_per_length(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
+function conductance_per_length(::Type{MissingEdge}, phase_type::Type{T}) where {T <: Phases}
+    _default_admittances(phase_type)
+end
 
 
 """
-    susceptance_per_length(e::AbstractEdge) = 0.0
+    susceptance_per_length(::Type{MissingEdge}) = 0.0
 
 Default susceptance_per_length for subtypes of `AbstractEdge`
 """
-susceptance_per_length(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
+function susceptance_per_length(::Type{MissingEdge}, phase_type::Type{T}) where {T <: Phases}
+    _default_admittances(phase_type)
+end
 
 
 """
@@ -356,4 +372,8 @@ function Yij_per_unit(i::AbstractString, j::AbstractString, net::CommonOPF.Netwo
         b += imag(y)
     end
     return g + im * b
+end
+    end
+    N = length(busses(net))
+    return sparse(rows, cols, vals, N, N)
 end

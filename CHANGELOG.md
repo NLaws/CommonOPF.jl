@@ -2,6 +2,7 @@
 
 ## dev
 - add fixed `Capacitor` model
+- add `MissingEdge` type and use it for zero admittance and infinite impedance
 
 ## v0.4.5
 - add `phases_out_of_bus` and `phases_connected_to_bus` methods

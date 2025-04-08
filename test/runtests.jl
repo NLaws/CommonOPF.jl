@@ -29,6 +29,8 @@ with_logger(test_logger) do
 
 @testset "CommonOPF.jl" begin
 
+    include("test_admittances.jl")
+
     include("test_busses.jl")
 
     include("test_conductor.jl")

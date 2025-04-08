@@ -1,33 +1,49 @@
-"""
-    resistance(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
-
-Default resistance for subtypes of `AbstractEdge`
-"""
-resistance(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
-
-
-"""
-    reactance(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
-
-Default reactance for subtypes of `AbstractEdge`
-"""
-reactance(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
+function _default_impedances(phase_type::Type{T}) where {T <: Phases}
+    if phase_type == SinglePhase
+        return Inf
+    end
+    return ones(3, 3) * Inf
+end
 
 
 """
-    resistance_per_length(e::AbstractEdge) = 0.0
+    resistance(::Type{MissingEdge}, phase_type::Type{T}) where {T <: Phases}
 
-Default resistance_per_length for subtypes of `AbstractEdge`
+return _default_impedances(phase_type)
 """
-resistance_per_length(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
+function resistance(::Type{MissingEdge}, phase_type::Type{T}) where {T <: Phases}
+    _default_impedances(phase_type)
+end
 
 
 """
-    reactance_per_length(e::AbstractEdge) = 0.0
+    reactance(::Type{MissingEdge}, phase_type::Type{T}) where {T <: Phases}
 
-Default reactance_per_length for subtypes of `AbstractEdge`
+return _default_impedances(phase_type)
 """
-reactance_per_length(e::AbstractEdge, phase_type::Type{T}) where {T <: Phases} = 0.0
+function reactance(::Type{MissingEdge}, phase_type::Type{T}) where {T <: Phases}
+    _default_impedances(phase_type)
+end
+
+
+"""
+    resistance_per_length(::Type{MissingEdge}, phase_type::Type{T}) where {T <: Phases}
+
+return _default_impedances(phase_type)
+"""
+function resistance_per_length(::Type{MissingEdge}, phase_type::Type{T}) where {T <: Phases}
+    _default_impedances(phase_type)
+end
+
+
+"""
+    reactance_per_length(::Type{MissingEdge}, phase_type::Type{T}) where {T <: Phases}
+
+return _default_impedances(phase_type)
+"""
+function reactance_per_length(::Type{MissingEdge}, phase_type::Type{T}) where {T <: Phases}
+    _default_impedances(phase_type)
+end
 
 
 """

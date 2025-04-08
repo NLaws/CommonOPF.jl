@@ -104,8 +104,14 @@ function Base.getindex(net::Network, idx::Tuple{String, String})
     try 
         return net.graph[idx[1], idx[2]] 
     catch KeyError
-        return net.graph[idx[2], idx[1]] 
+        # let it ride
     end
+    try
+        return net.graph[idx[2], idx[1]]
+    catch KeyError
+        # let it ride
+    end
+    return MissingEdge
 end
 
 function Base.setindex!(net::Network, edge::CommonOPF.AbstractEdge, idx::Tuple{String, String}) 

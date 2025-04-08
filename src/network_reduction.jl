@@ -68,16 +68,15 @@ function remove_bus!(j::String, net::Network{SinglePhase})
         r1 = r_ik / ik_len,
         x1 = x_ik / ik_len,
     )
-    try 
-        net[(i, k)]
-    catch KeyError
-        net[(i, k)] = new_conductor
-        return true
-    else
-        @error "Network already has conductor at $((i, k)). Returning new Conductor."
+
+    if net[(i, k)] != MissingEdge
+        @warn "Network already has edge at $((i, k)). Returning new Conductor."
+        # new_conductor is used in combine_parallel_lines
         return new_conductor
     end
-    nothing
+
+    net[(i, k)] = new_conductor
+    return true
     # TODO assign amperage for new line as minimum amperage of the two joined lines
 end
 
@@ -111,15 +110,15 @@ function remove_bus!(j::String, net::Network{MultiPhase})
         xmatrix = xmatrix_ik / ik_len,
         phases = c1.phases
     )
-    try 
-        net[(i, k)]
-    catch KeyError
-        net[(i, k)] = new_conductor
-        return true
-    else
-        @error "Network already has conductor at $((i, k)). Returning new Conductor."
+
+    if net[(i, k)] != MissingEdge
+        @warn "Network already has edge at $((i, k)). Returning new Conductor."
+        # new_conductor is used in combine_parallel_lines
         return new_conductor
     end
+
+    net[(i, k)] = new_conductor
+    return true
     # TODO assign amperage for new line as minimum amperage of the two joined lines
 end
 
@@ -234,7 +233,7 @@ function combine_parallel_lines!(net::Network{MultiPhase})
                 end
             end
             # now we combine the two // lines into one
-            @assert length(extra_conductors) in [1,2] "Found more than three parallel lines between busses $b1 and $b2!"
+            @assert length(extra_conductors) in [1,2] "Found more than three parallel lines between busses $b1 and $b2"
             if length(extra_conductors) == 1
                 c1, c2 = net[(b1, b2)], extra_conductors[1]
                 # amps1, amps2 = p.Isquared_up_bounds[linecode1], p.Isquared_up_bounds[linecode2]

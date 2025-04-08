@@ -9,6 +9,9 @@ abstract type AbstractNetwork end
 abstract type AbstractEdge end
 abstract type AbstractBus end
 
+# used to return zero admittance for missing edges
+abstract type MissingEdge end
+
 
 """
     struct Network <: AbstractNetwork
