@@ -58,22 +58,58 @@ end
 
 
 """
-    dss_impedance_matrices_to_three_phase(fp::String, first_data_row::Int = 5)
+    dss_impedance_matrices_to_three_phase(
+        dss_rmatrix::AbstractMatrix{Float64},
+        dss_xmatrix::AbstractMatrix{Float64},
+        dss_cmatrix::AbstractMatrix{Float64}, 
+        phases::AbstractVector{Int}
+    )::Tuple{Matrix{Float64}, Matrix{Float64}, Matrix{Float64}}
 
-resize OpenDSS matrices to 3x3 and sort values by numerical phase order
+resize OpenDSS matrices to 3x3 and sort values by numerical phase order. Can also be used to slice
+out phases of OpenDSS matrices 
 """
 function dss_impedance_matrices_to_three_phase(
-    dss_rmatrix::AbstractMatrix{Float64},
-    dss_xmatrix::AbstractMatrix{Float64},
-    dss_cmatrix::AbstractMatrix{Float64}, 
-    phases::AbstractVector{Int}
+        dss_rmatrix::AbstractMatrix{Float64},
+        dss_xmatrix::AbstractMatrix{Float64},
+        dss_cmatrix::AbstractMatrix{Float64}, 
+        phases::AbstractVector{Int}
     )::Tuple{Matrix{Float64}, Matrix{Float64}, Matrix{Float64}}
-    r, x, c = zeros(3,3), zeros(3,3), zeros(3,3)
-    for (i, phs1) in enumerate(phases), (j, phs2) in enumerate(phases)
-        r[phs1, phs2] = dss_rmatrix[i, j]
-        x[phs1, phs2] = dss_xmatrix[i, j]
-        c[phs1, phs2] = dss_cmatrix[i, j]
+
+    if size(dss_rmatrix, 1) != size(dss_rmatrix, 2)
+        throw(@error "Got non-square R matrix: $dss_rmatrix")
     end
+
+    if size(dss_xmatrix, 1) != size(dss_xmatrix, 2)
+        throw(@error "Got non-square X matrix: $dss_xmatrix")
+    end
+
+    if size(dss_cmatrix, 1) != size(dss_cmatrix, 2)
+        throw(@error "Got non-square C matrix: $dss_cmatrix")
+    end
+
+    # OpenDSS impedance matrices are sized according to the number of phases in a power delivery
+    # element. So something with phases 1 and 2 or 1 and 3 have a 2x2 matrix. We assume that the
+    # phases are sorted according to the phases in the impedance matrices.
+    r, x, c = zeros(3,3), zeros(3,3), zeros(3,3)
+    if size(dss_rmatrix, 1) == length(phases)
+        for (i, phs1) in enumerate(phases), (j, phs2) in enumerate(phases)
+            r[phs1, phs2] = dss_rmatrix[i, j]
+            x[phs1, phs2] = dss_xmatrix[i, j]
+            c[phs1, phs2] = dss_cmatrix[i, j]
+        end
+    # in the following case, we extract 1 or 2 phases from a larger impedance matrix.
+    # this case arises when something is modeled by phase in the OpenDSS files in order to control
+    # it by phase (e.g. capacitor or regulator).
+    elseif maximum(phases) <= size(dss_rmatrix, 1)
+        for phs1 in phases, phs2 in phases
+            r[phs1, phs2] = dss_rmatrix[phs1, phs2]
+            x[phs1, phs2] = dss_xmatrix[phs1, phs2]
+            c[phs1, phs2] = dss_cmatrix[phs1, phs2]
+        end
+    else
+        throw(@error "Got phases $phases with $(size(dss_rmatrix)) rmatrix . Unclear which values to take.")
+    end
+
     return r, x, c
 end
 
@@ -465,7 +501,13 @@ end
 
 
 """
-    transformer_impedance(Y::Matrix{ComplexF64}, node_order::Vector{String})
+    transformer_impedance(
+        Y::Matrix{ComplexF64}, 
+        node_order::Vector{String}, 
+        bus1::String, 
+        bus2::String, 
+        phases::AbstractVector{Int},
+    )
 
 Extract the transformer impedance from the "system Y" matrix, removing the turns ratio that OpenDSS
 embeds in the admittance values.
@@ -477,9 +519,11 @@ function transformer_impedance(
         bus2::String, 
         phases::AbstractVector{Int},
     )
-    # BusNames can have phases like bname.1.2
     # see https://drive.google.com/file/d/1cNc7sFwxUZAuNT3JtUy4vVCeiME0NxJO/view?usp=drive_link
+    # for modeling transformers in OpenDSS
     Y_trfx = phase_admittance(bus1, bus2, Y, node_order)
+    # Y_trfx has all phases at busses (even if a trfx is defined as single phase i.e. length(phases)
+    # is 1)
     kV1, kV2 = 1.0, 1.0
     # have to back-out the tap ratio that OpenDSS embeds in Y
     # except for the source transformer :shrug:
@@ -489,7 +533,12 @@ function transformer_impedance(
         OpenDSS.Transformers.Wdg(2.0) 
         kV2 = OpenDSS.Transformers.kV()
     end
-    # NOTE ignoring off diagonal terms since they cause numerical issues in IEEE13 source transformer
+    # NOTE ignoring off diagonal terms since they cause numerical issues in IEEE13 source
+    # transformer
+    # NOTE split phase (single phase) transformers have 1x2 impedance matrices and can have
+    # arbitrary low side phase like bus1=highbus.3 and bus2=lowbus.1.2 (with 2 wdgs on lowbus). A
+    # 1x2 impedance matrix does not fit in the CommonOPF paradigm because the number of phases out
+    # of the bus are greater than the number of phases into the bus (like a phase is created).
     Z = inverse_matrix_with_zeros(Diagonal(Y_trfx)) * kV1 / kV2
     r, x, _ = dss_impedance_matrices_to_three_phase(abs.(real(Z)), -1*imag(Z), zeros(3,3), phases)
     return r, x, kV1, kV2
@@ -624,6 +673,7 @@ end
 Parse OpenDSS.Capacitors into dicts to be used for constructing `CommonOPF.Capacitor`s
 """
 function opendss_capacitors()::Vector{Dict{Symbol, Any}}
+    # TODO track CapControls.Capacitor to determine which Capacitors are fixed or not
     cap_number = OpenDSS.Capacitors.First()
     # we track busses to merge any single phase capacitors that share a bus into one capacitor
     # then at the end just return the vector of dicts.
@@ -656,4 +706,103 @@ function opendss_capacitors()::Vector{Dict{Symbol, Any}}
         cap_number = OpenDSS.Capacitors.Next()
     end
     return collect(values(caps))
+end
+
+
+"""
+
+A hack to get the 8500 node system to work for OPF by moving all the load objects to the high sides
+of the secondary transformers. The output is a .dss file that defines all the loads with each their kv
+and bus values changed so that the .dss file can be used in forming an OpenDSS model without the
+split phase transformers. (The split phase transformers are problematic to translate to
+CommonOPF format because the effectively create a new phase accounting system on the secondary
+side.)
+
+The task is accomplished by:
+    1. for each load
+    2. find the load bus
+    3. find the line connected to that bus (a triplex in the 8500 node system)
+    4. find the other bus that the line is connected to
+    5. find the transformer at that bus
+    6. find the high side bus of the transformer
+    7. write out the load with the high side bus of the transformer and primary kv value.
+
+There are lots of assumptions in this method related to the 8500 node system so it is unlikely that
+this method will work for other OpenDSS models. Note that we use the balanced model so that we don't
+have to account for the phases on the secondary side of the transformers.
+"""
+function _move_secondary_loads_to_primary_side_of_transformers(load_file_name::String="moved_loads.dss")
+
+
+    function _get_load_values()::Tuple{Dict, String}
+        return Dict(
+            :name => OpenDSS.Loads.Name(),
+            :kw => OpenDSS.Loads.kW(),
+            :pf => OpenDSS.Loads.PF(),
+        ),  OpenDSS.CktElement.BusNames()[1]
+    end
+
+
+    function _find_transformer(bus::String)::Tuple{String, Vector{Integer}, Integer}
+        OpenDSS.Circuit.SetActiveBus(bus)
+        triplex_line = OpenDSS.Bus.AllPDEatBus()[1]
+        OpenDSS.Circuit.SetActiveElement(triplex_line)
+        line_busses = OpenDSS.CktElement.BusNames()
+        trfx_low_bus = first(setdiff(Set(line_busses), Set([bus])))
+        OpenDSS.Circuit.SetActiveBus(trfx_low_bus)
+        pdes = OpenDSS.Bus.AllPDEatBus()
+        trfx = pdes[findfirst(x -> startswith(x, "Transformer"),  pdes)]
+        # remove "Transformer."
+        trfx = last(trfx, length(trfx) - length("Transformer."))
+        OpenDSS.Transformers.Name(trfx)
+        # have to strip phases to get the high bus
+        trfx_busses = strip_phases.(OpenDSS.CktElement.BusNames())
+        trfx_high_bus = first(setdiff(Set(trfx_busses), Set([strip_phases(trfx_low_bus)])))
+        nphases = OpenDSS.CktElement.NumPhases()
+        # but we need the phases for defining the load, yarg
+        return trfx_high_bus, OpenDSS.CktElement.NodeOrder()[1:nphases], nphases
+    end
+
+
+    function _update_trfxs_dict!(d::Dict, trfx_bus::String, phases::Vector{Integer}, nphases::Integer, load_dict::Dict)
+        # note that only the first load name found on the transformer will be used
+        if !(trfx_bus in keys(d))
+            d[trfx_bus] = load_dict
+            d[trfx_bus][:nphases] = nphases
+            d[trfx_bus][:bus] = trfx_bus
+            d[trfx_bus][:phases] = phases
+        else
+            d[trfx_bus][:kw] += load_dict[:kw]
+            d[trfx_bus][:nphases] += nphases
+            union!(d[trfx_bus][:phases], phases)
+        end
+    end
+
+    transformer_loads = Dict()
+
+    OpenDSS.Loads.First()
+    load_dict, bus = _get_load_values()
+    trfx_high_bus, phases, nphases = _find_transformer(bus)
+    _update_trfxs_dict!(transformer_loads, trfx_high_bus, phases, nphases, load_dict)
+
+    while OpenDSS.Loads.Next() > 0
+        load_dict, bus = _get_load_values()
+        trfx_high_bus, phases, nphases = _find_transformer(bus)
+        _update_trfxs_dict!(transformer_loads, trfx_high_bus, phases, nphases, load_dict)
+    end
+
+    io = open(load_file_name, "w")
+  
+    for d in values(transformer_loads)
+        kv = 12.47
+        if d[:nphases] == 1
+            kv = 7.2
+        end
+        write(io,
+            "New Load.$(d[:name]) phases=$(d[:nphases]) Bus1=$(d[:bus] * "." * join(d[:phases], ".")) kv=$kv model=1 conn=wye kW=$(d[:kw]) pf=$(d[:pf]) Vminpu=.88\n"
+        )
+    end
+
+    close(io)
+
 end

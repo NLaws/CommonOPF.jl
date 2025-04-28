@@ -106,7 +106,7 @@
     end
 
     @testset "IEEE 8500 Node" begin
-        dssfilepath = joinpath(@__DIR__, "data", "ieee8500", "Master-unbal.dss")
+        dssfilepath = joinpath(@__DIR__, "data", "ieee8500", "Master-no-secondaries.dss")
         net = CommonOPF.dss_to_Network(dssfilepath)
 
         kvar1 = net["r42247"][:Capacitor].kvar1
@@ -130,10 +130,10 @@
         end
 
         n_busses = length(busses(net))
-        # 4875  # nodes include phases
+        # 2519  # nodes include phases
         reduce_tree!(net)
-        # [ Info: Removed 843 busses.
-        @test n_busses - length(busses(net)) == 843
+        # [ Info: Removed 851 busses.
+        @test n_busses - length(busses(net)) == 851
         # TODO much more to test
 
         

@@ -6,6 +6,8 @@ import Logging: with_logger
 import Parameters: @with_kw
 import InteractiveUtils: subtypes
 
+const OpenDSS = CommonOPF.OpenDSS
+
 test_logger = TestLogger()
 
 # # hack for local testing

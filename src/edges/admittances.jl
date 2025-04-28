@@ -6,8 +6,8 @@ inverting a phase impedance matrix for an edge that has less than three phases (
 zeros for missing phases to make mathematical model building easier). 
 """
 function inverse_matrix_with_zeros(M::AbstractMatrix{T})::AbstractMatrix{T} where {T} 
-    zero_rows = sort(findall(row -> all(==(0), row), eachrow(M)))
-    zero_cols = sort(findall(col -> all(==(0), col), eachcol(M)))
+    zero_rows = findall(row -> all(iszero, row), eachrow(M))
+    zero_cols = findall(col -> all(iszero, col), eachcol(M))
 
     if zero_rows != zero_cols
         throw(@error(join([
@@ -19,7 +19,8 @@ function inverse_matrix_with_zeros(M::AbstractMatrix{T})::AbstractMatrix{T} wher
     nonzero_rows = setdiff(1:size(M, 1), zero_rows)
     nonzero_cols = setdiff(1:size(M, 2), zero_cols)
 
-    invM_nonzero = inv(M[nonzero_rows, nonzero_cols])
+    invM_nonzero = inv(@view M[nonzero_rows, nonzero_cols])
+
     invM = zeros(T, size(M))
     invM[nonzero_rows, nonzero_cols] .= invM_nonzero
     return invM
@@ -373,7 +374,60 @@ function Yij_per_unit(i::AbstractString, j::AbstractString, net::CommonOPF.Netwo
     end
     return g + im * b
 end
+
+
+"""
+    function Ysparse(net::CommonOPF.Network)::SparseArrays.SparseMatrixCSC
+
+Returns a Symmetric view of sparse upper triangular matrix
+"""
+function Ysparse(net::CommonOPF.Network{MultiPhase})::Tuple{Symmetric, Vector{String}}
+    # docstring for sparse:
+    # sparse(I, J, V,[ m, n, combine])
+
+    # Create a sparse matrix S of dimensions m x n such that S[I[k], J[k]] = V[k]. The combine
+    # function is used to combine duplicates. If m and n are not specified, they are set to
+    # maximum(I) and maximum(J) respectively. If the combine function is not supplied, combine
+    # defaults to + unless the elements of V are Booleans in which case combine defaults to |. All
+    # elements of I must satisfy 1 <= I[k] <= m, and all elements of J must satisfy 1 <= J[k] <= n.
+    # Numerical zeros in (I, J, V) are retained as structural nonzeros; to drop numerical zeros, use
+    # dropzeros!.
+
+    # construct, I, J, and V  (rows, cols, vals)
+    bs = busses(net)
+    rows, cols = Int64[], Int64[]
+    vals = ComplexF64[]
+    N = length(bs) * 3
+    i, j = 0, 0
+
+    # TODO how to make this faster? Takes ~8 minutes for 8500 node system
+    # Y is symmetric
+    for (b1_index, bus1) in enumerate(bs)
+        for bus2 in bs[b1_index:end]
+
+            if net[(bus1, bus2)] == MissingEdge
+                j += 3  # for three phases
+                continue
+            end
+
+            y = Yij(bus1, bus2, net)
+            for ii in 1:3, jj in 1:3  # for three phases
+                if isapprox(y[ii, jj], 0.0)
+                    continue
+                end
+                push!(vals, y[ii, jj])
+                push!(rows, i + ii)
+                push!(cols, j + jj)
+            end
+            j += 3  # for three phases
+        end
+        # column tracker, would reset to zero if doing a full matrix
+        j = b1_index * 3
+        i += 3
     end
-    N = length(busses(net))
-    return sparse(rows, cols, vals, N, N)
+    nodes = vec([
+        bus * phs for phs in [".1", ".2", ".3"], bus in busses(net)
+    ])
+
+    return Symmetric(sparse(rows, cols, vals, N, N)), nodes
 end

@@ -13,6 +13,7 @@ Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 MetaGraphsNext = "fa8bd995-216d-47f1-8a91-f3b68fbeb377"
 OpenDSSDirect = "a8b11937-1041-50f2-9818-136bb7a8fb06"
 Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 
 [compat]
@@ -20,7 +21,7 @@ DataStructures = "0.18"
 Graphs = "1.8"
 JuMP = "1"
 MetaGraphsNext = "0.7"
-OpenDSSDirect = "=0.9.9"  # issues with 0.9.8
+OpenDSSDirect = "=0.9.9"
 Parameters = "0.12"
 YAML = "0.4"
 julia = "1"

@@ -16,6 +16,7 @@ Only modeling fixed capacitors so far. Positive kvar values are injected.
     kvar1::Real = 0.0
     kvar2::Real = 0.0
     kvar3::Real = 0.0
+    fixed::Bool = true
 end
 
 capacitor_busses(net::Network) = collect(

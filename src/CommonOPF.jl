@@ -2,6 +2,7 @@ module CommonOPF
 
 using LinearAlgebra
 using JuMP
+using SparseArrays
 import Graphs, MetaGraphsNext
 import MetaGraphsNext: inneighbors, outneighbors, induced_subgraph, delete!
 import Logging: SimpleLogger, Error, with_logger
@@ -64,6 +65,7 @@ export
     yj,
     Yij_per_unit,
     Yij,
+    Ysparse,
 
     # io
     dss_to_Network,
