@@ -170,6 +170,11 @@ Graphs.inneighbors(net::Network, bus::String) = MetaGraphsNext.inneighbor_labels
 Graphs.outneighbors(net::Network, bus::String) = MetaGraphsNext.outneighbor_labels(net.graph, bus)
 
 
+"""
+    phases_into_bus(net::Network, bus::String)::Vector{Int64}
+
+All the phases on the edges found via `inneighbors(net, bus)`.
+"""
 function phases_into_bus(net::Network, bus::String)::Vector{Int64}
     phase_set = Set{Int64}()
     for in_bus in inneighbors(net, bus)
@@ -179,6 +184,11 @@ function phases_into_bus(net::Network, bus::String)::Vector{Int64}
 end
 
 
+"""
+    phases_out_of_bus(net::Network, bus::String)::Vector{Int64}
+
+All the phases on the edges found via `outneighbors(net, bus)`.
+"""
 function phases_out_of_bus(net::Network, bus::String)::Vector{Int64}
     phase_set = Set{Int64}()
     for out_bus in outneighbors(net, bus)
@@ -188,6 +198,11 @@ function phases_out_of_bus(net::Network, bus::String)::Vector{Int64}
 end
 
 
+"""
+    phases_connected_to_bus(net::Network, bus::String)::Vector{Int64}
+
+Union of `phases_into_bus` and `phases_out_of_bus`.
+"""
 function phases_connected_to_bus(net::Network, bus::String)::Vector{Int64}
     sort(union(
         phases_into_bus(net, bus), phases_out_of_bus(net, bus)
@@ -312,7 +327,7 @@ end
 
 function Network_IEEE8500()
     fp = joinpath(dirname(@__FILE__), 
-        "..", "test", "data", "ieee8500", "Master-unbal.dss"
+        "..", "test", "data", "ieee8500", "Master-no-secondaries.dss"
     )
     return Network(fp)
 end
