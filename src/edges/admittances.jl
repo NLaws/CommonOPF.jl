@@ -330,17 +330,24 @@ end
 
 
 """
-    Yij(i::AbstractString, j::AbstractString, net::CommonOPF.Network)::Union{ComplexF64, Matrix{ComplexF64}}
+    Yij(
+        i::AbstractString, 
+        j::AbstractString, 
+        net::CommonOPF.Network
+    )::Union{ComplexF64, Matrix{ComplexF64}}
 
 Returns either:
 - entry of bus admittance matrix at i,j for single phase networks or
 - 3x3 sub-matrix of bus admittance matrix for the phases connecting busses i and j
 """
-function Yij(i::AbstractString, j::AbstractString, net::CommonOPF.Network)::Union{ComplexF64, Matrix{ComplexF64}}
+function Yij(
+        i::AbstractString, 
+        j::AbstractString, 
+        net::CommonOPF.Network
+    )::Union{ComplexF64, Matrix{ComplexF64}}
     if i != j
         return -1 .* yij(i, j, net)
     end
-    # TODO shunt impedance
     # sum up the y_jk where k is connected to j
     g, b = 0, 0
     for k in connected_busses(j, net)
@@ -348,23 +355,30 @@ function Yij(i::AbstractString, j::AbstractString, net::CommonOPF.Network)::Unio
         g += real(y)
         b += imag(y)
     end
-    return g + im * b
+    return g + im * b + yj(j, net)
 end
 
 
 """
-    Yij_per_unit(i::AbstractString, j::AbstractString, net::CommonOPF.Network)::Union{ComplexF64, Matrix{ComplexF64}}
+    Yij_per_unit(
+        i::AbstractString, 
+        j::AbstractString, 
+        net::CommonOPF.Network
+    )::Union{ComplexF64, Matrix{ComplexF64}}
 
 Returns either:
 - entry of bus admittance matrix at i,j for single phase networks or
 - 3x3 sub-matrix of bus admittance matrix for the phases connecting busses i and j
 (multiplied with `net.Zbase`)
 """
-function Yij_per_unit(i::AbstractString, j::AbstractString, net::CommonOPF.Network)::Union{ComplexF64, Matrix{ComplexF64}}
+function Yij_per_unit(
+        i::AbstractString, 
+        j::AbstractString, 
+        net::CommonOPF.Network
+    )::Union{ComplexF64, Matrix{ComplexF64}}
     if i != j
         return -1 .* yij_per_unit(i, j, net)
     end
-    # TODO shunt impedance
     # sum up the y_jk where k is connected to j
     g, b = 0, 0
     for k in connected_busses(j, net)
@@ -372,7 +386,7 @@ function Yij_per_unit(i::AbstractString, j::AbstractString, net::CommonOPF.Netwo
         g += real(y)
         b += imag(y)
     end
-    return g + im * b
+    return g + im * b + yj(j, net)
 end
 
 
@@ -393,6 +407,7 @@ function Ysparse(net::CommonOPF.Network{MultiPhase})::Tuple{Symmetric, Vector{St
     # Numerical zeros in (I, J, V) are retained as structural nonzeros; to drop numerical zeros, use
     # dropzeros!.
 
+    # TODO preallocate arrays
     # construct, I, J, and V  (rows, cols, vals)
     bs = busses(net)
     rows, cols = Int64[], Int64[]
@@ -401,7 +416,7 @@ function Ysparse(net::CommonOPF.Network{MultiPhase})::Tuple{Symmetric, Vector{St
     i, j = 0, 0
 
     # TODO how to make this faster? Takes ~8 minutes for 8500 node system
-    # Y is symmetric
+    # Y is symmetric so we only create the upper triangular values
     for (b1_index, bus1) in enumerate(bs)
         for bus2 in bs[b1_index:end]
 
