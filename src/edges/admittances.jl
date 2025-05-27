@@ -333,8 +333,8 @@ end
     Yij(i::AbstractString, j::AbstractString, net::CommonOPF.Network)::Union{ComplexF64, Matrix{ComplexF64}}
 
 Returns either:
-- entry of admittance matrix at i,j for single phase networks or
-- 3x3 admittance sub-matrix for the phases connecting busses i and j
+- entry of bus admittance matrix at i,j for single phase networks or
+- 3x3 sub-matrix of bus admittance matrix for the phases connecting busses i and j
 """
 function Yij(i::AbstractString, j::AbstractString, net::CommonOPF.Network)::Union{ComplexF64, Matrix{ComplexF64}}
     if i != j
@@ -356,8 +356,8 @@ end
     Yij_per_unit(i::AbstractString, j::AbstractString, net::CommonOPF.Network)::Union{ComplexF64, Matrix{ComplexF64}}
 
 Returns either:
-- entry of admittance matrix at i,j for single phase networks or
-- 3x3 admittance sub-matrix for the phases connecting busses i and j
+- entry of bus admittance matrix at i,j for single phase networks or
+- 3x3 sub-matrix of bus admittance matrix for the phases connecting busses i and j
 (multiplied with `net.Zbase`)
 """
 function Yij_per_unit(i::AbstractString, j::AbstractString, net::CommonOPF.Network)::Union{ComplexF64, Matrix{ComplexF64}}

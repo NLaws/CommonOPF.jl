@@ -1,6 +1,6 @@
 # Impedance and Admittance Methods
 CommonOPF exports edge impedance and admittance methods to support building optimal power flow
-models (see [Edge Impedance and Admittance](@ref)). Internally, the exported methods are supported by methods that
+models (see [Edge Impedances and Admittances](@ref)). Internally, the exported methods are supported by methods that
 dispatch on the edge types:
 ```@example
 using CommonOPF # hide
@@ -19,3 +19,5 @@ Admittance values are derived using the inverse of the impedances:
 ```@docs
 CommonOPF.conductance_per_length(c::CommonOPF.Conductor, phase_type::Type{T}) where {T <: CommonOPF.Phases}
 ```
+
+Bus admittance values are a work in progress.
