@@ -493,10 +493,14 @@ sub-matrix of Y that corresponds to the bus names sorted in numerical phase orde
     The OpenDSS Y matrix is in 1/impedance units (as defined in the OpenDSS model), like 1,000-ft/ohms.
 """
 function phase_admittance(bus1::String, bus2::String, Y::Matrix{ComplexF64}, node_order::Vector{String})
+    if bus1 == bus2
+        throw(@error("Cannot extract phase admittance from bus admittance matrix for the same busses: $bus1"))
+    end
     y_busses = strip_phases.(node_order)
     b1_indices = findall(x -> x == bus1, y_busses)
     b2_indices = findall(x -> x == bus2, y_busses)
-    return Y[b1_indices, b2_indices]
+    # -1 b/c off-diagonal Y values equal -y_ij
+    return -1 * Y[b1_indices, b2_indices]
 end
 
 
@@ -540,7 +544,7 @@ function transformer_impedance(
     # 1x2 impedance matrix does not fit in the CommonOPF paradigm because the number of phases out
     # of the bus are greater than the number of phases into the bus (like a phase is created).
     Z = inverse_matrix_with_zeros(Diagonal(Y_trfx)) * kV1 / kV2
-    r, x, _ = dss_impedance_matrices_to_three_phase(abs.(real(Z)), -1*imag(Z), zeros(3,3), phases)
+    r, x, _ = dss_impedance_matrices_to_three_phase(real(Z), imag(Z), zeros(3,3), phases)
     return r, x, kV1, kV2
 end
 
