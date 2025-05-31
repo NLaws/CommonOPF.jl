@@ -14,6 +14,47 @@ abstract type MissingEdge end
 
 
 """
+    VarUnits
+
+Units acceptable for CommonOPF variables.
+"""
+@enum VarUnits begin
+    AmpUnit
+    VoltUnit
+    TimeUnit
+    RealPowerUnit
+    ReactivePowerUnit
+    ApparentPowerUnit
+end
+
+
+"""
+    VarDimension
+
+Dimensions for specifying variable indexes in CommonOPF variables.
+"""
+@enum VarDimensions begin
+    BusDimension
+    EdgeDimension
+    TimeDimension
+    PhaseDimension
+end
+
+
+"""
+    VarInfo
+
+Variable information for describing variables in sub-modules of CommonOPF
+"""
+struct VarInfo
+    symbol::Symbol
+    description::String
+    units::VarUnits
+    dimensions::Tuple{Vararg{VarDimensions}}
+end
+
+
+"""
     struct Network <: AbstractNetwork
         graph::MetaGraphsNext.AbstractGraph
         substation_bus::String
@@ -51,4 +92,5 @@ mutable struct Network{T<:Phases} <: AbstractNetwork
     Ntimesteps::Int
     bounds::VariableBounds
     var_names::AbstractVector{Symbol}
+    var_info::Dict{Symbol, VarInfo}
 end

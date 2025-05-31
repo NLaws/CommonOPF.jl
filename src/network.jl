@@ -27,7 +27,8 @@ function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict, net_type::Type)
         v0,
         Ntimesteps,
         bounds,
-        Vector{Symbol}()
+        Vector{Symbol}(),
+        Dict{Symbol, VarInfo}()
     )
 end
 

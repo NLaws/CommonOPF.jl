@@ -170,3 +170,15 @@ end
     @test phases_into_bus(net, "684") == [1, 3]
     @test phases_out_of_bus(net, "650") == [1, 2, 3]
 end
+
+
+@testset "Network.var_info" begin
+    net = Network_IEEE13()
+    net.var_info[:vsqrd] = CommonOPF.VarInfo(
+        :vsqrd,
+        "voltage magnitude squared",
+        CommonOPF.VoltUnit,
+        (CommonOPF.BusDimension, CommonOPF.TimeDimension, CommonOPF.PhaseDimension)
+    )
+    @test net.var_info[:vsqrd].units == CommonOPF.VoltUnit
+end

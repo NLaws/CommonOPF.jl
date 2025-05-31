@@ -1,8 +1,12 @@
 # CommonOPF Change log
 
 ## dev
+- WIP on bus admittance matrix builder from `Network` (called `Ysparse` for now)
+
+## v0.4.6
 - add fixed `Capacitor` model
 - add `MissingEdge` type and use it for zero admittance and infinite impedance
+- add `Network.var_info` for documenting model variables
 
 ## v0.4.5
 - add `phases_out_of_bus` and `phases_connected_to_bus` methods
