@@ -27,3 +27,11 @@ multiphase_edge_variable_container
 CommonOPF.VariableBounds
 CommonOPF.VariableBounds(::Dict)
 ```
+
+## Documenting Variables
+```@docs
+CommonOPF.VarInfo
+CommonOPF.VarUnits
+CommonOPF.VarDimensions
+CommonOPF.print_var_info
+```

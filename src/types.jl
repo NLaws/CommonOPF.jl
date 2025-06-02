@@ -14,7 +14,14 @@ abstract type MissingEdge end
 
 
 """
-    VarUnits
+    @enum VarUnits begin
+        AmpUnit
+        VoltUnit
+        TimeUnit
+        RealPowerUnit
+        ReactivePowerUnit
+        ApparentPowerUnit
+    end
 
 Units acceptable for CommonOPF variables.
 """
@@ -29,7 +36,12 @@ end
 
 
 """
-    VarDimension
+    @enum VarDimensions begin
+        BusDimension
+        EdgeDimension
+        TimeDimension
+        PhaseDimension
+    end
 
 Dimensions for specifying variable indexes in CommonOPF variables.
 """
@@ -42,9 +54,15 @@ end
 
 
 """
-    VarInfo
+    struct VarInfo
+        symbol::Symbol
+        description::String
+        units::VarUnits
+        dimensions::Tuple{Vararg{VarDimensions}}
+    end
 
-Variable information for describing variables in sub-modules of CommonOPF
+Variable information for describing variables in sub-modules of CommonOPF.
+See also [`VarUnits`](@ref), [`VarDimensions`](@ref), and [`print_var_info`](@ref).
 """
 struct VarInfo
     symbol::Symbol
@@ -65,6 +83,7 @@ end
         Ntimesteps::Int
         bounds::VariableBounds
         var_names::AbstractVector{Symbol}
+        var_info::Dict{Symbol, VarInfo}
     end
 
 The `Network` model is used to store all the inputs required to create power flow and optimal power
@@ -81,6 +100,9 @@ vector of [Conductor](@ref) specifications and a `Network` key containing at lea
 `substation_bus`. See [Input Formats](@ref) for more details.
 
 `var_names` is empty be default. It is used in the results getters like `opf_results`.
+
+`var_info` is empty be default. It is used in other packages like BranchFlowModel.jl to document the
+variables that are created for OPF models. See [`VarInfo`](@ref) for more.
 """
 mutable struct Network{T<:Phases} <: AbstractNetwork
     graph::MetaGraphsNext.AbstractGraph

@@ -172,3 +172,46 @@ function add_complex_vector_of_phase_variable!(
     end
     nothing
 end
+
+
+"""
+    print_var_info(net::Network)
+
+Print the variable info in `net.var_info` in a table like:
+```
+julia> print_var_info(net)
+┌────────┬───────────────────────────┬──────────┬────────────────────┐
+│ symbol │               description │    units │         dimensions │
+├────────┼───────────────────────────┼──────────┼────────────────────┤
+│  vsqrd │ voltage magnitude squared │ VoltUnit │ (Bus, Time, Phase) │
+└────────┴───────────────────────────┴──────────┴────────────────────┘
+```
+"""
+function print_var_info(net::Network)
+    varinfos = collect(values(net.var_info))
+    header_syms = fieldnames(CommonOPF.VarInfo)
+    header = vec([string(f) for f in header_syms])
+    flat_data = [string(getfield(s, f)) for s in varinfos, f in header_syms]
+
+    # Always reshape into (n_rows, n_cols)
+    data_matrix = reshape(flat_data, length(varinfos), length(header_syms))
+
+    # format the dimensions by removing "CommonOPF." prefix and "Dimension" suffix
+    # e.g. "(CommonOPF.BusDimension, CommonOPF.TimeDimension, CommonOPF.PhaseDimension)"
+    # becomes "(Bus, Time, Phase)"
+    dim_idx = indexin(["dimensions"], header)[1]
+    for i in 1:size(data_matrix, 1)
+        dims = data_matrix[i, dim_idx]
+        # Remove surrounding parentheses
+        inner = dims[2:end-1]
+        # Split by comma and optional spaces
+        parts = split(inner, r",\s*")
+        # Remove "CommonOPF." prefix and "Dimension" suffix from each part
+        cleaned_parts = [
+            replace(p, r"^CommonOPF\." => "") |> x -> replace(x, r"Dimension$" => "") for p in parts
+        ]
+        # Join back with comma and add parentheses
+        data_matrix[i, dim_idx] = "(" * join(cleaned_parts, ", ") * ")"
+    end
+    pretty_table(data_matrix; header = header, backend = Val(:text)) 
+end

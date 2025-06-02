@@ -123,6 +123,7 @@ export
     add_time_vector_variables!,
     add_complex_vector_of_phase_variable!,
     opf_results,
+    print_var_info,
 
     # decomposition
     split_network,
