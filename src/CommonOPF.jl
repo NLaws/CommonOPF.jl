@@ -8,6 +8,7 @@ import MetaGraphsNext: inneighbors, outneighbors, induced_subgraph, delete!
 import Logging: SimpleLogger, Error, with_logger
 import YAML
 import Parameters: @with_kw
+import PrettyTables: pretty_table, Crayon  # for print_var_info
 import InteractiveUtils: subtypes
 import OpenDSSDirect as OpenDSS
 import DataStructures: DefaultDict

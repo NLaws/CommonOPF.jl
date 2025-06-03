@@ -213,5 +213,25 @@ function print_var_info(net::Network)
         # Join back with comma and add parentheses
         data_matrix[i, dim_idx] = "(" * join(cleaned_parts, ", ") * ")"
     end
-    pretty_table(data_matrix; header = header, backend = Val(:text)) 
+    # Sort by column 1 ("symbol")
+    rows = [data_matrix[i, :] for i in 1:size(data_matrix, 1)]
+
+    # Sort by a specific column — e.g., "symbol"
+    col_index = findfirst(==("symbol"), header)
+    sorted_rows = sort(rows, by = row -> row[col_index])
+
+    # Convert back to matrix
+    sorted_matrix = reduce(vcat, permutedims.(sorted_rows))
+
+    bold_crayon = Crayon(bold = :true)
+
+    # Print with PrettyTables
+    pretty_table(
+        sorted_matrix; 
+        header = header, 
+        hlines = :all, # Add horizontal lines between all rows
+        autowrap = true,
+        backend = Val(:text),
+        header_crayon=bold_crayon,
+    )
 end
