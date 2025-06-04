@@ -328,7 +328,7 @@ end
 
 function Network_IEEE13()
     fp = joinpath(dirname(@__FILE__), 
-        "..", "test", "data", "yaml_inputs", "ieee13_single_phase.yaml"
+        "..", "test", "data", "yaml_inputs", "ieee13_multi_phase.yaml"
     )
     return Network(fp)
 end

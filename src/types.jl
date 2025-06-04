@@ -18,9 +18,10 @@ abstract type MissingEdge end
         AmpUnit
         VoltUnit
         TimeUnit
-        RealPowerUnit
-        ReactivePowerUnit
         ApparentPowerUnit
+        ComplexPowerUnit
+        ReactivePowerUnit
+        RealPowerUnit
     end
 
 Units acceptable for CommonOPF variables.
@@ -29,9 +30,10 @@ Units acceptable for CommonOPF variables.
     AmpUnit
     VoltUnit
     TimeUnit
-    RealPowerUnit
-    ReactivePowerUnit
     ApparentPowerUnit
+    ComplexPowerUnit
+    ReactivePowerUnit
+    RealPowerUnit
 end
 
 

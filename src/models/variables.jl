@@ -230,13 +230,15 @@ function print_var_info(net::Network)
     sorted_rows = sort(rows, by = row -> row[col_index])
 
     # Convert back to matrix
-    sorted_matrix = reduce(vcat, permutedims.(sorted_rows))
+    if length(sorted_rows) > 0
+        data_matrix = reduce(vcat, permutedims.(sorted_rows))
+    end
 
-    bold_crayon = Crayon(bold = :true)
+    bold_crayon = Crayon(foreground = :blue, background = :black, bold = :true)
 
     # Print with PrettyTables
     pretty_table(
-        sorted_matrix; 
+        data_matrix; 
         header = header, 
         hlines = :all, # Add horizontal lines between all rows
         autowrap = true,
