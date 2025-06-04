@@ -123,7 +123,7 @@ Conductor:
       - 671
       - 692
     length: 1  # switch
-    phases: [1]
+    phases: [1, 2, 3]
     r1: 0.0001
     x1: 0
     r0: 0.0001
