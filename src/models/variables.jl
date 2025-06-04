@@ -186,6 +186,15 @@ julia> print_var_info(net)
 │  vsqrd │ voltage magnitude squared │ VoltUnit │ (Bus, Time, Phase) │
 └────────┴───────────────────────────┴──────────┴────────────────────┘
 ```
+Add values to `Network.var_info` like:
+```julia
+net.var_info[:vsqrd] = CommonOPF.VarInfo(
+    :vsqrd,
+    "voltage magnitude squared",
+    CommonOPF.VoltUnit,
+    (CommonOPF.BusDimension, CommonOPF.TimeDimension, CommonOPF.PhaseDimension)
+)
+```
 """
 function print_var_info(net::Network)
     varinfos = collect(values(net.var_info))
