@@ -188,7 +188,7 @@ julia> print_var_info(net)
 ```
 Add values to `Network.var_info` like:
 ```julia
-net.var_info[:vsqrd] = CommonOPF.VarInfo(
+net.var_info[:vsqrd] = CommonOPF.VariableInfo(
     :vsqrd,
     "voltage magnitude squared",
     CommonOPF.VoltUnit,
@@ -198,7 +198,7 @@ net.var_info[:vsqrd] = CommonOPF.VarInfo(
 """
 function print_var_info(net::Network)
     varinfos = collect(values(net.var_info))
-    header_syms = fieldnames(CommonOPF.VarInfo)
+    header_syms = fieldnames(CommonOPF.VariableInfo)
     header = vec([string(f) for f in header_syms])
     flat_data = [string(getfield(s, f)) for s in varinfos, f in header_syms]
 

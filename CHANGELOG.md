@@ -2,7 +2,7 @@
 
 ## dev
 - WIP on bus admittance matrix builder from `Network` (called `Ysparse` for now)
-- add `print_var_info` using PrettyTables to show `VarInfo` with `fieldnames` as the header
+- add `print_var_info` using PrettyTables to show `VariableInfo` with `fieldnames` as the header
 
 ## v0.4.6
 - add fixed `Capacitor` model

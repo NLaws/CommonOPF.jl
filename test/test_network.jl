@@ -172,13 +172,22 @@ end
 end
 
 
-@testset "Network.var_info" begin
+@testset "Network.var_info and Network.constraint_info" begin
     net = Network_IEEE13()
-    net.var_info[:vsqrd] = CommonOPF.VarInfo(
+    net.var_info[:vsqrd] = CommonOPF.VariableInfo(
         :vsqrd,
         "voltage magnitude squared",
         CommonOPF.VoltUnit,
         (CommonOPF.BusDimension, CommonOPF.TimeDimension, CommonOPF.PhaseDimension)
     )
     @test net.var_info[:vsqrd].units == CommonOPF.VoltUnit
+    print_var_info(net)
+
+    net.constraint_info[:power_balance_constraints] = CommonOPF.ConstraintInfo(
+        :power_balance_constraints,
+        "power balance at each bus",
+        MOI.EqualTo{ComplexF64}(0.0 - 0.0im),
+        (CommonOPF.BusDimension, CommonOPF.TimeDimension, CommonOPF.PhaseDimension),
+    )
+    print_constraint_info(net)
 end

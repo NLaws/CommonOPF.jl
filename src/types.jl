@@ -14,7 +14,7 @@ abstract type MissingEdge end
 
 
 """
-    @enum VarUnits begin
+    @enum Units begin
         AmpUnit
         VoltUnit
         TimeUnit
@@ -26,19 +26,22 @@ abstract type MissingEdge end
 
 Units acceptable for CommonOPF variables.
 """
-@enum VarUnits begin
+@enum Units begin
     AmpUnit
+    AmpSquaredUnit
     VoltUnit
+    VoltSquaredUnit
     TimeUnit
     ApparentPowerUnit
     ComplexPowerUnit
     ReactivePowerUnit
     RealPowerUnit
+    MixedUnits
 end
 
 
 """
-    @enum VarDimensions begin
+    @enum Dimensions begin
         BusDimension
         EdgeDimension
         TimeDimension
@@ -47,33 +50,48 @@ end
 
 Dimensions for specifying variable indexes in CommonOPF variables.
 """
-@enum VarDimensions begin
+@enum Dimensions begin
     BusDimension
     EdgeDimension
     TimeDimension
     PhaseDimension
+    PhaseMatrixDimension
+    HermitianMatrixDimension
 end
 
 
 """
-    struct VarInfo
+    struct VariableInfo
         symbol::Symbol
         description::String
-        units::VarUnits
-        dimensions::Tuple{Vararg{VarDimensions}}
+        units::Units
+        dimensions::Tuple{Vararg{Dimensions}}
     end
 
 Variable information for describing variables in sub-modules of CommonOPF.
-See also [`VarUnits`](@ref), [`VarDimensions`](@ref), and [`print_var_info`](@ref).
+See also [`Units`](@ref), [`Dimensions`](@ref), and [`print_var_info`](@ref).
 """
-struct VarInfo
+struct VariableInfo
     symbol::Symbol
     description::String
-    units::VarUnits
-    dimensions::Tuple{Vararg{VarDimensions}}
+    units::Units
+    dimensions::Tuple{Vararg{Dimensions}}
 end
 
 
+struct ConstraintInfo
+    symbol::Symbol
+    description::String
+    set_type::MOI.AbstractSet
+    dimensions::Tuple{Vararg{Dimensions}}
+end
+
+# MOI.get(model, MOI.ConstraintSet(), c)
+# MathOptInterface.EqualTo{ComplexF64}(0.0 - 0.0im)
+
+# TODO? ConstraintInfo? w/type like Linear, SOC, PSD (use JuMP types?); indices/dimensions,
+# description/math
+# TODO include variable container sizes 
 """
     struct Network <: AbstractNetwork
         graph::MetaGraphsNext.AbstractGraph
@@ -85,7 +103,7 @@ end
         Ntimesteps::Int
         bounds::VariableBounds
         var_names::AbstractVector{Symbol}
-        var_info::Dict{Symbol, VarInfo}
+        var_info::Dict{Symbol, VariableInfo}
     end
 
 The `Network` model is used to store all the inputs required to create power flow and optimal power
@@ -104,7 +122,7 @@ vector of [Conductor](@ref) specifications and a `Network` key containing at lea
 `var_names` is empty be default. It is used in the results getters like `opf_results`.
 
 `var_info` is empty be default. It is used in other packages like BranchFlowModel.jl to document the
-variables that are created for OPF models. See [`VarInfo`](@ref) for more.
+variables that are created for OPF models. See [`VariableInfo`](@ref) for more.
 """
 mutable struct Network{T<:Phases} <: AbstractNetwork
     graph::MetaGraphsNext.AbstractGraph
@@ -116,5 +134,6 @@ mutable struct Network{T<:Phases} <: AbstractNetwork
     Ntimesteps::Int
     bounds::VariableBounds
     var_names::AbstractVector{Symbol}
-    var_info::Dict{Symbol, VarInfo}
+    var_info::Dict{Symbol, VariableInfo}
+    constraint_info::Dict{Symbol, ConstraintInfo}
 end

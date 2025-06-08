@@ -30,7 +30,7 @@ CommonOPF.VariableBounds(::Dict)
 
 ## Documenting Variables
 CommonOPF provides a way to document model variables within the [`Network`](@ref) struct. See the
-[`CommonOPF.VarInfo`](@ref) struct and the [`CommonOPF.print_var_info`](@ref) method below for
+[`CommonOPF.VariableInfo`](@ref) struct and the [`CommonOPF.print_var_info`](@ref) method below for
 details. As an example (and test) of the `print_var_info` method:
 ```@setup print_var_info
 using CommonOPF
@@ -45,35 +45,35 @@ net = Network(Dict(
     )]
 ))
 
-net.var_info[:vsqrd] = CommonOPF.VarInfo(
+net.var_info[:vsqrd] = CommonOPF.VariableInfo(
     :vsqrd,
     "voltage magnitude squared",
     CommonOPF.VoltUnit,
     (CommonOPF.BusDimension, CommonOPF.TimeDimension, CommonOPF.PhaseDimension)
 )
 
-net.var_info[:pj] = CommonOPF.VarInfo(
+net.var_info[:pj] = CommonOPF.VariableInfo(
     :pj,
     "net bus injection real power on bus j",
     CommonOPF.RealPowerUnit,
     (CommonOPF.BusDimension, CommonOPF.TimeDimension, CommonOPF.PhaseDimension)
 )
 
-net.var_info[:qj] = CommonOPF.VarInfo(
+net.var_info[:qj] = CommonOPF.VariableInfo(
     :qj,
     "net bus injection reactive power on bus j",
     CommonOPF.ReactivePowerUnit,
     (CommonOPF.BusDimension, CommonOPF.TimeDimension, CommonOPF.PhaseDimension)
 )
 
-net.var_info[:pij] = CommonOPF.VarInfo(
+net.var_info[:pij] = CommonOPF.VariableInfo(
     :pij,
     "sending end real power from bus i to j",
     CommonOPF.RealPowerUnit,
     (CommonOPF.EdgeDimension, CommonOPF.TimeDimension, CommonOPF.PhaseDimension)
 )
 
-net.var_info[:qij] = CommonOPF.VarInfo(
+net.var_info[:qij] = CommonOPF.VariableInfo(
     :qij,
     "sending end ReactivePowerUnit power from bus i to j",
     CommonOPF.RealPowerUnit,
@@ -85,8 +85,8 @@ CommonOPF.print_var_info(net)
 ```
 
 ```@docs
-CommonOPF.VarInfo
-CommonOPF.VarUnits
-CommonOPF.VarDimensions
+CommonOPF.VariableInfo
+CommonOPF.Units
+CommonOPF.Dimensions
 CommonOPF.print_var_info
 ```

@@ -3,15 +3,17 @@ module CommonOPF
 using LinearAlgebra
 using JuMP
 using SparseArrays
+
+import DataStructures: DefaultDict
 import Graphs, MetaGraphsNext
-import MetaGraphsNext: inneighbors, outneighbors, induced_subgraph, delete!
+import InteractiveUtils: subtypes
 import Logging: SimpleLogger, Error, with_logger
-import YAML
+import MathOptInterface as MOI
+import MetaGraphsNext: inneighbors, outneighbors, induced_subgraph, delete!
+import OpenDSSDirect as OpenDSS
 import Parameters: @with_kw
 import PrettyTables: pretty_table, Crayon  # for print_var_info
-import InteractiveUtils: subtypes
-import OpenDSSDirect as OpenDSS
-import DataStructures: DefaultDict
+import YAML
 
 const SBASE_DEFAULT = 1
 const VBASE_DEFAULT = 1
@@ -126,6 +128,9 @@ export
     opf_results,
     print_var_info,
 
+    # constraints
+    print_constraint_info,
+
     # decomposition
     split_network,
     splitting_busses,
@@ -164,6 +169,7 @@ include("busses/shunt_admittances.jl")
 include("network_reduction.jl")
 include("decomposition.jl")
 
+include("models/constraints.jl")
 include("models/construction_utils.jl")
 include("models/variables.jl")
 include("models/results.jl")
