@@ -46,9 +46,13 @@ end
         EdgeDimension
         TimeDimension
         PhaseDimension
+        PhaseMatrixDimension
+        HermitianMatrixDimension
+        RealReactiveDimension
     end
 
-Dimensions for specifying variable indexes in CommonOPF variables.
+Dimensions for specifying variable and constraint indices in CommonOPF, i.e. how to access a
+variable or constraint in the `JuMP.Model.obj_dict`.
 """
 @enum Dimensions begin
     BusDimension
@@ -57,6 +61,7 @@ Dimensions for specifying variable indexes in CommonOPF variables.
     PhaseDimension
     PhaseMatrixDimension
     HermitianMatrixDimension
+    RealReactiveDimension
 end
 
 
