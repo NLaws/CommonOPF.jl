@@ -2,7 +2,13 @@
 
 ## dev
 - WIP on bus admittance matrix builder from `Network` (called `Ysparse` for now)
+
+## v0.4.7
+Changes to support documentation in BranchFlowModel.jl (eventually BusInjectionModel.jl too)
 - add `print_var_info` using PrettyTables to show `VariableInfo` with `fieldnames` as the header
+- refactor `VarInfo` -> `VariableInfo`
+- add `ConstraintInfo` and `print_constraint_info`
+- add `RealReactiveDimension`
 
 ## v0.4.6
 - add fixed `Capacitor` model
