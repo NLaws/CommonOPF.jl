@@ -4,6 +4,7 @@
 - WIP on bus admittance matrix builder from `Network` (called `Ysparse` for now)
 - stop exporting `sj` method
 - change `sj_per_unit(j::String, net::Network{MultiPhase})` to return complex values
+- change `ConstraintInfo.set_type::MOI.AbstractSet` -> `ConstraintInfo.set_type::DataType`
 
 ## v0.4.7
 Changes to support documentation in BranchFlowModel.jl (eventually BusInjectionModel.jl too)

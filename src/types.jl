@@ -87,7 +87,7 @@ end
 struct ConstraintInfo
     symbol::Symbol
     description::String
-    set_type::MOI.AbstractSet
+    set_type::DataType
     dimensions::Tuple{Vararg{Dimensions}}
 end
 
