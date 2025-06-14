@@ -101,7 +101,12 @@ function Network(fp::String)
     Network(d)
 end
 
-# make it so Network[(bus1, bus2)] and Network[(bus2, bus1)] return the edge struct
+
+"""
+    Base.getindex(net::Network, idx::Tuple{String, String}) 
+
+make it so `Network[(bus1, bus2)]` and `Network[(bus2, bus1)]` return the edge struct
+"""
 function Base.getindex(net::Network, idx::Tuple{String, String}) 
     try 
         return net.graph[idx[1], idx[2]] 
@@ -116,6 +121,12 @@ function Base.getindex(net::Network, idx::Tuple{String, String})
     return MissingEdge
 end
 
+
+"""
+    Base.setindex!(net::Network, edge::CommonOPF.AbstractEdge, idx::Tuple{String, String})
+
+make it so `Network[(bus1, bus2)] = edge` sets `Network.graph[bus1, bus2] = edge`
+"""
 function Base.setindex!(net::Network, edge::CommonOPF.AbstractEdge, idx::Tuple{String, String}) 
     net.graph[idx[1], idx[2]] = edge
 end
@@ -165,6 +176,11 @@ function Base.getindex(net::Network, bus::String, kws_kvars::Symbol, phase::Int)
 end
 
 
+"""
+    edges(net::AbstractNetwork)
+
+returns a vector of the edge indices in the network
+"""
 edges(net::AbstractNetwork) = collect(MetaGraphsNext.edge_labels(net.graph))
 
 
@@ -209,6 +225,29 @@ function phases_connected_to_bus(net::Network, bus::String)::Vector{Int64}
     sort(union(
         phases_into_bus(net, bus), phases_out_of_bus(net, bus)
     ))
+end
+
+
+"""
+    terminals(net::Network{MultiPhase})::Vector{String}
+
+The terminals of the `Network` are the bus strings combined with the phase integers using periods.
+For example, if `phases_connected_to_bus(net, "mybus")` returns `[1,3]` then the `terminals` include
+"mybus.1" and "mybus.3". The terminals are used as the indices in the `Ysparse` matrix for
+`MultiPhase` networks.
+"""
+function terminals(net::Network{MultiPhase})::Vector{String}
+    bs = busses(net)
+    # preallocate assuming 3 phases at every bus
+    trmnls = Vector{String}(undef, length(bs) * 3)
+    n = 0
+    for b in bs
+        for phs in phases_connected_to_bus(net, b)
+            n += 1
+            trmnls[n] = b * "." * string(phs)
+        end
+    end
+    return resize!(trmnls, n)
 end
 
 

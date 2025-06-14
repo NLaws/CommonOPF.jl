@@ -38,6 +38,12 @@ net = Network_IEEE13_SinglePhase()
 net["675"]
 ```
 
+### Terminals
+```@docs
+terminals
+```
+
+
 ## Network Reduction
 A few convenience methods are provided in `CommonOPF` for reducing network complexity by removing
 intermediate busses and trimming branches that will not typically impact OPF results.
