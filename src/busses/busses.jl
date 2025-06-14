@@ -2,7 +2,7 @@
     function  build_busses(dicts::AbstractVector{Dict{Symbol, Any}}, ConcreteBusType::DataType)
 
 unpack each dict in `dicts` into `ConcreteBusType` constructor and pass the results to
-`check_edges!`.
+`check_busses!`.
 
 returns `Vector{ConcreteBusType}`
 """

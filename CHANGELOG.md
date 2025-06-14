@@ -5,6 +5,7 @@
 - stop exporting `sj` method
 - change `sj_per_unit(j::String, net::Network{MultiPhase})` to return complex values
 - change `ConstraintInfo.set_type::MOI.AbstractSet` -> `ConstraintInfo.set_type::DataType`
+- add `Units.RadiansUnit`
 
 ## v0.4.7
 Changes to support documentation in BranchFlowModel.jl (eventually BusInjectionModel.jl too)

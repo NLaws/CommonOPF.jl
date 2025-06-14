@@ -22,6 +22,7 @@ abstract type MissingEdge end
         ComplexPowerUnit
         ReactivePowerUnit
         RealPowerUnit
+        RadiansUnit
     end
 
 Units acceptable for CommonOPF variables.
@@ -37,6 +38,7 @@ Units acceptable for CommonOPF variables.
     ReactivePowerUnit
     RealPowerUnit
     MixedUnits
+    RadiansUnit
 end
 
 

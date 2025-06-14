@@ -25,7 +25,6 @@ function reduce_tree!(net::Network)
             typeof(edge_ij) == CommonOPF.Conductor == typeof(edge_jk) &&
             phases_ij == phases_jk
         )
-            # TODO do not include a bus if it contains any subtype of AbstractBus?
             push!(reducable_buses, bus)
         end
     end
