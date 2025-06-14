@@ -154,6 +154,7 @@ include("busses/busses.jl")
 include("busses/capacitors.jl")
 include("busses/loads.jl")
 include("busses/generators.jl")
+include("busses/admittances.jl")
 
 include("edges/edges.jl")
 include("edges/conductors.jl")
