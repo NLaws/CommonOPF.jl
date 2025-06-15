@@ -3,7 +3,7 @@
 # cd("test/")
 
 
-@testset "test admittance getters" begin
+@testset "bus admittance compared with OpenDSS" begin
     # net = Network_IEEE8500();
 
     # # non-existent edge gives zero admittance
@@ -14,11 +14,15 @@
 
     # Ycpf, y_order_cpf = Ysparse(net)
     # TODO bottleneck in Ysparse? Takes ~7 minutes for 8500 node system
-    Ycpf, y_order_cpf = Ysparse(net);
+    Ycpf, Yterminals = Ysparse(net);
     # @time gives: 434.330585 seconds (21.25 M allocations: 560.288 MiB, 0.01% gc time)
-
     Ydss = OpenDSS.YMatrix.getYsparse();
     y_order_dss = [lowercase(nd) for nd in OpenDSS.Circuit.YNodeOrder()];
+
+    y_order_cpf = Vector{String}(undef, length(y_order_dss))
+    for t in Yterminals
+        y_order_cpf[t.Y_index] = t.bus * "." * string(t.phase)
+    end
 
     for (dss_i, dss_row_nd) in enumerate(y_order_dss)
         cpf_i = findfirst(isequal(dss_row_nd), y_order_cpf)
@@ -53,5 +57,29 @@
             end
         end
     end
+
+end
+
+
+@testset "bus admittance" begin
+    net = CommonOPF.Network_IEEE13()
+
+    # edge 632-645 has phases [2,3]
+    @test size(Yij("632", "645", net)) == (2,2)
+
+
+    # edge 684-611 has phases [3]
+    @test size(Yij("684", "611", net)) == (1,1)
+
+    # bus 684 has 2 phases
+    @test length(phases_connected_to_bus(net, "684")) == 2
+    @test size(Yij("684", "684", net)) == (2,2)
+
+    Ybus, Yorder = Ysparse(net)
+
+    for (i, term) in enumerate(Yorder)
+        @test term.Y_index == i
+    end
+
 
 end

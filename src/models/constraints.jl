@@ -1,4 +1,6 @@
-
+"""
+    function print_constraint_info(net::Network)
+"""
 function print_constraint_info(net::Network)
     varinfos = collect(values(net.constraint_info))
     header_syms = fieldnames(CommonOPF.ConstraintInfo)

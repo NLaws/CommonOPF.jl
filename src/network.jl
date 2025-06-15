@@ -229,29 +229,6 @@ end
 
 
 """
-    terminals(net::Network{MultiPhase})::Vector{String}
-
-The terminals of the `Network` are the bus strings combined with the phase integers using periods.
-For example, if `phases_connected_to_bus(net, "mybus")` returns `[1,3]` then the `terminals` include
-"mybus.1" and "mybus.3". The terminals are used as the indices in the `Ysparse` matrix for
-`MultiPhase` networks.
-"""
-function terminals(net::Network{MultiPhase})::Vector{String}
-    bs = busses(net)
-    # preallocate assuming 3 phases at every bus
-    trmnls = Vector{String}(undef, length(bs) * 3)
-    n = 0
-    for b in bs
-        for phs in phases_connected_to_bus(net, b)
-            n += 1
-            trmnls[n] = b * "." * string(phs)
-        end
-    end
-    return resize!(trmnls, n)
-end
-
-
-"""
     i_to_j(j::String, net::Network)
 
 all the inneighbors of bus j

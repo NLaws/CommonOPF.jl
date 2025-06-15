@@ -172,7 +172,7 @@ end
 end
 
 
-@testset "Network.var_info, Network.constraint_info, terminals" begin
+@testset "Network.var_info, Network.constraint_info" begin
     net = Network_IEEE13()
     net.var_info[:vsqrd] = CommonOPF.VariableInfo(
         :vsqrd,
@@ -190,10 +190,4 @@ end
         (CommonOPF.BusDimension, CommonOPF.TimeDimension, CommonOPF.PhaseDimension),
     )
     print_constraint_info(net)
-
-    trmnls = terminals(net)
-    @test length(trmnls) == 35
-    @test !("646.1" in trmnls)
-    @test "646.2" in trmnls
-    @test "646.3" in trmnls
 end

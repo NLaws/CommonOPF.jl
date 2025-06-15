@@ -52,7 +52,7 @@ export
     next_bus_above_with_outdegree_more_than_one,
     paths_between,
 
-    # impedance and admittance
+    # branch impedance and admittance
     rij,
     rij_per_unit,
     xij,
@@ -66,6 +66,10 @@ export
     yij,
     yij_per_unit,
     yj,
+
+    # bus admittance
+    terminals,
+    terminal_maps,
     Yij_per_unit,
     Yij,
     Ysparse,
@@ -91,7 +95,6 @@ export
     phases_into_bus,
     phases_out_of_bus,
     phases_connected_to_bus,
-    terminals,
     i_to_j,
     j_to_k,
     kron_reduce,
@@ -155,6 +158,7 @@ include("busses/capacitors.jl")
 include("busses/loads.jl")
 include("busses/generators.jl")
 include("busses/admittances.jl")
+include("busses/terminals.jl")
 
 include("edges/edges.jl")
 include("edges/conductors.jl")

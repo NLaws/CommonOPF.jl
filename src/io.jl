@@ -657,7 +657,7 @@ function opendss_regulators(
         else
             if !issubset(phases, reg_dicts[reg_edge][:phases])
                 # merge into existing regulator
-                reg_dicts[reg_edge][:phases] = union(phases, reg_dicts[reg_edge][:phases])
+                reg_dicts[reg_edge][:phases] = sort(union(phases, reg_dicts[reg_edge][:phases]))
                 reg_dicts[reg_edge][:rmatrix] += rmatrix
                 reg_dicts[reg_edge][:xmatrix] += xmatrix
             else

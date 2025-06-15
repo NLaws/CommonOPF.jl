@@ -1,7 +1,9 @@
 # CommonOPF Change log
 
 ## dev
-- WIP on bus admittance matrix builder from `Network` (called `Ysparse` for now)
+- add `Ysparse` for bus admittance matrix from `Network`
+    - use new `BusTerminal` and `EdgeTerminals` structs for building `Ysparse`
+- change `Yij`: no longer return 3x3 matrix always: it returns only valid phases
 - stop exporting `sj` method
 - change `sj_per_unit(j::String, net::Network{MultiPhase})` to return complex values
 - change `ConstraintInfo.set_type::MOI.AbstractSet` -> `ConstraintInfo.set_type::DataType`

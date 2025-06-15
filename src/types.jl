@@ -86,6 +86,17 @@ struct VariableInfo
 end
 
 
+"""
+    struct ConstraintInfo
+        symbol::Symbol
+        description::String
+        set_type::DataType
+        dimensions::Tuple{Vararg{Dimensions}}
+    end
+
+Constraint information for describing model constraints in sub-modules of CommonOPF.
+See also [`Dimensions`](@ref), and [`print_constraint_info`](@ref).
+"""
 struct ConstraintInfo
     symbol::Symbol
     description::String
@@ -93,11 +104,7 @@ struct ConstraintInfo
     dimensions::Tuple{Vararg{Dimensions}}
 end
 
-# MOI.get(model, MOI.ConstraintSet(), c)
-# MathOptInterface.EqualTo{ComplexF64}(0.0 - 0.0im)
 
-# TODO? ConstraintInfo? w/type like Linear, SOC, PSD (use JuMP types?); indices/dimensions,
-# description/math
 # TODO include variable container sizes 
 """
     struct Network <: AbstractNetwork
@@ -128,8 +135,9 @@ vector of [Conductor](@ref) specifications and a `Network` key containing at lea
 
 `var_names` is empty be default. It is used in the results getters like `opf_results`.
 
-`var_info` is empty be default. It is used in other packages like BranchFlowModel.jl to document the
-variables that are created for OPF models. See [`VariableInfo`](@ref) for more.
+`var_info` and `constraint_info` are empty be default. They are used in other packages like
+BranchFlowModel.jl to document the variables and constraints that are created for OPF models. See
+[`VariableInfo`](@ref) for more.
 """
 mutable struct Network{T<:Phases} <: AbstractNetwork
     graph::MetaGraphsNext.AbstractGraph
