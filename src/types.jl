@@ -51,6 +51,7 @@ end
         PhaseMatrixDimension
         HermitianMatrixDimension
         RealReactiveDimension
+        BusTerminalDimension
     end
 
 Dimensions for specifying variable and constraint indices in CommonOPF, i.e. how to access a
@@ -64,6 +65,7 @@ variable or constraint in the `JuMP.Model.obj_dict`.
     PhaseMatrixDimension
     HermitianMatrixDimension
     RealReactiveDimension
+    BusTerminalDimension
 end
 
 

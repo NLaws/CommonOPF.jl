@@ -1,8 +1,12 @@
+const DEFAULT_IMPEDANCE_SINGLE_PHASE = Inf
+const DEFAULT_IMPEDANCE_MULTI_PHASE = ones(3, 3) * Inf
+
+
 function _default_impedances(phase_type::Type{T}) where {T <: Phases}
     if phase_type == SinglePhase
-        return Inf
+        return DEFAULT_IMPEDANCE_SINGLE_PHASE
     end
-    return ones(3, 3) * Inf
+    return DEFAULT_IMPEDANCE_MULTI_PHASE
 end
 
 
