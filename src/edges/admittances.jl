@@ -35,11 +35,15 @@ function make_nan_or_inf_zero(val)
 end
 
 
+const DEFAULT_ADMITTANCE_SINGLE_PHASE = 0.0
+const DEFAULT_ADMITTANCE_MULTI_PHASE = zeros(3, 3)
+
+
 function _default_admittances(phase_type::Type{T}) where {T <: Phases}
     if phase_type == SinglePhase
-        return 0.0
+        return DEFAULT_ADMITTANCE_SINGLE_PHASE
     end
-    return zeros(3, 3)
+    return DEFAULT_ADMITTANCE_MULTI_PHASE
 end
 
 
