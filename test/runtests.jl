@@ -57,6 +57,8 @@ with_logger(test_logger) do
 
     include("test_shunts.jl")
 
+    include("test_terminals.jl")
+
     include("test_variables.jl")
 
 end # outer-most testset
