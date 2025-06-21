@@ -64,6 +64,8 @@ end
 """
     terminals(net::Network{MultiPhase})::Vector{BusTerminal}
 
+For all the busses, for all the ordered phases at each bus, create a BusTerminal and return them in
+a vector.
 """
 function terminals(net::Network{MultiPhase})::Vector{BusTerminal}
     bs = busses(net)
@@ -71,7 +73,7 @@ function terminals(net::Network{MultiPhase})::Vector{BusTerminal}
     trmnls = Vector{BusTerminal}(undef, length(bs) * 3)
     n = 0
     for b in bs
-        for phs in phases_connected_to_bus(net, b)
+        for phs in phases_connected_to_bus(net, b)  # sorted
             n += 1
             trmnls[n] = BusTerminal(b, phs, n)
         end
@@ -79,3 +81,27 @@ function terminals(net::Network{MultiPhase})::Vector{BusTerminal}
     return resize!(trmnls, n)
 end
 
+
+"""
+    terminals_sj_per_unit(
+        net::Network{MultiPhase}, trmnls::Vector{CommonOPF.BusTerminal}
+    )::Vector{Vector{ComplexF64}}
+
+Create the complex power injection vector for the `trmnls`.
+"""
+function terminals_sj_per_unit(
+    net::Network{MultiPhase}, trmnls::Vector{CommonOPF.BusTerminal}
+    )::Vector{Vector{ComplexF64}}
+
+    terminals_sj = [Vector{ComplexF64}(undef, length(net.Ntimesteps)) for _ in trmnls]
+
+    n = 0
+    for j in busses(net)
+        sj = sj_per_unit(j, net)
+        for phs in phases_connected_to_bus(net, j)  # sorted
+            n += 1
+            terminals_sj[n] = sj[phs]
+        end
+    end
+    return terminals_sj
+end

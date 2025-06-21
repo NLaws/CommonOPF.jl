@@ -70,6 +70,7 @@ export
     # bus admittance
     terminals,
     terminal_maps,
+    terminals_sj_per_unit,
     Yij_per_unit,
     Yij,
     Ysparse,
