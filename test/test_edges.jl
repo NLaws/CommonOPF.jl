@@ -1,4 +1,4 @@
-@testset "Required values for edges" begin
+@testset "Required values for subtypes of AbstractEdge" begin
     for EType in subtypes(CommonOPF.AbstractEdge)
         @test_throws "Field 'busses' has no default" EType()
         concrete_edge = EType(;busses=("a", "b"))

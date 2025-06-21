@@ -1,4 +1,4 @@
-@testset "Required values for busses" begin
+@testset "Required values for subtypes of AbstractBus" begin
     for EType in subtypes(CommonOPF.AbstractBus)
         @test_throws "Field 'bus' has no default" EType()
     end
