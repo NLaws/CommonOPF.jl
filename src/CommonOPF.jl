@@ -77,6 +77,7 @@ export
 
     # io
     dss_to_Network,
+    psse_to_Network,
 
     # network reduction
     reduce_tree!,
