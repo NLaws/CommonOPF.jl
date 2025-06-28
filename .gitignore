@@ -3,4 +3,3 @@ docs/Manifest.toml
 test/Manifest.toml
 notes.md
 .*
-*.tar.gz

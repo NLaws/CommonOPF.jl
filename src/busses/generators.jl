@@ -11,6 +11,10 @@ directly into a [`Network`](@ref).
 @with_kw struct Generator <: AbstractBus
     # required values
     bus::String
+    # optional values
+    is_PV_bus::Bool = false
+    kws1::Vector{Real} = [0.0]
+    voltage_pu::Vector{Real} = [1.0]
     # RAW file fields
     id::String = "1"
     pg::Real = 0.0          # MW output

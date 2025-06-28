@@ -1,5 +1,5 @@
 @testset "PSS/E adapter" begin
-    fp = joinpath(@__DIR__, "data", "IEEE 118 Bus.RAW")
+    fp = joinpath(@__DIR__, "data", "ieee118.RAW")
     cds, trs = CommonOPF.psse_to_network_dicts(fp)
     @test length(cds) > 0
     @test length(trs) > 0
