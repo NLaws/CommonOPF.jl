@@ -45,6 +45,8 @@ with_logger(test_logger) do
 
     include("test_io.jl")
 
+    include("test_psse.jl")
+
     include("test_loads.jl")
 
     include("test_model_construction_utils.jl")
