@@ -58,6 +58,30 @@ function Network(d::Dict; directed::Union{Bool,Missing}=missing)
             throw(error("Missing required input $(string(dkey))"))
         end
     end
+    # merge any duplicate conductor edges into ParallelConductor structs
+    tmp = Dict{Tuple{String,String}, Any}()
+    new_edges = CommonOPF.AbstractEdge[]
+    for e in edge_structs
+        if e isa CommonOPF.Conductor
+            if haskey(tmp, e.busses)
+                existing = tmp[e.busses]
+                if existing isa CommonOPF.ParallelConductor
+                    push!(existing.conductors, e)
+                    existing.phases = isempty([c.phases for c in existing.conductors if !ismissing(c.phases)]) ? missing :
+                        sort(unique(reduce(vcat, [c.phases for c in existing.conductors if !ismissing(c.phases)])))
+                    existing.length = mean(c.length for c in existing.conductors)
+                elseif existing isa CommonOPF.Conductor
+                    tmp[e.busses] = CommonOPF.ParallelConductor([existing, e])
+                end
+            else
+                tmp[e.busses] = e
+            end
+        else
+            push!(new_edges, e)
+        end
+    end
+    append!(new_edges, values(tmp))
+    edge_structs = new_edges
     # Single vs. MultiPhase is determined by edge.phases
     net_type = CommonOPF.SinglePhase
     if any((!ismissing(e.phases) for e in edge_structs))
@@ -127,8 +151,27 @@ end
 
 make it so `Network[(bus1, bus2)] = edge` sets `Network.graph[bus1, bus2] = edge`
 """
-function Base.setindex!(net::Network, edge::CommonOPF.AbstractEdge, idx::Tuple{String, String}) 
-    net.graph[idx[1], idx[2]] = edge
+function Base.setindex!(net::Network, edge::CommonOPF.AbstractEdge, idx::Tuple{String, String})
+    b1, b2 = idx
+    try
+        existing = net.graph[b1, b2]
+        if existing isa ParallelConductor && edge isa Conductor
+            push!(existing.conductors, edge)
+            existing.phases = isempty([c.phases for c in existing.conductors if !ismissing(c.phases)]) ? missing :
+                sort(unique(reduce(vcat, [c.phases for c in existing.conductors if !ismissing(c.phases)])))
+            existing.length = mean(c.length for c in existing.conductors)
+        elseif existing isa Conductor && edge isa Conductor
+            net.graph[b1, b2] = ParallelConductor([existing, edge])
+        else
+            net.graph[b1, b2] = edge
+        end
+    catch e
+        if e isa KeyError
+            net.graph[b1, b2] = edge
+        else
+            rethrow(e)
+        end
+    end
 end
 
 
@@ -268,15 +311,17 @@ function leaf_busses(net::Network)
 end
 
 
-conductors(net::AbstractNetwork) = collect(
-    net[ekey] for ekey in edges(net) if net[ekey] isa CommonOPF.Conductor
-)
+conductors(net::AbstractNetwork) = collect(Iterators.flatten(
+    net[ekey] isa CommonOPF.ParallelConductor ? net[ekey].conductors :
+        (net[ekey] isa CommonOPF.Conductor ? [net[ekey]] : [])
+    for ekey in edges(net)
+))
 
 
 function conductors_with_attribute_value(net::AbstractNetwork, attr::Symbol, val::Any)::AbstractVector{CommonOPF.Conductor}
     collect(
         filter(
-            c -> !ismissing(getproperty(c, attr)) && getproperty(c, attr) == val, 
+            c -> !ismissing(getproperty(c, attr)) && getproperty(c, attr) == val,
             collect(conductors(net))
         )
     )

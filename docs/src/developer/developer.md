@@ -61,6 +61,9 @@ import InteractiveUtils: subtypes # hide
 
 subtypes(CommonOPF.AbstractEdge)
 ```
+`ParallelConductor` is used internally when multiple `Conductor` specifications
+share the same pair of busses. The impedance and admittance methods operate on a
+`ParallelConductor` just like a single `Conductor`.
 To add a new Edge device:
 1. create `YourType` that has at a minimum:
     ```julia
