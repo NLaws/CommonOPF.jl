@@ -129,13 +129,13 @@ function psse_to_network_dicts(fp::AbstractString)
 end
 
 """
-    ieee118_generator_data(fp::AbstractString)
+    psse_generator_data(fp::AbstractString)
 
 Parse the generator section of a PSS/E RAW (v33) file and return a vector of
 dictionaries for [`Generator`](@ref) objects. Impedance values are converted from
 per-unit to ohms.
 """
-function ieee118_generator_data(fp::AbstractString)
+function psse_generator_data(fp::AbstractString)
     lines = readlines(fp)
 
     header = split(lines[1], ",")
@@ -221,13 +221,13 @@ function ieee118_generator_data(fp::AbstractString)
     return generator_dicts
 end
 """
-    ieee118_load_data(fp::AbstractString)
+    psse_load_data(fp::AbstractString)
 
 Parse the load section of a PSS/E RAW (v33) file and return a vector of
 [`Load`](@ref) dictionaries. The MW/MVAr values are converted to single-phase
 kW/kVAr loads.
 """
-function ieee118_load_data(fp::AbstractString)
+function psse_load_data(fp::AbstractString)
     lines = readlines(fp)
 
     header = split(lines[1], ",")
@@ -255,4 +255,48 @@ function ieee118_load_data(fp::AbstractString)
     return load_dicts
 end
 
+
+"""
+    psse_to_Network(fp::AbstractString)::Network
+
+Parse a PSS/E RAW file and convert it into a [`Network`](@ref). Only version 33
+RAW files are supported.
+"""
+function psse_to_Network(fp::AbstractString)::Network
+    lines = readlines(fp)
+
+    header = split(lines[1], ",")
+    MVA_base = parse(Float64, strip(header[2]))
+    version = parse(Int, strip(header[3]))
+    v = version == 33 ? v33 : throw(ArgumentError("Unsupported PSS/E RAW version $(version)"))
+
+    bus_start = 4
+    bus_end = findfirst(x -> occursin("END OF BUS DATA", x), lines) - 1
+    bus_kv = Dict{String, Float64}()
+    for ln in lines[bus_start:bus_end]
+        cols = split(ln, ",")
+        bus_kv[strip(cols[v[:bus_number]])] = parse(Float64, cols[v[:bus_kv]])
+    end
+
+    conds, transformers = psse_to_network_dicts(fp)
+    gens = psse_generator_data(fp)
+    loads = psse_load_data(fp)
+
+    substation_bus = gens[1][:bus]
+    Vbase = bus_kv[substation_bus] * 1e3
+
+    net_dict = Dict{Symbol, Any}(
+        :Network => Dict(
+            :substation_bus => substation_bus,
+            :Vbase => Vbase,
+            :Sbase => MVA_base * 1e6,
+        ),
+        :Conductor => conds,
+        :Transformer => transformers,
+        :Generator => gens,
+        :Load => loads,
+    )
+
+    Network(net_dict)
+end
 
