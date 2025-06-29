@@ -205,8 +205,6 @@ end
 
 
 """
-
-"""
     _parallel_impedance(pc::ParallelConductor, phase_type::Type{SinglePhase})
 
 Return the impedance of multiple conductors connected in parallel. For single
@@ -221,6 +219,7 @@ function _parallel_impedance(pc::ParallelConductor, phase_type::Type{SinglePhase
     end
     return 1 / y
 end
+
 
 """
     _parallel_impedance(pc::ParallelConductor, phase_type::Type{MultiPhase})
