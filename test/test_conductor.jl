@@ -47,17 +47,30 @@
     end
 
     @testset "ParallelConductor" begin
+        # a ParallelConductor with one Conductor should have the same electrical properties
         pc = CommonOPF.ParallelConductor([c1])
         @test CommonOPF.resistance(c1, CommonOPF.SinglePhase) ≈ CommonOPF.resistance(pc, CommonOPF.SinglePhase)
         @test CommonOPF.reactance(c1, CommonOPF.SinglePhase) ≈ CommonOPF.reactance(pc, CommonOPF.SinglePhase)
         z = CommonOPF._parallel_impedance(pc, CommonOPF.SinglePhase)
         y = CommonOPF._parallel_admittance(pc, CommonOPF.SinglePhase)
-        @test z ≈ (1 + 1im) / 2
-        @test y ≈ 2 / (1 + 1im)
-        @test CommonOPF.resistance_per_length(pc, CommonOPF.SinglePhase) == real(z)
-        @test CommonOPF.reactance_per_length(pc, CommonOPF.SinglePhase) == imag(z)
-        @test CommonOPF.conductance_per_length(pc, CommonOPF.SinglePhase) == real(y)
-        @test CommonOPF.susceptance_per_length(pc, CommonOPF.SinglePhase) == imag(y)
+        @test z ≈ (c1.r1 + im * c1.x1) * c1.length
+        @test y ≈ 1 / z
+        @test CommonOPF.resistance_per_length(pc, CommonOPF.SinglePhase) == real(z) / c1.length
+        @test CommonOPF.reactance_per_length(pc, CommonOPF.SinglePhase) == imag(z) / c1.length
+        @test CommonOPF.conductance_per_length(pc, CommonOPF.SinglePhase) == real(y) / c1.length
+        @test CommonOPF.susceptance_per_length(pc, CommonOPF.SinglePhase) == imag(y) / c1.length
+        
+        # a ParallelConductor with two Conductors should have the combined electrical properties
+        c2.busses = c1.busses
+        pc = CommonOPF.ParallelConductor([c1, c2])
+        z = CommonOPF._parallel_impedance(pc, CommonOPF.SinglePhase)
+        y = CommonOPF._parallel_admittance(pc, CommonOPF.SinglePhase)
+        z1 = CommonOPF.resistance(c1, CommonOPF.SinglePhase) + im * CommonOPF.reactance(c1, CommonOPF.SinglePhase)
+        y1 = CommonOPF.conductance(c1, CommonOPF.SinglePhase) + im * CommonOPF.susceptance(c1, CommonOPF.SinglePhase)
+        z2 = CommonOPF.resistance(c2, CommonOPF.SinglePhase) + im * CommonOPF.reactance(c2, CommonOPF.SinglePhase)
+        y2 = CommonOPF.conductance(c2, CommonOPF.SinglePhase) + im * CommonOPF.susceptance(c2, CommonOPF.SinglePhase)
+        @test y ≈ y1 + y2
+        @test 1 / z ≈ 1 / z1 + 1 / z2
     end
     
 end
