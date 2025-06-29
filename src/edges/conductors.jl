@@ -118,6 +118,14 @@ is used to define `ShuntAdmittance` values for busses.
 end
 
 
+"""
+    @with_kw mutable struct ParallelConductor <: AbstractEdge
+
+Store multiple [`Conductor`](@ref) objects that share the same pair of busses.
+Impedance and admittance functions operate on a `ParallelConductor` just like on
+a single conductor whose parameters are the parallel combination of the contained
+lines.
+"""
 @with_kw mutable struct ParallelConductor <: AbstractEdge
     busses::Tuple{String, String}
     conductors::Vector{Conductor} = Vector{Conductor}[]
@@ -126,6 +134,13 @@ end
 end
 
 
+"""
+    ParallelConductor(cs::Vector{Conductor})
+
+Create a [`ParallelConductor`](@ref) from a vector of `Conductor` objects. All
+conductors must share the same pair of busses. The phases are the union of the
+phases on the contained lines and the length is the mean length of the lines.
+"""
 function ParallelConductor(cs::Vector{Conductor})
     @assert !isempty(cs)
     busses = cs[1].busses

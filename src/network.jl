@@ -38,17 +38,18 @@ REQUIRED_EDGES = [CommonOPF.Conductor]
 
 
 """
-    function Network(d::Dict; directed::Union{Bool,Missing}=missing)
+    function Network(d::Dict; directed::Union{Bool,Missing}=missing, allow_parallel_conductor::Bool=false)
 
 Construct a `Network` from a dictionary that has at least keys for:
 1. `:Conductor`, a vector of dicts with [Conductor](@ref) specs
 2. `:Network`, a dict with at least `:substation_bus`
 
-If `directed` is missing then the graph is directed only if the number of busses and edges imply a 
-    radial graph.
+If `directed` is missing then the graph is directed only if the number of busses and edges imply a radial graph.
+
+If `allow_parallel_conductor` is `true`, duplicate `Conductor` entries between the same pair of busses are stored as a [`ParallelConductor`](@ref). Otherwise a duplicate edge raises an error.
 
 """
-function Network(d::Dict; directed::Union{Bool,Missing}=missing)
+function Network(d::Dict; directed::Union{Bool,Missing}=missing, allow_parallel_conductor::Bool=false)
     edge_structs = CommonOPF.AbstractEdge[]
     for EdgeType in subtypes(CommonOPF.AbstractEdge)
         dkey = Symbol(split(string(EdgeType), ".")[end])  # left-strip CommonOPF.
@@ -64,14 +65,18 @@ function Network(d::Dict; directed::Union{Bool,Missing}=missing)
     for e in edge_structs
         if e isa CommonOPF.Conductor
             if haskey(tmp, e.busses)
-                existing = tmp[e.busses]
-                if existing isa CommonOPF.ParallelConductor
-                    push!(existing.conductors, e)
-                    existing.phases = isempty([c.phases for c in existing.conductors if !ismissing(c.phases)]) ? missing :
-                        sort(unique(reduce(vcat, [c.phases for c in existing.conductors if !ismissing(c.phases)])))
-                    existing.length = mean(c.length for c in existing.conductors)
-                elseif existing isa CommonOPF.Conductor
-                    tmp[e.busses] = CommonOPF.ParallelConductor([existing, e])
+                if allow_parallel_conductor
+                    existing = tmp[e.busses]
+                    if existing isa CommonOPF.ParallelConductor
+                        push!(existing.conductors, e)
+                        existing.phases = isempty([c.phases for c in existing.conductors if !ismissing(c.phases)]) ? missing :
+                            sort(unique(reduce(vcat, [c.phases for c in existing.conductors if !ismissing(c.phases)])))
+                        existing.length = mean(c.length for c in existing.conductors)
+                    elseif existing isa CommonOPF.Conductor
+                        tmp[e.busses] = CommonOPF.ParallelConductor([existing, e])
+                    end
+                else
+                    throw(ArgumentError("Duplicate conductors between busses $(e.busses). Set allow_parallel_conductor=true to merge."))
                 end
             else
                 tmp[e.busses] = e
@@ -108,21 +113,23 @@ end
 
 
 """
-    function Network(fp::String)
+    function Network(fp::String; allow_parallel_conductor::Bool=false)
 
-Construct a `Network` from a yaml at the file path `fp`.
+Construct a `Network` from a yaml or OpenDSS file at the file path `fp`.
+Pass `allow_parallel_conductor=true` to merge duplicate conductors between the
+same busses into a [`ParallelConductor`](@ref).
 """
-function Network(fp::String)
+function Network(fp::String; allow_parallel_conductor::Bool=false)
     # parse inputs
     if endswith(lowercase(fp), ".yaml") ||  endswith(lowercase(fp), ".yml")
         d = load_yaml(fp)
     elseif endswith(lowercase(fp), ".dss")
-        return CommonOPF.dss_to_Network(fp)
+        return CommonOPF.dss_to_Network(fp; allow_parallel_conductor=allow_parallel_conductor)
     else
         # TODO json
         throw(error("Only parsing yaml (or yml) and dss files so far."))
     end
-    Network(d)
+    Network(d; allow_parallel_conductor=allow_parallel_conductor)
 end
 
 

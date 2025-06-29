@@ -257,12 +257,12 @@ end
 
 
 """
-    psse_to_Network(fp::AbstractString)::Network
+    psse_to_Network(fp::AbstractString; allow_parallel_conductor::Bool=false)::Network
 
 Parse a PSS/E RAW file and convert it into a [`Network`](@ref). Only version 33
-RAW files are supported.
+RAW files are supported. Set `allow_parallel_conductor=true` to merge duplicate lines between the same pair of busses.
 """
-function psse_to_Network(fp::AbstractString)::Network
+function psse_to_Network(fp::AbstractString; allow_parallel_conductor::Bool=false)::Network
     lines = readlines(fp)
 
     header = split(lines[1], ",")
@@ -297,6 +297,6 @@ function psse_to_Network(fp::AbstractString)::Network
         :Load => loads,
     )
 
-    Network(net_dict)
+    Network(net_dict; allow_parallel_conductor=allow_parallel_conductor)
 end
 

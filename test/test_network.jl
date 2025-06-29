@@ -202,7 +202,8 @@ end
         ],
         :Load => [Dict(:bus => "c", :kws1 => [1.0])],
     )
-    net_p = Network(net_dict_parallel)
+    @test_throws ArgumentError Network(net_dict_parallel)
+    net_p = Network(net_dict_parallel; allow_parallel_conductor=true)
     @test net_p[("a", "b")] isa CommonOPF.ParallelConductor
 
     net_dict_single = Dict(
