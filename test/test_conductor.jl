@@ -50,8 +50,34 @@
         pc = CommonOPF.ParallelConductor([c1])
         @test CommonOPF.resistance(c1, CommonOPF.SinglePhase) ≈ CommonOPF.resistance(pc, CommonOPF.SinglePhase)
         @test CommonOPF.reactance(c1, CommonOPF.SinglePhase) ≈ CommonOPF.reactance(pc, CommonOPF.SinglePhase)
+        z = CommonOPF._parallel_impedance(pc, CommonOPF.SinglePhase)
+        y = CommonOPF._parallel_admittance(pc, CommonOPF.SinglePhase)
+        @test z ≈ (1 + 1im) / 2
+        @test y ≈ 2 / (1 + 1im)
+        @test CommonOPF.resistance_per_length(pc, CommonOPF.SinglePhase) == real(z)
+        @test CommonOPF.reactance_per_length(pc, CommonOPF.SinglePhase) == imag(z)
+        @test CommonOPF.conductance_per_length(pc, CommonOPF.SinglePhase) == real(y)
+        @test CommonOPF.susceptance_per_length(pc, CommonOPF.SinglePhase) == imag(y)
     end
     
+end
+
+@testset "ParallelConductor multiphase" begin
+    c1 = CommonOPF.Conductor(
+        busses=("a","b"),
+        phases=[1,2,3],
+        rmatrix=Matrix{Float64}(I,3,3),
+        xmatrix=Matrix{Float64}(I,3,3),
+        length=1.0,
+    )
+    c2 = deepcopy(c1)
+    pc = CommonOPF.ParallelConductor([c1,c2])
+    z = CommonOPF._parallel_impedance(pc, CommonOPF.MultiPhase)
+    y = CommonOPF._parallel_admittance(pc, CommonOPF.MultiPhase)
+    expected_z = ((1 + 1im)/2) * Matrix{ComplexF64}(I,3,3)
+    expected_y = (2/(1+1im)) * Matrix{ComplexF64}(I,3,3)
+    @test all(z .≈ expected_z)
+    @test all(y .≈ expected_y)
 end
 
 

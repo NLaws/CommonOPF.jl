@@ -268,6 +268,11 @@ function susceptance(c::Conductor, phase_type::Type{T}) where {T <: Phases}
     susceptance_per_length(c, phase_type) * c.length
 end
 
+"""
+    _parallel_admittance(pc::ParallelConductor, phase_type::Type{SinglePhase})
+
+Admittance of multiple conductors in parallel for a single phase network.
+"""
 function _parallel_admittance(pc::ParallelConductor, phase_type::Type{SinglePhase})
     y = zero(ComplexF64)
     for c in pc.conductors
@@ -277,6 +282,11 @@ function _parallel_admittance(pc::ParallelConductor, phase_type::Type{SinglePhas
     return y
 end
 
+"""
+    _parallel_admittance(pc::ParallelConductor, phase_type::Type{MultiPhase})
+
+Admittance matrix of parallel conductors for a multiphase network.
+"""
 function _parallel_admittance(pc::ParallelConductor, phase_type::Type{MultiPhase})
     Y = zeros(ComplexF64, 3, 3)
     for c in pc.conductors
