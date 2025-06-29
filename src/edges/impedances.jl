@@ -203,6 +203,10 @@ function reactance(c::Conductor, phase_type::Type{T}) where {T <: Phases}
     reactance_per_length(c, phase_type) * c.length
 end
 
+
+"""
+
+"""
 function _parallel_impedance(pc::ParallelConductor, phase_type::Type{SinglePhase})
     y = zero(ComplexF64)
     for c in pc.conductors
@@ -213,12 +217,12 @@ function _parallel_impedance(pc::ParallelConductor, phase_type::Type{SinglePhase
 end
 
 function _parallel_impedance(pc::ParallelConductor, phase_type::Type{MultiPhase})
-    Z = zeros(ComplexF64, 3, 3)
+    Y = zeros(ComplexF64, 3, 3)
     for c in pc.conductors
         z = resistance(c, phase_type) + im * reactance(c, phase_type)
-        Z .+= inverse_matrix_with_zeros(z)
+        Y .+= inverse_matrix_with_zeros(z)
     end
-    return inverse_matrix_with_zeros(Z)
+    return inverse_matrix_with_zeros(Y)
 end
 
 function resistance_per_length(pc::ParallelConductor, phase_type::Type{T}) where {T <: Phases}

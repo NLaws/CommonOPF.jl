@@ -117,20 +117,23 @@ is used to define `ShuntAdmittance` values for busses.
     amps_limit::Union{Real, Missing} = missing
 end
 
-mutable struct ParallelConductor <: AbstractEdge
+
+@with_kw mutable struct ParallelConductor <: AbstractEdge
     busses::Tuple{String, String}
-    conductors::Vector{Conductor}
-    phases::Union{Vector{Int}, Missing}
-    length::Real
-    function ParallelConductor(cs::Vector{Conductor})
-        @assert !isempty(cs)
-        busses = cs[1].busses
-        @assert all(c -> c.busses == busses, cs)
-        phs = [c.phases for c in cs if !ismissing(c.phases)]
-        phases = isempty(phs) ? missing : sort(unique(reduce(vcat, phs)))
-        len = mean(c.length for c in cs)
-        new(busses, cs, phases, len)
-    end
+    conductors::Vector{Conductor} = Vector{Conductor}[]
+    phases::Union{Vector{Int}, Missing} = missing
+    length::Union{Real, Missing} = missing
+end
+
+
+function ParallelConductor(cs::Vector{Conductor})
+    @assert !isempty(cs)
+    busses = cs[1].busses
+    @assert all(c -> c.busses == busses, cs)
+    phs = [c.phases for c in cs if !ismissing(c.phases)]
+    phases = isempty(phs) ? missing : sort(unique(reduce(vcat, phs)))
+    len = sum(c.length for c in cs) / length(cs)  # mean length
+    ParallelConductor(busses, cs, phases, len)
 end
 
 

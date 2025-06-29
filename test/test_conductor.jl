@@ -45,6 +45,13 @@
             CommonOPF.susceptance(c1, CommonOPF.SinglePhase) / c1.length
 
     end
+
+    @testset "ParallelConductor" begin
+        pc = CommonOPF.ParallelConductor([c1])
+        @test CommonOPF.resistance(c1, CommonOPF.SinglePhase) ≈ CommonOPF.resistance(pc, CommonOPF.SinglePhase)
+        @test CommonOPF.reactance(c1, CommonOPF.SinglePhase) ≈ CommonOPF.reactance(pc, CommonOPF.SinglePhase)
+    end
+    
 end
 
 
