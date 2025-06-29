@@ -13,6 +13,11 @@ include:
 - [VoltageRegulator](@ref)
 - [Transformer](@ref)
 
+Duplicate conductor entries between the same pair of busses are automatically
+stored as a `ParallelConductor`. Impedance and admittance functions treat a
+`ParallelConductor` the same as a single conductor whose parameters are the
+parallel combination of the contained lines.
+
 Within the network model edges are indexed via two-tuples of bus names like so:
 ```@example
 using CommonOPF

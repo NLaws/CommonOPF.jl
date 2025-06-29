@@ -27,17 +27,25 @@ function fill_edges!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:Abs
     for edge in vals
         b1, b2 = edge.busses
         try
-            g[b1, b2]
+            existing = g[b1, b2]
+            if existing isa ParallelConductor && edge isa Conductor
+                push!(existing.conductors, edge)
+                existing.phases = isempty([c.phases for c in existing.conductors if !ismissing(c.phases)]) ? missing :
+                    sort(unique(reduce(vcat, [c.phases for c in existing.conductors if !ismissing(c.phases)])))
+                existing.length = mean(c.length for c in existing.conductors)
+            elseif existing isa Conductor && edge isa Conductor
+                g[b1, b2] = ParallelConductor([existing, edge])
+            else
+                @warn "Replacing existing data in edge $(edge.busses)\n$(existing)"
+                g[b1, b2] = edge
+            end
         catch e
-            if e isa KeyError  # this is what we want, an empty edge to fill
-                nothing
+            if e isa KeyError
+                g[b1, b2] = edge
             else
                 rethrow(e)
             end
-        else
-            @warn "Replacing existing data in edge $(edge.busses)\n$(g[b1, b2])"
         end
-        g[b1, b2] = edge
     end
 end
 
