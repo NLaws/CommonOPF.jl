@@ -1,5 +1,7 @@
 """
 Utilities for parsing PSS/E RAW files.
+
+TODO shunt data
 """
 
 """
@@ -150,11 +152,14 @@ function psse_generator_data(fp::AbstractString)
     gen_start = findfirst(x -> occursin("BEGIN GENERATOR DATA", x), lines) + 1
     gen_end = findfirst(x -> occursin("END OF GENERATOR DATA", x), lines) - 1
 
+    # TODO merge with prior generator fields like is_PV_bus, which requires checking if pg and vg
+    # are set? as well as the bus data with IDE = 2 (Generator)
+
     generator_dicts = Dict{Symbol, Any}[]
     for ln in lines[gen_start:gen_end]
         cols = split(ln, ",")
         bus = strip(cols[v[:gen_bus]])
-        id = strip(cols[v[:id]], ['\'', ' '])
+        name = strip(cols[v[:id]], ['\'', ' '])
         pg = parse(Float64, cols[v[:pg]])
         qg = parse(Float64, cols[v[:qg]])
         qmax = parse(Float64, cols[v[:qmax]])
@@ -174,7 +179,7 @@ function psse_generator_data(fp::AbstractString)
         pmin = parse(Float64, cols[v[:pmin]])
         push!(generator_dicts, Dict(
             :bus => bus,
-            :id => id,
+            :name => name,
             :pg => pg,
             :qg => qg,
             :qmax => qmax,
@@ -187,7 +192,7 @@ function psse_generator_data(fp::AbstractString)
             :rt => rt,
             :xt => xt,
             :gtap => gtap,
-            :status => status,
+            :status => status,  # TODO parse inactive generators? if so makes this a bool for :active
             :rmpct => rmpct,
             :pmax => pmax,
             :pmin => pmin,

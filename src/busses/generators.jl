@@ -4,9 +4,7 @@
 Required fields:
 - `bus::String`
 
-Fields correspond to the columns of the PSS/E RAW v33 generator data
-section so that generator specifications from RAW files can be loaded
-directly into a [`Network`](@ref).
+Work in progress. Adding fields as needed for BIM and BFM tests.
 """
 @with_kw struct Generator <: AbstractBus
     # required values
@@ -16,7 +14,7 @@ directly into a [`Network`](@ref).
     kws1::Vector{Real} = [0.0]
     voltage_pu::Vector{Real} = [1.0]
     # RAW file fields
-    id::String = "1"
+    name::Union{String, Missing} = missing
     pg::Real = 0.0          # MW output
     qg::Real = 0.0          # MVAr output
     qmax::Real = 0.0        # MVAr max
@@ -34,6 +32,7 @@ directly into a [`Network`](@ref).
     pmax::Real = 0.0
     pmin::Real = 0.0
 end
+
 
 generator_busses(net::Network{SinglePhase}) = collect(
     b for b in busses(net) if haskey(net[b], :Generator)
