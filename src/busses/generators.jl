@@ -33,16 +33,6 @@ directly into a [`Network`](@ref).
     rmpct::Real = 100.0
     pmax::Real = 0.0
     pmin::Real = 0.0
-    o1::Real = 0.0
-    f1::Real = 1.0
-    o2::Real = 0.0
-    f2::Real = 1.0
-    o3::Real = 0.0
-    f3::Real = 1.0
-    o4::Real = 0.0
-    f4::Real = 1.0
-    wmod::Int = 0
-    wpf::Real = 1.0
 end
 
 generator_busses(net::Network{SinglePhase}) = collect(

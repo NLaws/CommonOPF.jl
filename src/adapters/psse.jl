@@ -2,7 +2,11 @@
 Utilities for parsing PSS/E RAW files.
 """
 
-# Column indices for the v33 RAW format
+"""
+    v33 = Dict{Symbol, Int}
+
+Column indices for the v33 RAW format. See [./psse_raw_v33_format.md](./psse_raw_v33_format.md)
+"""
 const v33 = Dict{Symbol, Int}(
     # Bus data
     :bus_number => 1,
@@ -41,22 +45,14 @@ const v33 = Dict{Symbol, Int}(
     :rmpct => 16,
     :pmax => 17,
     :pmin => 18,
-    :o1 => 19,
-    :f1 => 20,
-    :o2 => 21,
-    :f2 => 22,
-    :o3 => 23,
-    :f3 => 24,
-    :o4 => 25,
-    :f4 => 26,
-    :wmod => 27,
-    :wpf => 28,
 
     # Load data
     :load_bus => 1,
     :p_mw => 6,
     :q_mvar => 7,
 )
+
+
 """
     psse_to_network_dicts(fp::AbstractString)
 
@@ -176,16 +172,6 @@ function psse_generator_data(fp::AbstractString)
         rmpct = parse(Float64, cols[v[:rmpct]])
         pmax = parse(Float64, cols[v[:pmax]])
         pmin = parse(Float64, cols[v[:pmin]])
-        o1 = parse(Float64, cols[v[:o1]])
-        f1 = parse(Float64, cols[v[:f1]])
-        o2 = parse(Float64, cols[v[:o2]])
-        f2 = parse(Float64, cols[v[:f2]])
-        o3 = parse(Float64, cols[v[:o3]])
-        f3 = parse(Float64, cols[v[:f3]])
-        o4 = parse(Float64, cols[v[:o4]])
-        f4 = parse(Float64, cols[v[:f4]])
-        wmod = parse(Int, cols[v[:wmod]])
-        wpf = parse(Float64, cols[v[:wpf]])
         push!(generator_dicts, Dict(
             :bus => bus,
             :id => id,
@@ -205,16 +191,6 @@ function psse_generator_data(fp::AbstractString)
             :rmpct => rmpct,
             :pmax => pmax,
             :pmin => pmin,
-            :o1 => o1,
-            :f1 => f1,
-            :o2 => o2,
-            :f2 => f2,
-            :o3 => o3,
-            :f3 => f3,
-            :o4 => o4,
-            :f4 => f4,
-            :wmod => wmod,
-            :wpf => wpf,
         ))
     end
 

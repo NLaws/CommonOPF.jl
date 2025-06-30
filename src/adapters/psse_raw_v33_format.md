@@ -48,6 +48,36 @@ I, NAME, BASKV, IDE, AREA, ZONE, OWNER, VM, VA, NVHI, NVLO, EVHI, EVLO
 
 ---
 
+## 🔹 2. **Generator Data Section**
+
+```
+I, ID, PG, QG, QT, QB, VS, IREG, MBASE, ZR, ZX, RT, XT, GTAP, STAT, RMPCT, PT, PB, O1–O8
+```
+
+| Field     | Description |
+|-----------|-------------|
+| `I`       | Bus number where the generator is connected |
+| `ID`      | Generator ID (2 characters, e.g. '1 ') |
+| `PG`      | Active power output (MW, total for 3 phases) |
+| `QG`      | Reactive power output (MVAr, total for 3 phases) |
+| `QT`      | Maximum reactive power limit (MVAr) |
+| `QB`      | Minimum reactive power limit (MVAr) |
+| `VS`      | Voltage setpoint (p.u.) at regulated bus |
+| `IREG`    | Bus number where voltage is regulated |
+| `MBASE`   | Generator MVA base |
+| `ZR`, `ZX`| Step-up transformer resistance/reactance (p.u.) |
+| `RT`, `XT`| Transformer impedance (p.u.) |
+| `GTAP`    | Transformer tap ratio |
+| `STAT`    | Generator status (1 = in service, 0 = out of service) |
+| `RMPCT`   | Participation factor in automatic generation control (AGC) |
+| `PT`      | Maximum active power limit (MW) |
+| `PB`      | Minimum active power limit (MW) |
+| `O1`–`O8` | Ownership identifiers or participation fractions |
+
+> Note: All power values (`PG`, `QG`, `QT`, `QB`, `PT`, `PB`) are in **megawatts (MW)** or **megavars (MVAr)** and represent **3-phase totals**. Impedances are in **per unit (p.u.)** on the specified `MBASE`.
+
+---
+
 ## 🔹 5. **Transformer Data Section**
 
 Each transformer record spans **3 or 4 lines** depending on the winding configuration.
