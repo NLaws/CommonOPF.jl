@@ -1,6 +1,7 @@
 using CommonOPF
 using Test
 using JuMP
+using LinearAlgebra
 import Logging: with_logger
 # @with_kw is used to define concrete types of AbstractBus and AbstractEdge in CommonOPF
 import Parameters: @with_kw

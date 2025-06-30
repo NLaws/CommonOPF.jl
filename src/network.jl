@@ -159,26 +159,7 @@ end
 make it so `Network[(bus1, bus2)] = edge` sets `Network.graph[bus1, bus2] = edge`
 """
 function Base.setindex!(net::Network, edge::CommonOPF.AbstractEdge, idx::Tuple{String, String})
-    b1, b2 = idx
-    try
-        existing = net.graph[b1, b2]
-        if existing isa ParallelConductor && edge isa Conductor
-            push!(existing.conductors, edge)
-            existing.phases = isempty([c.phases for c in existing.conductors if !ismissing(c.phases)]) ? missing :
-                sort(unique(reduce(vcat, [c.phases for c in existing.conductors if !ismissing(c.phases)])))
-            existing.length = mean(c.length for c in existing.conductors)
-        elseif existing isa Conductor && edge isa Conductor
-            net.graph[b1, b2] = ParallelConductor([existing, edge])
-        else
-            net.graph[b1, b2] = edge
-        end
-    catch e
-        if e isa KeyError
-            net.graph[b1, b2] = edge
-        else
-            rethrow(e)
-        end
-    end
+    net.graph[idx[1], idx[2]] = edge
 end
 
 
