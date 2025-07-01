@@ -71,14 +71,14 @@ function terminals(net::Network{MultiPhase})::Vector{BusTerminal}
     bs = busses(net)
     # preallocate assuming 3 phases at every bus
     trmnls = Vector{BusTerminal}(undef, length(bs) * 3)
-    n = 0
+    y_index = 0
     for b in bs
         for phs in phases_connected_to_bus(net, b)  # sorted
-            n += 1
-            trmnls[n] = BusTerminal(b, phs, n)
+            y_index += 1
+            trmnls[y_index] = BusTerminal(b, phs, y_index)
         end
     end
-    return resize!(trmnls, n)
+    return resize!(trmnls, y_index)
 end
 
 

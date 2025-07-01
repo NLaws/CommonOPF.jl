@@ -209,6 +209,8 @@ function psse_generator_data(fp::AbstractString)
 
     return generator_dicts
 end
+
+
 """
     psse_load_data(fp::AbstractString)
 
@@ -243,6 +245,7 @@ function psse_load_data(fp::AbstractString)
 
     return load_dicts
 end
+
 
 """
     psse_shunt_data(fp::AbstractString)
@@ -338,4 +341,3 @@ function psse_to_Network(fp::AbstractString; allow_parallel_conductor::Bool=fals
 
     Network(net_dict; allow_parallel_conductor=allow_parallel_conductor)
 end
-
