@@ -10,6 +10,7 @@ TODO shunt data
 Column indices for the v33 RAW format. See [./psse_raw_v33_format.md](./psse_raw_v33_format.md)
 """
 const v33 = Dict{Symbol, Int}(
+
     # Bus data
     :bus_number => 1,
     :bus_kv => 3,
@@ -35,13 +36,13 @@ const v33 = Dict{Symbol, Int}(
     :qg => 4,
     :qmax => 5,
     :qmin => 6,
-    :vg => 7,
+    :voltage_pu => 7,
     :reg_bus => 8,
     :mva_base => 9,
     :zr => 10,
     :zx => 11,
-    :rt => 12,
-    :xt => 13,
+    :transformer_resistance => 12,
+    :transformer_reactance => 13,
     :gtap => 14,
     :status => 15,
     :rmpct => 16,
@@ -52,6 +53,13 @@ const v33 = Dict{Symbol, Int}(
     :load_bus => 1,
     :p_mw => 6,
     :q_mvar => 7,
+
+    # Fixed shunt data
+    :shunt_bus => 1,
+    :shunt_id => 2,
+    :shunt_status => 3,
+    :shunt_g_mw => 4,
+    :shunt_b_mvar => 5,
 )
 
 
@@ -164,14 +172,14 @@ function psse_generator_data(fp::AbstractString)
         qg = parse(Float64, cols[v[:qg]])
         qmax = parse(Float64, cols[v[:qmax]])
         qmin = parse(Float64, cols[v[:qmin]])
-        vg = parse(Float64, cols[v[:vg]])
+        voltage_pu = parse(Float64, cols[v[:voltage_pu]])
         reg_bus = parse(Int, cols[v[:reg_bus]])
         mva_base = parse(Float64, cols[v[:mva_base]])
         Z_base = (bus_kv[bus]^2) / MVA_base
         zr = parse(Float64, cols[v[:zr]]) * Z_base
         zx = parse(Float64, cols[v[:zx]]) * Z_base
-        rt = parse(Float64, cols[v[:rt]]) * Z_base
-        xt = parse(Float64, cols[v[:xt]]) * Z_base
+        transformer_resistance = parse(Float64, cols[v[:transformer_resistance]]) * Z_base
+        transformer_reactance = parse(Float64, cols[v[:transformer_reactance]]) * Z_base
         gtap = parse(Float64, cols[v[:gtap]])
         status = parse(Int, cols[v[:status]])
         rmpct = parse(Float64, cols[v[:rmpct]])
@@ -184,13 +192,13 @@ function psse_generator_data(fp::AbstractString)
             :qg => qg,
             :qmax => qmax,
             :qmin => qmin,
-            :vg => vg,
+            :voltage_pu => voltage_pu,
             :reg_bus => reg_bus,
             :mva_base => mva_base,
             :zr => zr,
             :zx => zx,
-            :rt => rt,
-            :xt => xt,
+            :transformer_resistance => transformer_resistance,
+            :transformer_reactance => transformer_reactance,
             :gtap => gtap,
             :status => status,  # TODO parse inactive generators? if so makes this a bool for :active
             :rmpct => rmpct,
@@ -236,6 +244,54 @@ function psse_load_data(fp::AbstractString)
     return load_dicts
 end
 
+"""
+    psse_shunt_data(fp::AbstractString)
+
+Parse the fixed shunt section of a PSS/E RAW (v33) file and return a vector of
+[`ShuntAdmittance`](@ref) dictionaries with conductance and susceptance in
+siemens.
+"""
+function psse_shunt_data(fp::AbstractString)
+    lines = readlines(fp)
+
+    header = split(lines[1], ",")
+    MVA_base = parse(Float64, strip(header[2]))
+    version = parse(Int, strip(header[3]))
+    v = version == 33 ? v33 : throw(ArgumentError("Unsupported PSS/E RAW version $(version)"))
+
+    bus_start = 4
+    bus_end = findfirst(x -> occursin("END OF BUS DATA", x), lines) - 1
+    bus_kv = Dict{String, Float64}()
+    for ln in lines[bus_start:bus_end]
+        cols = split(ln, ",")
+        bus_kv[strip(cols[v[:bus_number]])] = parse(Float64, cols[v[:bus_kv]])
+    end
+
+    sh_start = findfirst(x -> occursin("BEGIN FIXED SHUNT DATA", x), lines) + 1
+    sh_end = findfirst(x -> occursin("END OF FIXED SHUNT DATA", x), lines) - 1
+
+    shunt_dicts = Dict{Symbol, Any}[]
+    for ln in lines[sh_start:sh_end]
+        cols = split(ln, ",")
+        bus = strip(cols[v[:shunt_bus]])
+        status = parse(Int, cols[v[:shunt_status]])
+        gl = parse(Float64, cols[v[:shunt_g_mw]])
+        bl = parse(Float64, cols[v[:shunt_b_mvar]])
+        if status != 0
+            V = bus_kv[bus] * 1e3
+            g = gl * 1e6 / V^2
+            b = bl * 1e6 / V^2
+            push!(shunt_dicts, Dict(
+                :bus => bus,
+                :g => g,
+                :b => b,
+            ))
+        end
+    end
+
+    return shunt_dicts
+end
+
 
 """
     psse_to_Network(fp::AbstractString; allow_parallel_conductor::Bool=false)::Network
@@ -262,6 +318,7 @@ function psse_to_Network(fp::AbstractString; allow_parallel_conductor::Bool=fals
     conds, transformers = psse_to_network_dicts(fp)
     gens = psse_generator_data(fp)
     loads = psse_load_data(fp)
+    shunts = psse_shunt_data(fp)
 
     substation_bus = gens[1][:bus]
     Vbase = bus_kv[substation_bus] * 1e3
@@ -276,6 +333,7 @@ function psse_to_Network(fp::AbstractString; allow_parallel_conductor::Bool=fals
         :Transformer => transformers,
         :Generator => gens,
         :Load => loads,
+        :ShuntAdmittance => shunts,
     )
 
     Network(net_dict; allow_parallel_conductor=allow_parallel_conductor)

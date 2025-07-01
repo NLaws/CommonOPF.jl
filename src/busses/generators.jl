@@ -12,20 +12,20 @@ Work in progress. Adding fields as needed for BIM and BFM tests.
     # optional values
     is_PV_bus::Bool = false
     kws1::Vector{Real} = [0.0]
-    voltage_pu::Vector{Real} = [1.0]
+    voltage_series_pu::Vector{Real} = [1.0]
     # RAW file fields
     name::Union{String, Missing} = missing
     pg::Real = 0.0          # MW output
     qg::Real = 0.0          # MVAr output
     qmax::Real = 0.0        # MVAr max
     qmin::Real = 0.0        # MVAr min
-    vg::Real = 1.0          # voltage setpoint (pu)
+    voltage_pu::Real = 1.0          # voltage setpoint (pu)
     reg_bus::Int = 0        # remote regulated bus number
     mva_base::Real = 100.0
     zr::Real = 0.0
     zx::Real = 0.0
-    rt::Real = 0.0
-    xt::Real = 0.0
+    transformer_resistance::Real = 0.0
+    transformer_reactance::Real = 0.0
     gtap::Real = 1.0
     status::Int = 1
     rmpct::Real = 100.0

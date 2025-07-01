@@ -14,6 +14,7 @@
     @test length(conductors(net)) == length(cds)
     @test net["1"][:Load].kws1 == [17000.0]
     @test net["1"][:Generator].mva_base == 100.0
+    @test isapprox(net["5"][:ShuntAdmittance].b, -40e6 / (138e3^2); atol=1e-6)
 
     loads = CommonOPF.psse_load_data(fp)
     @test loads[1][:bus] == "1"
@@ -22,6 +23,9 @@
     gens = CommonOPF.psse_generator_data(fp)
     @test gens[1][:bus] == "1"
     @test gens[1][:mva_base] == 100.0
+    shunts = CommonOPF.psse_shunt_data(fp)
+    @test shunts[1][:bus] == "5"
+    @test isapprox(shunts[1][:b], -40e6 / (138e3^2); atol=1e-6)
 
     lines = readlines(fp)
     parts = split(lines[1], ",")
