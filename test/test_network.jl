@@ -189,5 +189,34 @@ end
         MOI.EqualTo{ComplexF64},
         (CommonOPF.BusDimension, CommonOPF.TimeDimension, CommonOPF.PhaseDimension),
     )
-    print_constraint_info(net)
+print_constraint_info(net)
+end
+
+@testset "parallel conductors" begin
+    net_dict_parallel = Dict(
+        :Network => Dict(:substation_bus => "a"),
+        :Conductor => [
+            Dict(:busses => ("a", "b"), :length => 1, :r1 => 1.0, :x1 => 1.0),
+            Dict(:busses => ("a", "b"), :length => 1, :r1 => 1.0, :x1 => 1.0),
+            Dict(:busses => ("b", "c"), :length => 1, :r1 => 0.5, :x1 => 0.5),
+        ],
+        :Load => [Dict(:bus => "c", :kws1 => [1.0])],
+    )
+    @test_throws ArgumentError Network(net_dict_parallel)
+    net_p = Network(net_dict_parallel; allow_parallel_conductor=true)
+    @test net_p[("a", "b")] isa CommonOPF.ParallelConductor
+
+    net_dict_single = Dict(
+        :Network => Dict(:substation_bus => "a"),
+        :Conductor => [
+            Dict(:busses => ("a", "b"), :length => 1, :r1 => 0.5, :x1 => 0.5),
+            Dict(:busses => ("b", "c"), :length => 1, :r1 => 0.5, :x1 => 0.5),
+        ],
+        :Load => [Dict(:bus => "c", :kws1 => [1.0])],
+    )
+    net_s = Network(net_dict_single)
+    reduce_tree!(net_p)
+    reduce_tree!(net_s)
+    @test rij("a", "c", net_p) ≈ rij("a", "c", net_s)
+    @test xij("a", "c", net_p) ≈ xij("a", "c", net_s)
 end

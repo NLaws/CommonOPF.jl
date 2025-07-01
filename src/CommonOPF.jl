@@ -77,6 +77,7 @@ export
 
     # io
     dss_to_Network,
+    psse_to_Network,
 
     # network reduction
     reduce_tree!,
@@ -166,7 +167,8 @@ include("edges/conductors.jl")
 include("edges/transformers.jl")
 include("edges/voltage_regulators.jl")
 
-include("io.jl")
+include("adapters/opendss.jl")
+include("adapters/psse.jl")
 
 include("network.jl")
 include("edges/impedances.jl")

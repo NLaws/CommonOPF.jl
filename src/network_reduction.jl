@@ -20,9 +20,10 @@ function reduce_tree!(net::Network)
         edge_jk = net[(bus, j_to_k(bus, net)[1])]
         phases_ij = ismissing(edge_ij.phases) ? [1] : edge_ij.phases
         phases_jk = ismissing(edge_jk.phases) ? [1] : edge_jk.phases
-        if ( # we have two and only two conductors at the bus and phases match
-            !(bus in ld_busses) && 
-            typeof(edge_ij) == CommonOPF.Conductor == typeof(edge_jk) &&
+        if (
+            !(bus in ld_busses) &&
+            (edge_ij isa CommonOPF.Conductor || edge_ij isa CommonOPF.ParallelConductor) &&
+            (edge_jk isa CommonOPF.Conductor || edge_jk isa CommonOPF.ParallelConductor) &&
             phases_ij == phases_jk
         )
             push!(reducable_buses, bus)
@@ -49,7 +50,8 @@ function remove_bus!(j::String, net::Network{SinglePhase})
     # get all the old values
     i, k = i_to_j(j, net)[1], j_to_k(j, net)[1]
     c1, c2 = net[(i, j)], net[(j, k)]
-    @assert typeof(c1) == CommonOPF.Conductor == typeof(c2) "remove_bus! can only combine two conductors"
+    @assert (c1 isa CommonOPF.Conductor || c1 isa CommonOPF.ParallelConductor) &&
+            (c2 isa CommonOPF.Conductor || c2 isa CommonOPF.ParallelConductor) "remove_bus! can only combine two conductors"
     # make the new values
     r_ik = resistance(c1, network_phase_type(net)) + resistance(c2, network_phase_type(net))
     x_ik = reactance(c1, network_phase_type(net))  + reactance(c2, network_phase_type(net))
@@ -90,7 +92,8 @@ function remove_bus!(j::String, net::Network{MultiPhase})
     # get all the old values
     i, k = i_to_j(j, net)[1], j_to_k(j, net)[1]
     c1, c2 = net[(i, j)], net[(j, k)]
-    @assert typeof(c1) == CommonOPF.Conductor == typeof(c2) "remove_bus! can only combine two conductors"
+    @assert (c1 isa CommonOPF.Conductor || c1 isa CommonOPF.ParallelConductor) &&
+            (c2 isa CommonOPF.Conductor || c2 isa CommonOPF.ParallelConductor) "remove_bus! can only combine two conductors"
     @assert c1.phases == c2.phases "remove_bus! only works with two conductors that have matching phases"
     # make the new values
     rmatrix_ik = resistance(c1, network_phase_type(net)) + resistance(c2, network_phase_type(net))

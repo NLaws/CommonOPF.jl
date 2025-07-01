@@ -205,6 +205,59 @@ end
 
 
 """
+    _parallel_impedance(pc::ParallelConductor, phase_type::Type{SinglePhase})
+
+Return the impedance of multiple conductors connected in parallel. For single
+phase lines this is the scalar impedance of the parallel combination of all
+lines in `pc`.
+"""
+function _parallel_impedance(pc::ParallelConductor, phase_type::Type{SinglePhase})
+    y = zero(ComplexF64)
+    for c in pc.conductors
+        z = resistance(c, phase_type) + im * reactance(c, phase_type)
+        y += 1 / z
+    end
+    return 1 / y
+end
+
+
+"""
+    _parallel_impedance(pc::ParallelConductor, phase_type::Type{MultiPhase})
+
+Return the impedance matrix of multiple conductors connected in parallel for a
+multiphase network.
+"""
+function _parallel_impedance(pc::ParallelConductor, phase_type::Type{MultiPhase})
+    Y = zeros(ComplexF64, 3, 3)
+    for c in pc.conductors
+        z = resistance(c, phase_type) + im * reactance(c, phase_type)
+        Y .+= inverse_matrix_with_zeros(z)
+    end
+    return inverse_matrix_with_zeros(Y)
+end
+
+function resistance_per_length(pc::ParallelConductor, phase_type::Type{T}) where {T <: Phases}
+    z = _parallel_impedance(pc, phase_type)
+    r = real(z) / pc.length
+    return r
+end
+
+function resistance(pc::ParallelConductor, phase_type::Type{T}) where {T <: Phases}
+    real(_parallel_impedance(pc, phase_type))
+end
+
+function reactance_per_length(pc::ParallelConductor, phase_type::Type{T}) where {T <: Phases}
+    z = _parallel_impedance(pc, phase_type)
+    x = imag(z) / pc.length
+    return x
+end
+
+function reactance(pc::ParallelConductor, phase_type::Type{T}) where {T <: Phases}
+    imag(_parallel_impedance(pc, phase_type))
+end
+
+
+"""
     resistance(vr::VoltageRegulator)
 
     if phase_type == SinglePhase
