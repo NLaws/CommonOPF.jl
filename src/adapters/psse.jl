@@ -10,6 +10,7 @@ TODO shunt data
 Column indices for the v33 RAW format. See [./psse_raw_v33_format.md](./psse_raw_v33_format.md)
 """
 const v33 = Dict{Symbol, Int}(
+
     # Bus data
     :bus_number => 1,
     :bus_kv => 3,
@@ -75,6 +76,7 @@ function psse_to_network_dicts(fp::AbstractString)
     lines = readlines(fp)
 
     header = split(lines[1], ",")
+    MVA_base = parse(Float64, strip(header[2]))
     version = parse(Int, strip(header[3]))
     v = version == 33 ? v33 : throw(ArgumentError("Unsupported PSS/E RAW version $(version)"))
 
