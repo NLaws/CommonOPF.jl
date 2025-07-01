@@ -78,6 +78,24 @@ I, ID, PG, QG, QT, QB, VS, IREG, MBASE, ZR, ZX, RT, XT, GTAP, STAT, RMPCT, PT, P
 
 ---
 
+## 🔹 3. **Fixed Shunt Data Section**
+
+```
+I, ID, STATUS, GL, BL
+```
+
+| Field  | Description                                                |
+|--------|------------------------------------------------------------|
+| `I`    | Bus number where the shunt is connected                    |
+| `ID`   | Shunt identifier (2 characters)                            |
+| `STATUS` | 1 = in service, 0 = out of service                       |
+| `GL`   | Conductance in MW on the system base                       |
+| `BL`   | Susceptance in MVAr on the system base                     |
+
+> `GL` and `BL` represent the real and reactive power at a bus voltage of 1.0 p.u. They can be converted to siemens using `V^2` where `V` is the bus base kV.
+
+---
+
 ## 🔹 5. **Transformer Data Section**
 
 Each transformer record spans **3 or 4 lines** depending on the winding configuration.
