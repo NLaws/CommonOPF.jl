@@ -22,11 +22,13 @@
 
     gens = CommonOPF.psse_generator_data(fp)
     @test gens[1][:bus] == "1"
+    @test ismissing(gens[1][:reg_bus])
     @test gens[1][:mva_base] == 100.0
     shunts = CommonOPF.psse_shunt_data(fp)
     @test shunts[1][:bus] == "5"
     @test isapprox(shunts[1][:b], -40e6 / (138e3^2); atol=1e-6)
 
+    # test that version != 33 throws error
     lines = readlines(fp)
     parts = split(lines[1], ",")
     parts[3] = " 34"

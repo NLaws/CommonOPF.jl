@@ -45,11 +45,10 @@ I, NAME, BASKV, IDE, AREA, ZONE, OWNER, VM, VA, NVHI, NVLO, EVHI, EVLO
 | `EVLO`  | **Emergency low voltage limit** (p.u.) – lower bound during contingencies |
 
 > All voltage values (`VM`, `NVHI`, `NVLO`, `EVHI`, `EVLO`) are in **per unit (p.u.)**, and all angles (`VA`) are in **degrees**.
-
 ---
 
 ## 🔹 2. **Generator Data Section**
-
+![Generator one line diagram](psse_gen_impedance.png)
 ```
 I, ID, PG, QG, QT, QB, VS, IREG, MBASE, ZR, ZX, RT, XT, GTAP, STAT, RMPCT, PT, PB, O1–O8
 ```

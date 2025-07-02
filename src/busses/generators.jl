@@ -20,12 +20,9 @@ Work in progress. Adding fields as needed for BIM and BFM tests.
     qmax::Real = 0.0        # MVAr max
     qmin::Real = 0.0        # MVAr min
     voltage_pu::Real = 1.0          # voltage setpoint (pu)
-    reg_bus::Int = 0        # remote regulated bus number
+    reg_bus::Union{String, Missing} = missing  # remote regulated bus
     mva_base::Real = 100.0
-    zr::Real = 0.0
-    zx::Real = 0.0
-    transformer_resistance::Real = 0.0
-    transformer_reactance::Real = 0.0
+    z_transformers::ComplexF64 = im*0.0
     gtap::Real = 1.0
     status::Int = 1
     rmpct::Real = 100.0

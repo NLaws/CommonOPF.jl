@@ -41,8 +41,8 @@ const v33 = Dict{Symbol, Int}(
     :mva_base => 9,
     :zr => 10,
     :zx => 11,
-    :transformer_resistance => 12,
-    :transformer_reactance => 13,
+    :rt => 12,
+    :xt => 13,
     :gtap => 14,
     :status => 15,
     :rmpct => 16,
@@ -142,7 +142,7 @@ dictionaries for [`Generator`](@ref) objects. Impedance values are converted fro
 per-unit to ohms.
 """
 function psse_generator_data(fp::AbstractString)
-    lines = readlines(fp)
+    lines = readlines(fp)  # TODO consolidate parsing s.t. readlines once
 
     header = split(lines[1], ",")
     MVA_base = parse(Float64, strip(header[2]))
@@ -173,13 +173,14 @@ function psse_generator_data(fp::AbstractString)
         qmax = parse(Float64, cols[v[:qmax]])
         qmin = parse(Float64, cols[v[:qmin]])
         voltage_pu = parse(Float64, cols[v[:voltage_pu]])
-        reg_bus = parse(Int, cols[v[:reg_bus]])
+        reg_bus = strip(cols[v[:reg_bus]]) 
         mva_base = parse(Float64, cols[v[:mva_base]])
         Z_base = (bus_kv[bus]^2) / MVA_base
-        zr = parse(Float64, cols[v[:zr]]) * Z_base
-        zx = parse(Float64, cols[v[:zx]]) * Z_base
-        transformer_resistance = parse(Float64, cols[v[:transformer_resistance]]) * Z_base
-        transformer_reactance = parse(Float64, cols[v[:transformer_reactance]]) * Z_base
+        r_step_up = parse(Float64, cols[v[:zr]])
+        x_step_up = parse(Float64, cols[v[:zx]])
+        r_tapping = parse(Float64, cols[v[:rt]])
+        x_tapping = parse(Float64, cols[v[:xt]])
+        z_trfx = Z_base * ( (r_step_up + r_tapping) + im * (x_step_up + x_tapping) )
         gtap = parse(Float64, cols[v[:gtap]])
         status = parse(Int, cols[v[:status]])
         rmpct = parse(Float64, cols[v[:rmpct]])
@@ -193,12 +194,9 @@ function psse_generator_data(fp::AbstractString)
             :qmax => qmax,
             :qmin => qmin,
             :voltage_pu => voltage_pu,
-            :reg_bus => reg_bus,
+            :reg_bus => reg_bus == "0" ? missing : reg_bus,
             :mva_base => mva_base,
-            :zr => zr,
-            :zx => zx,
-            :transformer_resistance => transformer_resistance,
-            :transformer_reactance => transformer_reactance,
+            :z_transformers => z_trfx,
             :gtap => gtap,
             :status => status,  # TODO parse inactive generators? if so makes this a bool for :active
             :rmpct => rmpct,
