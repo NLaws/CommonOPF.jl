@@ -22,7 +22,7 @@ end
 
 
 """
-    terminals(net::Network{MultiPhase})
+    terminal_maps(net::Network{MultiPhase})
 
 Collect the maps of bus -> Vector{BusTerminal} and edge -> EdgeTerminals for building the bus
 admittance matrix.
@@ -62,6 +62,35 @@ end
 
 
 """
+    terminal_maps(net::Network{SinglePhase})
+
+Collect the maps of bus -> Vector{BusTerminal} and edge -> EdgeTerminals for building the bus
+admittance matrix.
+
+The `values(bus_terminals)` are in phase order.
+
+!!! danger
+    The `Y_index` of any terminal can change if the `Network` is modified.
+"""
+function terminal_maps(net::Network{SinglePhase})
+    bus_terminals = Dict{String, Vector{BusTerminal}}()
+    edge_terminals = Dict{Tuple{String, String}, EdgeTerminals}()
+
+    for (n, b) in enumerate(busses(net))
+        terms = BusTerminal[]
+        push!(terms, BusTerminal(b, 1, n))
+        bus_terminals[b] = terms
+    end
+
+    for (b1, b2) in edges(net)
+        edge_terminals[(b1, b2)] = EdgeTerminals((b1, b2), bus_terminals[b1], bus_terminals[b2])
+    end
+
+    return bus_terminals, edge_terminals
+end
+
+
+"""
     terminals(net::Network{MultiPhase})::Vector{BusTerminal}
 
 For all the busses, for all the ordered phases at each bus, create a BusTerminal and return them in
@@ -79,6 +108,24 @@ function terminals(net::Network{MultiPhase})::Vector{BusTerminal}
         end
     end
     return resize!(trmnls, y_index)
+end
+
+
+"""
+    terminals(net::Network{SinglePhase})::Vector{BusTerminal}
+
+For all the busses create a BusTerminal and return them in a vector. SinglePhase Networks have
+BusTerminal.phase set to 1.
+"""
+function terminals(net::Network{SinglePhase})::Vector{BusTerminal}
+    bs = busses(net)
+    trmnls = Vector{BusTerminal}(undef, length(bs))
+    y_index = 0
+    for b in bs
+        y_index += 1
+        trmnls[y_index] = BusTerminal(b, 1, y_index)
+    end
+    return trmnls
 end
 
 
@@ -102,6 +149,25 @@ function terminals_sj_per_unit(
             n += 1
             terminals_sj[n] = sj[phs]
         end
+    end
+    return terminals_sj
+end
+
+
+"""
+    terminals_sj_per_unit(
+        net::Network{SinglePhase}, trmnls::Vector{CommonOPF.BusTerminal}
+    )::Vector{Vector{ComplexF64}}
+
+Create the complex power injection vector for the `trmnls`.
+"""
+function terminals_sj_per_unit(
+    net::Network{SinglePhase}, trmnls::Vector{CommonOPF.BusTerminal}
+    )::Vector{Vector{ComplexF64}}
+
+    terminals_sj = [Vector{ComplexF64}(undef, length(net.Ntimesteps)) for _ in trmnls]
+    for (n, j) in enumerate(busses(net))
+        terminals_sj[n] = sj_per_unit(j, net)
     end
     return terminals_sj
 end
