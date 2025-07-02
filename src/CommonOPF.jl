@@ -121,6 +121,7 @@ export
     # test Networks
     Network_IEEE13_SinglePhase,
     Network_IEEE13,
+    Network_IEEE118,
     Network_IEEE8500,
     Network_Papavasiliou_2018,
 

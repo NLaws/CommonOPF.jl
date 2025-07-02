@@ -125,6 +125,8 @@ function Network(fp::String; allow_parallel_conductor::Bool=false)
         d = load_yaml(fp)
     elseif endswith(lowercase(fp), ".dss")
         return CommonOPF.dss_to_Network(fp; allow_parallel_conductor=allow_parallel_conductor)
+    elseif endswith(lowercase(fp), ".raw")
+        return CommonOPF.psse_to_Network(fp; allow_parallel_conductor=allow_parallel_conductor)
     else
         # TODO json
         throw(error("Only parsing yaml (or yml) and dss files so far."))
@@ -381,6 +383,14 @@ function Network_IEEE13()
         "..", "test", "data", "yaml_inputs", "ieee13_multi_phase.yaml"
     )
     return Network(fp)
+end
+
+
+function Network_IEEE118()
+    fp = joinpath(dirname(@__FILE__), 
+        "..", "test", "data", "ieee118", "ieee118.RAW"
+    )
+    return Network(fp; allow_parallel_conductor=true)
 end
 
 
