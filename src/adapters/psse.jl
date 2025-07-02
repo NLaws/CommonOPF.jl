@@ -12,7 +12,9 @@ const v33 = Dict{Symbol, Int}(
     # Bus data
     :bus_number => 1,
     :bus_kv => 3,
-    :bus_type => 4,
+    :bus_type => 4,  # 1 = Load, 2 = Gen, 3 = Slack, 4 = Isolated
+    :bus_v_mag_pu => 8,
+    :bus_v_degrees => 9,
 
     # Branch data
     :branch_from => 1,
@@ -65,15 +67,18 @@ const v33 = Dict{Symbol, Int}(
 """
     psse_bus_data(lines::Vector{String})::Tuple{Dict, String}
 
-Return a dict of bus name to kV and the slack bus. The slack bus is `missing` if no `bus_type == "3`
-(`IDE` in PSSE).
+Returns
+1. a dict of bus name to kV 
+2. the slack bus (`missing` if no `bus_type == "3`)
+3. and the slack bus voltage.
 """
-function psse_bus_data(lines::Vector{String})::Tuple{Dict, String}
+function psse_bus_data(lines::Vector{String})::Tuple{Dict, String, ComplexF64}
     header = split(lines[1], ",")
     version = parse(Int, strip(header[3]))
     v = version == 33 ? v33 : throw(ArgumentError("Unsupported PSS/E RAW version $(version)"))
 
     slack_bus::Union{Missing, String} = missing
+    v_slack = 1 + 0im
     bus_start = 4
     bus_end = findfirst(x -> occursin("END OF BUS DATA", x), lines) - 1
     bus_kv = Dict{String, Float64}()
@@ -82,9 +87,12 @@ function psse_bus_data(lines::Vector{String})::Tuple{Dict, String}
         bus_kv[strip(cols[v[:bus_number]])] = parse(Float64, cols[v[:bus_kv]])
         if strip(cols[v[:bus_type]]) == "3"
             slack_bus = strip(cols[v[:bus_number]])
+            v_mag_pu = parse(Float64, strip(cols[v[:bus_v_mag_pu]]))
+            v_angle = deg2rad(parse(Float64, strip(cols[v[:bus_v_degrees]])))
+            v_slack = v_mag_pu * cis(v_angle)
         end
     end
-    return bus_kv, slack_bus
+    return bus_kv, slack_bus, v_slack
 end
 
 
@@ -320,7 +328,7 @@ function psse_to_Network(fp::AbstractString; allow_parallel_conductor::Bool=fals
     version = parse(Int, strip(header[3]))
     v = version == 33 ? v33 : throw(ArgumentError("Unsupported PSS/E RAW version $(version)"))
 
-    bus_kv, slack_bus = psse_bus_data(lines)
+    bus_kv, slack_bus, v0 = psse_bus_data(lines)
 
     conds = psse_branch_data(lines, bus_kv)
     transformers = psse_transformer_data(lines, bus_kv)
@@ -333,6 +341,7 @@ function psse_to_Network(fp::AbstractString; allow_parallel_conductor::Bool=fals
     net_dict = Dict{Symbol, Any}(
         :Network => Dict(
             :substation_bus => slack_bus,
+            :v0 => v0,
             :Vbase => Vbase,
             :Sbase => MVA_base * 1e6,
         ),
