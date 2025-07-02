@@ -95,6 +95,33 @@ I, ID, STATUS, GL, BL
 
 ---
 
+## 🔹 4. **Branch Data Section**
+
+```
+I, J, CKT, R, X, B, RATEA, RATEB, RATEC, GI, BJ, ST, ANG, LEN, O1–O4
+```
+
+| Field     | Description |
+|-----------|-------------|
+| `I`, `J`  | From and To bus numbers |
+| `CKT`     | Circuit ID (2 characters, distinguishes parallel lines) |
+| `R`       | Positive-sequence resistance (p.u.) |
+| `X`       | Positive-sequence reactance (p.u.) |
+| `B`       | Total line charging susceptance (p.u.), split evenly at both ends |
+| `RATEA`   | MVA rating A (continuous) |
+| `RATEB`   | MVA rating B (long-term emergency) |
+| `RATEC`   | MVA rating C (short-term emergency) |
+| `GI`, `BJ`| Shunt conductance/admittance at terminals I and J (p.u.) |
+| `ST`      | Status (1 = in-service, 0 = out-of-service) |
+| `ANG`     | Phase shift angle (degrees), typically 0 for lines |
+| `LEN`     | Line length (miles or km; informational only) |
+| `O1–O4`   | Ownership fields (IDs or participation fractions) |
+
+> All impedance values (`R`, `X`, `B`) are in **per unit (p.u.)** on the system base MVA.  
+> Branches include both transmission lines and transformer equivalents not modeled as detailed multi-winding records.
+
+---
+
 ## 🔹 5. **Transformer Data Section**
 
 Each transformer record spans **3 or 4 lines** depending on the winding configuration.

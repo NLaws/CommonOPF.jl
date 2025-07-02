@@ -1,7 +1,5 @@
 """
 Utilities for parsing PSS/E RAW files.
-
-TODO shunt data
 """
 
 """
@@ -14,6 +12,7 @@ const v33 = Dict{Symbol, Int}(
     # Bus data
     :bus_number => 1,
     :bus_kv => 3,
+    :bus_type => 4,
 
     # Branch data
     :branch_from => 1,
@@ -64,29 +63,44 @@ const v33 = Dict{Symbol, Int}(
 
 
 """
-    psse_to_network_dicts(fp::AbstractString)
+    psse_bus_data(lines::Vector{String})::Tuple{Dict, String}
 
-Parse the branch and transformer sections of a PSS/E RAW file and convert
-per-unit impedances to ohms. Only version 33 RAW files are currently
-supported and the parsing will throw an error for any other version.
-Returns two vectors of dictionaries suitable for [`Conductor`](@ref) and
-[`Transformer`](@ref) objects.
+Return a dict of bus name to kV and the slack bus. The slack bus is `missing` if no `bus_type == "3`
+(`IDE` in PSSE).
 """
-function psse_to_network_dicts(fp::AbstractString)
-    lines = readlines(fp)
-
+function psse_bus_data(lines::Vector{String})::Tuple{Dict, String}
     header = split(lines[1], ",")
-    MVA_base = parse(Float64, strip(header[2]))
     version = parse(Int, strip(header[3]))
     v = version == 33 ? v33 : throw(ArgumentError("Unsupported PSS/E RAW version $(version)"))
 
+    slack_bus::Union{Missing, String} = missing
     bus_start = 4
     bus_end = findfirst(x -> occursin("END OF BUS DATA", x), lines) - 1
     bus_kv = Dict{String, Float64}()
     for ln in lines[bus_start:bus_end]
         cols = split(ln, ",")
         bus_kv[strip(cols[v[:bus_number]])] = parse(Float64, cols[v[:bus_kv]])
+        if strip(cols[v[:bus_type]]) == "3"
+            slack_bus = strip(cols[v[:bus_number]])
+        end
     end
+    return bus_kv, slack_bus
+end
+
+
+"""
+    psse_branch_data(lines::Vector{String}, bus_kv::Dict{String, Float64})
+
+Parse the branch section of a PSS/E RAW file and convert
+per-unit impedances to ohms. Only version 33 RAW files are currently
+supported and the parsing will throw an error for any other version.
+Returns a vector of dictionaries suitable for [`Conductor`](@ref) objects.
+"""
+function psse_branch_data(lines::Vector{String}, bus_kv::Dict{String, Float64})
+    header = split(lines[1], ",")
+    MVA_base = parse(Float64, strip(header[2]))
+    version = parse(Int, strip(header[3]))
+    v = version == 33 ? v33 : throw(ArgumentError("Unsupported PSS/E RAW version $(version)"))
 
     br_start = findfirst(x -> occursin("BEGIN BRANCH DATA", x), lines) + 1
     br_end = findfirst(x -> occursin("END OF BRANCH DATA", x), lines) - 1
@@ -106,6 +120,25 @@ function psse_to_network_dicts(fp::AbstractString)
             :length => 1.0,
         ))
     end
+
+    return conductor_dicts
+
+end
+
+
+"""
+    psse_transformer_data(lines::Vector{String}, bus_kv::Dict{String, Float64})
+
+Parse the transformer section of a PSS/E RAW file and convert
+per-unit impedances to ohms. Only version 33 RAW files are currently
+supported and the parsing will throw an error for any other version.
+Returns a vector of dictionaries suitable for [`Transformer`](@ref) objects.
+"""
+function psse_transformer_data(lines::Vector{String}, bus_kv::Dict{String, Float64})
+    header = split(lines[1], ",")
+    MVA_base = parse(Float64, strip(header[2]))
+    version = parse(Int, strip(header[3]))
+    v = version == 33 ? v33 : throw(ArgumentError("Unsupported PSS/E RAW version $(version)"))
 
     tr_start = findfirst(x -> occursin("BEGIN TRANSFORMER DATA", x), lines) + 1
     tr_end = findfirst(x -> occursin("END OF TRANSFORMER DATA", x), lines) - 1
@@ -131,31 +164,22 @@ function psse_to_network_dicts(fp::AbstractString)
         ))
     end
 
-    return conductor_dicts, transformer_dicts
+    return transformer_dicts
 end
 
+
 """
-    psse_generator_data(fp::AbstractString)
+    psse_generator_data(lines::Vector{String}, bus_kv::Dict{String, Float64})
 
 Parse the generator section of a PSS/E RAW (v33) file and return a vector of
 dictionaries for [`Generator`](@ref) objects. Impedance values are converted from
 per-unit to ohms.
 """
-function psse_generator_data(fp::AbstractString)
-    lines = readlines(fp)  # TODO consolidate parsing s.t. readlines once
-
+function psse_generator_data(lines::Vector{String}, bus_kv::Dict{String, Float64})
     header = split(lines[1], ",")
     MVA_base = parse(Float64, strip(header[2]))
     version = parse(Int, strip(header[3]))
     v = version == 33 ? v33 : throw(ArgumentError("Unsupported PSS/E RAW version $(version)"))
-
-    bus_start = 4
-    bus_end = findfirst(x -> occursin("END OF BUS DATA", x), lines) - 1
-    bus_kv = Dict{String, Float64}()
-    for ln in lines[bus_start:bus_end]
-        cols = split(ln, ",")
-        bus_kv[strip(cols[v[:bus_number]])] = parse(Float64, cols[v[:bus_kv]])
-    end
 
     gen_start = findfirst(x -> occursin("BEGIN GENERATOR DATA", x), lines) + 1
     gen_end = findfirst(x -> occursin("END OF GENERATOR DATA", x), lines) - 1
@@ -210,15 +234,13 @@ end
 
 
 """
-    psse_load_data(fp::AbstractString)
+    psse_load_data(lines::Vector{String})
 
 Parse the load section of a PSS/E RAW (v33) file and return a vector of
 [`Load`](@ref) dictionaries. The MW/MVAr values are converted to single-phase
 kW/kVAr loads.
 """
-function psse_load_data(fp::AbstractString)
-    lines = readlines(fp)
-
+function psse_load_data(lines::Vector{String})
     header = split(lines[1], ",")
     version = parse(Int, strip(header[3]))
     v = version == 33 ? v33 : throw(ArgumentError("Unsupported PSS/E RAW version $(version)"))
@@ -246,27 +268,17 @@ end
 
 
 """
-    psse_shunt_data(fp::AbstractString)
+    psse_shunt_data(lines::Vector{String}, bus_kv::Dict{String, Float64})
 
 Parse the fixed shunt section of a PSS/E RAW (v33) file and return a vector of
 [`ShuntAdmittance`](@ref) dictionaries with conductance and susceptance in
 siemens.
 """
-function psse_shunt_data(fp::AbstractString)
-    lines = readlines(fp)
-
+function psse_shunt_data(lines::Vector{String}, bus_kv::Dict{String, Float64})
     header = split(lines[1], ",")
     MVA_base = parse(Float64, strip(header[2]))
     version = parse(Int, strip(header[3]))
     v = version == 33 ? v33 : throw(ArgumentError("Unsupported PSS/E RAW version $(version)"))
-
-    bus_start = 4
-    bus_end = findfirst(x -> occursin("END OF BUS DATA", x), lines) - 1
-    bus_kv = Dict{String, Float64}()
-    for ln in lines[bus_start:bus_end]
-        cols = split(ln, ",")
-        bus_kv[strip(cols[v[:bus_number]])] = parse(Float64, cols[v[:bus_kv]])
-    end
 
     sh_start = findfirst(x -> occursin("BEGIN FIXED SHUNT DATA", x), lines) + 1
     sh_end = findfirst(x -> occursin("END OF FIXED SHUNT DATA", x), lines) - 1
@@ -308,25 +320,19 @@ function psse_to_Network(fp::AbstractString; allow_parallel_conductor::Bool=fals
     version = parse(Int, strip(header[3]))
     v = version == 33 ? v33 : throw(ArgumentError("Unsupported PSS/E RAW version $(version)"))
 
-    bus_start = 4
-    bus_end = findfirst(x -> occursin("END OF BUS DATA", x), lines) - 1
-    bus_kv = Dict{String, Float64}()
-    for ln in lines[bus_start:bus_end]
-        cols = split(ln, ",")
-        bus_kv[strip(cols[v[:bus_number]])] = parse(Float64, cols[v[:bus_kv]])
-    end
+    bus_kv, slack_bus = psse_bus_data(lines)
 
-    conds, transformers = psse_to_network_dicts(fp)
-    gens = psse_generator_data(fp)
-    loads = psse_load_data(fp)
-    shunts = psse_shunt_data(fp)
+    conds = psse_branch_data(lines, bus_kv)
+    transformers = psse_transformer_data(lines, bus_kv)
+    gens = psse_generator_data(lines, bus_kv)
+    loads = psse_load_data(lines)
+    shunts = psse_shunt_data(lines, bus_kv)
 
-    substation_bus = gens[1][:bus]
-    Vbase = bus_kv[substation_bus] * 1e3
+    Vbase = bus_kv[slack_bus] * 1e3
 
     net_dict = Dict{Symbol, Any}(
         :Network => Dict(
-            :substation_bus => substation_bus,
+            :substation_bus => slack_bus,
             :Vbase => Vbase,
             :Sbase => MVA_base * 1e6,
         ),
