@@ -17,8 +17,8 @@ Work in progress. Adding fields as needed for BIM and BFM tests.
     name::Union{String, Missing} = missing
     pg::Real = 0.0          # MW output
     qg::Real = 0.0          # MVAr output
-    qmax::Real = 0.0        # MVAr max
-    qmin::Real = 0.0        # MVAr min
+    q_max_kvar::Real = 0.0
+    q_min_kvar::Real = 0.0
     voltage_pu::Real = 1.0          # voltage setpoint (pu)
     reg_bus::Union{String, Missing} = missing  # remote regulated bus
     mva_base::Real = 100.0

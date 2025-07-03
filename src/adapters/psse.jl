@@ -21,6 +21,7 @@ const v33 = Dict{Symbol, Int}(
     :branch_to => 2,
     :branch_r_pu => 4,
     :branch_x_pu => 5,
+    :branch_b_pu => 6,
 
     # Transformer data (row 1 & row 2/3)
     :xf_bus1 => 1,
@@ -113,6 +114,7 @@ function psse_branch_data(lines::Vector{String}, bus_kv::Dict{String, Float64})
     br_start = findfirst(x -> occursin("BEGIN BRANCH DATA", x), lines) + 1
     br_end = findfirst(x -> occursin("END OF BRANCH DATA", x), lines) - 1
 
+    # NOTE line charging susceptance accounted for in shunts
     conductor_dicts = Dict{Symbol, Any}[]
     for ln in lines[br_start:br_end]
         cols = split(ln, ",")
@@ -151,6 +153,7 @@ function psse_transformer_data(lines::Vector{String}, bus_kv::Dict{String, Float
     tr_start = findfirst(x -> occursin("BEGIN TRANSFORMER DATA", x), lines) + 1
     tr_end = findfirst(x -> occursin("END OF TRANSFORMER DATA", x), lines) - 1
 
+    # TODO transformers are wrong, the high/low kv values are zero when CW=1, see psse_raw_v33_format.md
     transformer_dicts = Dict{Symbol, Any}[]
     for i in tr_start:4:tr_end
         row1 = split(lines[i], ",")
@@ -177,13 +180,13 @@ end
 
 
 """
-    psse_generator_data(lines::Vector{String}, bus_kv::Dict{String, Float64})
+    psse_generator_data(lines::Vector{String}, bus_kv::Dict{String, Float64}, slack_bus::String)
 
 Parse the generator section of a PSS/E RAW (v33) file and return a vector of
 dictionaries for [`Generator`](@ref) objects. Impedance values are converted from
 per-unit to ohms.
 """
-function psse_generator_data(lines::Vector{String}, bus_kv::Dict{String, Float64})
+function psse_generator_data(lines::Vector{String}, bus_kv::Dict{String, Float64}, slack_bus::String)
     header = split(lines[1], ",")
     MVA_base = parse(Float64, strip(header[2]))
     version = parse(Int, strip(header[3]))
@@ -199,6 +202,10 @@ function psse_generator_data(lines::Vector{String}, bus_kv::Dict{String, Float64
     for ln in lines[gen_start:gen_end]
         cols = split(ln, ",")
         bus = strip(cols[v[:gen_bus]])
+        if bus == slack_bus
+            # .raw provides the solution for the slack bus as a generator
+            continue
+        end
         name = strip(cols[v[:id]], ['\'', ' '])
         pg = parse(Float64, cols[v[:pg]])
         qg = parse(Float64, cols[v[:qg]])
@@ -220,11 +227,14 @@ function psse_generator_data(lines::Vector{String}, bus_kv::Dict{String, Float64
         pmin = parse(Float64, cols[v[:pmin]])
         push!(generator_dicts, Dict(
             :bus => bus,
+            :is_PV_bus => true,
+            :kws1 => [pg] * 1e3 / 3,  # MW -> kW per phase
+            :voltage_series_pu => [voltage_pu],  # TODO this is a vector of time, should have length net.Ntimesteps?
             :name => name,
             :pg => pg,
             :qg => qg,
-            :qmax => qmax,
-            :qmin => qmin,
+            :q_max_kvar => qmax * 1e3,
+            :q_min_kvar => qmin * 1e3,
             :voltage_pu => voltage_pu,
             :reg_bus => reg_bus == "0" ? missing : reg_bus,
             :mva_base => mva_base,
@@ -291,7 +301,7 @@ function psse_shunt_data(lines::Vector{String}, bus_kv::Dict{String, Float64})
     sh_start = findfirst(x -> occursin("BEGIN FIXED SHUNT DATA", x), lines) + 1
     sh_end = findfirst(x -> occursin("END OF FIXED SHUNT DATA", x), lines) - 1
 
-    shunt_dicts = Dict{Symbol, Any}[]
+    shunt_dicts = Dict{String, Dict{Symbol, Any}}()
     for ln in lines[sh_start:sh_end]
         cols = split(ln, ",")
         bus = strip(cols[v[:shunt_bus]])
@@ -299,18 +309,47 @@ function psse_shunt_data(lines::Vector{String}, bus_kv::Dict{String, Float64})
         gl = parse(Float64, cols[v[:shunt_g_mw]])
         bl = parse(Float64, cols[v[:shunt_b_mvar]])
         if status != 0
-            V = bus_kv[bus] * 1e3
-            g = gl * 1e6 / V^2
-            b = bl * 1e6 / V^2
-            push!(shunt_dicts, Dict(
+            shunt_dicts[bus] = Dict(
                 :bus => bus,
-                :g => g,
-                :b => b,
-            ))
+                :g => gl * MVA_base / bus_kv[bus]^2,
+                :b => bl * MVA_base / bus_kv[bus]^2,
+            )
         end
     end
 
-    return shunt_dicts
+    # add line susceptance to shunts
+    br_start = findfirst(x -> occursin("BEGIN BRANCH DATA", x), lines) + 1
+    br_end = findfirst(x -> occursin("END OF BRANCH DATA", x), lines) - 1
+
+    for ln in lines[br_start:br_end]
+        cols = split(ln, ",")
+        bus1 = strip(cols[v[:branch_from]])
+        bus2 = strip(cols[v[:branch_to]])
+        b_pu = parse(Float64, cols[v[:branch_b_pu]])
+        Y_base = MVA_base / bus_kv[bus1]^2
+        
+        if !(bus1 in keys(shunt_dicts))
+            shunt_dicts[bus1] = Dict(
+                :bus => bus1,
+                :g => 0.0,
+                :b => b_pu * Y_base / 2,
+            )
+        else
+            shunt_dicts[bus1][:b] += b_pu * Y_base / 2
+        end
+
+        if !(bus2 in keys(shunt_dicts))
+            shunt_dicts[bus2] = Dict(
+                :bus => bus2,
+                :g => 0.0,
+                :b => b_pu * Y_base / 2,
+            )
+        else
+            shunt_dicts[bus2][:b] += b_pu * Y_base / 2
+        end
+    end
+
+    return collect(values(shunt_dicts))
 end
 
 
@@ -332,7 +371,7 @@ function psse_to_Network(fp::AbstractString; allow_parallel_conductor::Bool=fals
 
     conds = psse_branch_data(lines, bus_kv)
     transformers = psse_transformer_data(lines, bus_kv)
-    gens = psse_generator_data(lines, bus_kv)
+    gens = psse_generator_data(lines, bus_kv, slack_bus)
     loads = psse_load_data(lines)
     shunts = psse_shunt_data(lines, bus_kv)
 
