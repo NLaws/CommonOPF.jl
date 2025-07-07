@@ -229,7 +229,7 @@ function psse_generator_data(lines::Vector{String}, bus_kv::Dict{String, Float64
             :bus => bus,
             :is_PV_bus => true,
             :kws1 => [pg] * 1e3 / 3,  # MW -> kW per phase
-            :voltage_series_pu => [voltage_pu],  # TODO this is a vector of time, should have length net.Ntimesteps?
+            :voltage_series_pu => [voltage_pu],  # TODO this is a vector of time, should have length net.Ntimesteps
             :name => name,
             :pg => pg,
             :qg => qg,
@@ -308,11 +308,12 @@ function psse_shunt_data(lines::Vector{String}, bus_kv::Dict{String, Float64})
         status = parse(Int, cols[v[:shunt_status]])
         gl = parse(Float64, cols[v[:shunt_g_mw]])
         bl = parse(Float64, cols[v[:shunt_b_mvar]])
+        Ybase = MVA_base / bus_kv[bus]^2
         if status != 0
             shunt_dicts[bus] = Dict(
                 :bus => bus,
-                :g => gl * MVA_base / bus_kv[bus]^2,
-                :b => bl * MVA_base / bus_kv[bus]^2,
+                :g => gl * Ybase / MVA_base,
+                :b => -bl * Ybase / MVA_base,
             )
         end
     end
