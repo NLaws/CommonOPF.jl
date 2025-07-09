@@ -236,13 +236,14 @@ end
 
 
 """
+    dss_to_Network(dssfilepath::AbstractString; allow_parallel_conductor::Bool=false)::Network
 
-    dss_to_Network(dssfilepath::AbstractString)::Network
-
-Using a OpenDSS command to compile the `dssfilepath` we load in the data from .dss files and parse
-the data into a `Network` model.
+Using a OpenDSS command to compile `dssfilepath` we load in the data from `.dss`
+files and parse the data into a [`Network`](@ref). Set
+`allow_parallel_conductor=true` to merge duplicate lines between the same pair of
+busses.
 """
-function dss_to_Network(dssfilepath::AbstractString)::Network
+function dss_to_Network(dssfilepath::AbstractString; allow_parallel_conductor::Bool=false)::Network
     # OpenDSS changes the working directory, so we need to change it back
     work_dir = pwd()
     OpenDSS.dss("""
@@ -278,8 +279,10 @@ function dss_to_Network(dssfilepath::AbstractString)::Network
     # equal to the inputs, i.e. the load model=1 for constant power and the vmin/maxpu values were
     # not violated, which causes the load model to change in OpenDSS)
 
-    Network(net_dict)
+    Network(net_dict; allow_parallel_conductor=allow_parallel_conductor)
 end
+
+
 
 
 """

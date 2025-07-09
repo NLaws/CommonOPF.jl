@@ -22,12 +22,29 @@ function substation_voltage(net::Network{MultiPhase})::Vector{ComplexF64}
 
     elseif typeof(net.v0) <: AbstractVector{<:Complex}
         return net.v0
-
-    else  
-        throw(@error "unsupported type for Network.v0 $(typeof(net.v0))")
     end
 
-    return w0
+    throw(@error "unsupported type for Network.v0 $(typeof(net.v0))")
+end
+
+
+"""
+    substation_voltage(net::Network{SinglePhase})::Vector{ComplexF64}
+
+Parse `net.v0` into a Vector{ComplexF64}, allowing for `net.v0` to be a `Real` or `ComplexF64`. We
+put `net.v0` into a vector to make the voltage compatible with model builders that work for both
+SinglePhase and MultiPhase networks. This SinglePhase version has one entry in the vector for one phase.
+"""
+function substation_voltage(net::Network{SinglePhase})::Vector{ComplexF64}
+
+    if typeof(net.v0) <: Real
+        return [net.v0 + 0im]
+
+    elseif typeof(net.v0) <: Complex
+        return [net.v0]
+    end
+    
+    throw(@error "unsupported type for Network.v0 $(typeof(net.v0))")
 end
 
 

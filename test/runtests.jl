@@ -1,6 +1,7 @@
 using CommonOPF
 using Test
 using JuMP
+using LinearAlgebra
 import Logging: with_logger
 # @with_kw is used to define concrete types of AbstractBus and AbstractEdge in CommonOPF
 import Parameters: @with_kw
@@ -43,7 +44,9 @@ with_logger(test_logger) do
 
     include("test_graphs.jl")
 
-    include("test_io.jl")
+    include("test_opendss.jl")
+
+    include("test_psse.jl")
 
     include("test_loads.jl")
 

@@ -30,6 +30,19 @@ end
 
 
 """
+    yj_per_unit(j::AbstractString, net::Network{SinglePhase})::ComplexF64
+
+Shunt admittance of bus `j` times net.Zbase
+"""
+function yj_per_unit(j::AbstractString, net::Network{SinglePhase})::ComplexF64
+    if :ShuntAdmittance in keys(net[j])
+        return (net[j][:ShuntAdmittance].g + im * net[j][:ShuntAdmittance].b) * net.Zbase
+    end
+    return 0.0 + im * 0.0
+end
+
+
+"""
     yj(j::AbstractString, net::Network{MultiPhase})::Matrix{ComplexF64}
 
 Shunt admittance of bus `j`
