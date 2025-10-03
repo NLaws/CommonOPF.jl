@@ -19,7 +19,7 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 
 [compat]
-DataStructures = "0.18"
+DataStructures = "0.18, 0.19"
 Graphs = "1.8"
 JuMP = "1"
 MathOptInterface = "1.40.2"
