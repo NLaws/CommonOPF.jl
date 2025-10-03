@@ -1,6 +1,6 @@
 # CommonOPF Change log
 
-## dev
+## v0.5.0
 - add `Ysparse` for bus admittance matrix from `Network`
     - use new `BusTerminal` and `EdgeTerminals` structs for building `Ysparse`
 - change `Yij`: no longer return 3x3 matrix always: it returns only valid phases

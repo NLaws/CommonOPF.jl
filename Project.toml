@@ -1,7 +1,7 @@
 name = "CommonOPF"
 uuid = "dad7ea18-2b21-482e-81c1-e84414cc4b03"
 authors = ["Nick Laws <laws.nick@gmail.com> and contributors"]
-version = "0.4.7"
+version = "0.5.0"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
