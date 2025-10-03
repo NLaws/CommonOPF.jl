@@ -1,13 +1,15 @@
 # CommonOPF Change log
 
-## dev
+## v0.5.0
 - add `Ysparse` for bus admittance matrix from `Network`
     - use new `BusTerminal` and `EdgeTerminals` structs for building `Ysparse`
 - change `Yij`: no longer return 3x3 matrix always: it returns only valid phases
-- stop exporting `sj` method
+- stop exporting `sj` method (because it is likely to have a name conflict)
 - change `sj_per_unit(j::String, net::Network{MultiPhase})` to return complex values
 - change `ConstraintInfo.set_type::MOI.AbstractSet` -> `ConstraintInfo.set_type::DataType`
-- add `Units.RadiansUnit`
+- add `Units.RadiansUnit` and `Dimensions.BusTerminalDimension`
+- start psse .raw to Network parsing
+- add `Network_IEEE118`
 
 ## v0.4.7
 Changes to support documentation in BranchFlowModel.jl (eventually BusInjectionModel.jl too)

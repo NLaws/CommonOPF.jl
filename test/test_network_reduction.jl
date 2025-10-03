@@ -314,7 +314,7 @@
                c -- e                   
              2/      1\                6.5  
         a -- b         g    ->   a -- b -- g
-           2.5\      2/                     
+           2.5\      1/                     
                d -- f            
                  3.5
         Merge parallel lines sets that do not have loads
@@ -378,7 +378,7 @@
         net = Network(net_dict; directed=true)
 
         combine_parallel_lines!(net)
-        @test busses(net) == ["a", "b", "g"]
+        @test sort(busses(net)) == ["a", "b", "g"]
         @test net[("b", "g")].length == 6.5  # avg of 6 and 7
         @test rij("b", "g", net)[1,1] == 12  # 2*2 + 2*3 + 2*1
         @test rij("b", "g", net)[2,2] == 21  # 3*2.5 + 3*3.5 + 3*1
@@ -469,7 +469,7 @@
         )
         net = Network(net_dict; directed=true)
         combine_parallel_lines!(net)
-        @test busses(net) == ["a", "b", "g"]
+        @test sort(busses(net)) == ["a", "b", "g"]
         @test net[("b", "g")].length ≈ (6+7+4)/3
         @test rij("b", "g", net)[1,1] == 12  # 2*2 + 2*3 + 2*1
         @test rij("b", "g", net)[3,3] == 8  # 2*2*2

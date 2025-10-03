@@ -16,13 +16,11 @@ function Yij(
         return -1 .* yij(i, j, net)
     end
     # sum up the y_ik where k is connected to i (which equals j)
-    g, b = 0, 0
+   y_total = 0im
     for k in connected_busses(i, net)
-        y = yij(i, k, net)[net[(i, k)].phases, net[(i, k)].phases]
-        g += real(y)
-        b += imag(y)
+        y_total += yij(i, k, net)
     end
-    return g + im * b + yj(i, net)
+    return y_total + yj_per_unit(i, net)
 end
 
 
@@ -97,7 +95,7 @@ end
 
 Returns a Symmetric view of sparse upper triangular matrix.
 """
-function Ysparse(net::CommonOPF.Network{MultiPhase})::Tuple{Symmetric, Vector{BusTerminal}}
+function Ysparse(net::CommonOPF.Network)::Tuple{Symmetric, Vector{BusTerminal}}
     # docstring for sparse:
     # sparse(I, J, V,[ m, n, combine])
 

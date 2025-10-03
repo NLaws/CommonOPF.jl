@@ -77,6 +77,7 @@ export
 
     # io
     dss_to_Network,
+    psse_to_Network,
 
     # network reduction
     reduce_tree!,
@@ -120,6 +121,7 @@ export
     # test Networks
     Network_IEEE13_SinglePhase,
     Network_IEEE13,
+    Network_IEEE118,
     Network_IEEE8500,
     Network_Papavasiliou_2018,
 
@@ -166,7 +168,8 @@ include("edges/conductors.jl")
 include("edges/transformers.jl")
 include("edges/voltage_regulators.jl")
 
-include("io.jl")
+include("adapters/opendss.jl")
+include("adapters/psse.jl")
 
 include("network.jl")
 include("edges/impedances.jl")

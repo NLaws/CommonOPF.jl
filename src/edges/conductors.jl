@@ -119,6 +119,40 @@ end
 
 
 """
+    @with_kw mutable struct ParallelConductor <: AbstractEdge
+
+Store multiple [`Conductor`](@ref) objects that share the same pair of busses.
+Impedance and admittance functions operate on a `ParallelConductor` just like on
+a single conductor whose parameters are the parallel combination of the contained
+lines.
+"""
+@with_kw mutable struct ParallelConductor <: AbstractEdge
+    busses::Tuple{String, String}
+    conductors::Vector{Conductor} = Vector{Conductor}[]
+    phases::Union{Vector{Int}, Missing} = missing
+    length::Union{Real, Missing} = missing
+end
+
+
+"""
+    ParallelConductor(cs::Vector{Conductor})
+
+Create a [`ParallelConductor`](@ref) from a vector of `Conductor` objects. All
+conductors must share the same pair of busses. The phases are the union of the
+phases on the contained lines and the length is the mean length of the lines.
+"""
+function ParallelConductor(cs::Vector{Conductor})
+    @assert !isempty(cs)
+    busses = cs[1].busses
+    @assert all(c -> c.busses == busses, cs)
+    phs = [c.phases for c in cs if !ismissing(c.phases)]
+    phases = isempty(phs) ? missing : sort(unique(reduce(vcat, phs)))
+    len = sum(c.length for c in cs) / length(cs)  # mean length
+    ParallelConductor(busses, cs, phases, len)
+end
+
+
+"""
     check_edges!(conductors::AbstractVector{Conductor})
 
 if all `phases` are missing then

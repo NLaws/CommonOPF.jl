@@ -13,6 +13,12 @@ include:
 - [VoltageRegulator](@ref)
 - [Transformer](@ref)
 
+Duplicate conductor entries between the same pair of busses can be merged into a
+`ParallelConductor` by passing `allow_parallel_conductor=true` when building the
+[`Network`](@ref). Impedance and admittance functions treat a
+`ParallelConductor` the same as a single conductor whose parameters are the
+parallel combination of the contained lines.
+
 Within the network model edges are indexed via two-tuples of bus names like so:
 ```@example
 using CommonOPF

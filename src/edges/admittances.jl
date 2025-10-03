@@ -268,6 +268,54 @@ function susceptance(c::Conductor, phase_type::Type{T}) where {T <: Phases}
     susceptance_per_length(c, phase_type) * c.length
 end
 
+"""
+    _parallel_admittance(pc::ParallelConductor, phase_type::Type{SinglePhase})
+
+Admittance of multiple conductors in parallel for a single phase network.
+"""
+function _parallel_admittance(pc::ParallelConductor, phase_type::Type{SinglePhase})
+    y = zero(ComplexF64)
+    for c in pc.conductors
+        z = resistance(c, phase_type) + im * reactance(c, phase_type)
+        y += 1 / z
+    end
+    return y
+end
+
+"""
+    _parallel_admittance(pc::ParallelConductor, phase_type::Type{MultiPhase})
+
+Admittance matrix of parallel conductors for a multiphase network.
+"""
+function _parallel_admittance(pc::ParallelConductor, phase_type::Type{MultiPhase})
+    Y = zeros(ComplexF64, 3, 3)
+    for c in pc.conductors
+        z = resistance(c, phase_type) + im * reactance(c, phase_type)
+        Y .+= inverse_matrix_with_zeros(z)
+    end
+    return Y
+end
+
+function conductance_per_length(pc::ParallelConductor, phase_type::Type{T}) where {T <: Phases}
+    y = _parallel_admittance(pc, phase_type)
+    g = real(y) / pc.length
+    return g
+end
+
+function conductance(pc::ParallelConductor, phase_type::Type{T}) where {T <: Phases}
+    real(_parallel_admittance(pc, phase_type))
+end
+
+function susceptance_per_length(pc::ParallelConductor, phase_type::Type{T}) where {T <: Phases}
+    y = _parallel_admittance(pc, phase_type)
+    b = imag(y) / pc.length
+    return b
+end
+
+function susceptance(pc::ParallelConductor, phase_type::Type{T}) where {T <: Phases}
+    imag(_parallel_admittance(pc, phase_type))
+end
+
 
 """
     conductance(vr::VoltageRegulator)
