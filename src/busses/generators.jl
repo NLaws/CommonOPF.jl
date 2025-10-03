@@ -28,6 +28,8 @@ Work in progress. Adding fields as needed for BIM and BFM tests.
     rmpct::Real = 100.0
     pmax::Real = 0.0
     pmin::Real = 0.0
+    price_points::AbstractVector{Real} = Real[]
+    mw_points::AbstractVector{Real} = Real[]
 end
 
 
