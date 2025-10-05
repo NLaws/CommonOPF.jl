@@ -2,6 +2,9 @@
 
 ## main (development)
 - add `Conductor.kv_class` for default `SinglePhase` impedances
+- add `Network_IEEE5` and `BUS_TYPES_DUPLICATES_ALLOWED` for `Generator`
+- extend Base.iterate, length, and eltype for `Generator` to allow iteration over single values of
+  `Generator` in a `Network` bus.
 
 ## v0.5.0
 - add `Ysparse` for bus admittance matrix from `Network`

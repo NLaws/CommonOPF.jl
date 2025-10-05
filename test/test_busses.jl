@@ -45,4 +45,12 @@ end
     # there are two generators at bus A in IEEE 5, we put them in a vector
     net = Network_IEEE5()
     @test length(net["A"][:Generator]) == 2
+    @test sort(generator_busses(net)) == ["A", "C", "D", "E"]
+
+    # test iteration
+    for gbus in generator_busses(net)
+        for gen in net[gbus][:Generator]
+            @test gen isa CommonOPF.Generator
+        end
+    end
 end

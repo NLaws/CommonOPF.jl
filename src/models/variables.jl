@@ -20,7 +20,7 @@ m[:sij][("bus1", "bus2")][5]
 """
 function add_time_vector_variables!(
     m::JuMP.AbstractModel, 
-    net::Network{SinglePhase}, 
+    net::Network{SinglePhase},
     var_symbol::Symbol, 
     indices::AbstractVector{T};
     set::DataType=Real

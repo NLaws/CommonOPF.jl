@@ -33,6 +33,15 @@ Work in progress. Adding fields as needed for BIM and BFM tests.
 end
 
 
-generator_busses(net::Network{SinglePhase}) = collect(
+generator_busses(net::Network) = collect(
     b for b in busses(net) if haskey(net[b], :Generator)
 )
+
+# extensions to allow `for gen in net[bus][:Generator]` regardless of number of generators in a bus.
+# first iteration over Generator: return the element and an arbitrary state
+Base.iterate(g::CommonOPF.Generator) = (g, true)
+# On the next iteration, stop.
+Base.iterate(::CommonOPF.Generator, ::Bool) = nothing
+# nice for APIs using the iteration interface
+Base.length(::CommonOPF.Generator) = 1
+Base.eltype(::Type{CommonOPF.Generator}) = CommonOPF.Generator

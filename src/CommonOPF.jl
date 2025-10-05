@@ -15,6 +15,9 @@ import Parameters: @with_kw
 import PrettyTables: pretty_table, Crayon  # for print_var_info
 import YAML
 
+# extend the following for Generator b/c they can have 1 or more values at a bus
+import Base: iterate, length, eltype
+
 const SBASE_DEFAULT = 1
 const VBASE_DEFAULT = 1
 const DEFAULT_AMP_LIMIT = 1000.0
