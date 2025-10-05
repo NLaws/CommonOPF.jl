@@ -1,0 +1,101 @@
+Network:
+  substation_bus: B
+  Sbase: 1
+  Vbase: 1
+
+Conductor:
+
+  - name: AB
+    busses: 
+      - A
+      - B
+    length: 1
+    r1: 0.281
+    x1: 2.81
+    amps_limit: 400  # abusing this input for MW limits
+
+  - name: AD
+    busses:
+      - A
+      - D
+    length: 1
+    r1: 0.304
+    x1: 3.04
+
+  - name: AE
+    busses: 
+      - A
+      - E
+    length: 1
+    r1: 0.064
+    x1: 0.64
+
+  - name: BC
+    busses: 
+      - B
+      - C
+    length: 1
+    r1: 0.108
+    x1: 1.08
+
+  - name: CD
+    busses: 
+      - C
+      - D
+    length: 1
+    r1: 0.297
+    x1: 2.97
+
+  - name: DE
+    busses: 
+      - E
+      - D
+    length: 1
+    r1: 0.297
+    x1: 2.97
+    amps_limit: 240  # abusing this input for MW limits
+
+Load:
+  - bus: B
+    kws1: 
+      - 300.0
+    kvars1: 
+      - 98.61
+
+  - bus: C
+    kws1: 
+      - 98.61
+    kvars1: 
+      - 41.67
+  
+  - bus: D
+    kws1: 
+      - 400.0
+    kvars1: 
+      - 131.47
+
+Generator:
+  - bus: A
+    name: "Alta"
+    pmax: 40.0
+    price_points: [14.0]
+
+  - bus: A
+    name: "Park City"
+    pmax: 170.0
+    price_points: [15.0]
+
+  - bus: C
+    name: "Solitude"
+    pmax: 520.0
+    price_points: [30.0]
+
+  - bus: D
+    name: "Sundance"
+    pmax: 200.0
+    price_points: [40.0]
+
+  - bus: E
+    name: "Brighton"
+    pmax: 600.0
+    price_points: [10.0]

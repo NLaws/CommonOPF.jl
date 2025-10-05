@@ -11,7 +11,6 @@ function build_busses(
         ConcreteBusType::DataType
     )::Vector{ConcreteBusType}
     @assert supertype(ConcreteBusType) == AbstractBus
-    # String(int) does not work, have to use string(int) :/
     for d in dicts
         d[:bus] = string(d[:bus])
     end

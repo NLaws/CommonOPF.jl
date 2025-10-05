@@ -39,3 +39,10 @@ end
     expected_busses = Set(["670", "680", "684", "692"])
     @test connected_busses("671", net) == expected_busses
 end
+
+
+@testset "BUS_TYPES_DUPLICATES_ALLOWED" begin
+    # there are two generators at bus A in IEEE 5, we put them in a vector
+    net = Network_IEEE5()
+    @test length(net["A"][:Generator]) == 2
+end

@@ -124,6 +124,7 @@ export
     Network_IEEE118,
     Network_IEEE8500,
     Network_Papavasiliou_2018,
+    Network_IEEE5,
 
     # variables
     VARIABLE_NAMES,

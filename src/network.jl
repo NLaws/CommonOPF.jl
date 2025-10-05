@@ -35,6 +35,8 @@ end
 
 
 REQUIRED_EDGES = [CommonOPF.Conductor]
+BUS_TYPES_DUPLICATES_ALLOWED = [:Generator]
+
 
 
 """
@@ -334,10 +336,24 @@ function fill_node_attributes!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVe
             continue
         end
         type = split(string(typeof(node)), ".")[end]  # e.g. "CommonOPF.Load" -> "Load"
-        if haskey(g[node.bus], Symbol(type))
-            @warn "Replacing existing attributes $(g[node.bus][Symbol(type)]) in node $(node.bus)"
+        
+        if !haskey(g[node.bus], Symbol(type))
+            g[node.bus][Symbol(type)] = node
+        else # already a value stored in g[node.bus][Symbol(type)]
+            # we convert BUS_TYPES_DUPLICATES_ALLOWED to a vector of the things
+            if Symbol(type) in BUS_TYPES_DUPLICATES_ALLOWED
+                existing_val = g[node.bus][Symbol(type)]
+                if existing_val isa Vector{Symbol(type)}
+                    push!(existing_val, node)
+                else
+                    g[node.bus][Symbol(type)] = [existing_val, node]
+                end
+            # else overwrite
+            else
+                @warn "Replacing existing attributes $(g[node.bus][Symbol(type)]) in node $(node.bus)"
+                g[node.bus][Symbol(type)] = node
+            end
         end
-        g[node.bus][Symbol(type)] = node
     end
 end
 
@@ -379,7 +395,7 @@ end
 ##############################################################################
 # some test networks for use in BranchFlowModel.jl, etc.
 
-function Network_IEEE13_SinglePhase()
+function Network_IEEE13_SinglePhase()::Network{SinglePhase}
     fp = joinpath(dirname(@__FILE__), 
         "..", "test", "data", "yaml_inputs", "ieee13_single_phase.yaml"
     )
@@ -387,7 +403,7 @@ function Network_IEEE13_SinglePhase()
 end
 
 
-function Network_IEEE13()
+function Network_IEEE13()::Network{MultiPhase}
     fp = joinpath(dirname(@__FILE__), 
         "..", "test", "data", "yaml_inputs", "ieee13_multi_phase.yaml"
     )
@@ -395,7 +411,7 @@ function Network_IEEE13()
 end
 
 
-function Network_IEEE118()
+function Network_IEEE118()::Network{SinglePhase}
     fp = joinpath(dirname(@__FILE__), 
         "..", "test", "data", "ieee118", "ieee118.RAW"
     )
@@ -403,7 +419,7 @@ function Network_IEEE118()
 end
 
 
-function Network_IEEE8500()
+function Network_IEEE8500()::Network{MultiPhase}
     fp = joinpath(dirname(@__FILE__), 
         "..", "test", "data", "ieee8500", "Master-no-secondaries.dss"
     )
@@ -411,9 +427,22 @@ function Network_IEEE8500()
 end
 
 
-function Network_Papavasiliou_2018()
+function Network_Papavasiliou_2018()::Network{SinglePhase}
     fp = joinpath(dirname(@__FILE__), 
         "..", "test", "data", "yaml_inputs", "Papavasiliou_2018_with_shunts.yaml"
+    )
+    return Network(fp)
+end
+
+
+"""
+    Network_IEEE5()::Network{SinglePhase}
+
+Network based on Li and Bo 2019 "Small Test Systems for Power System Economic Studies"
+"""
+function Network_IEEE5()::Network{SinglePhase}
+    fp = joinpath(dirname(@__FILE__), 
+        "..", "test", "data", "ieee5.yaml"
     )
     return Network(fp)
 end
