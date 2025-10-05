@@ -1,6 +1,6 @@
 Network:
   substation_bus: B
-  Sbase: 1
+  Sbase: 1000.0 # 1 MVA
   Vbase: 1
 
 Conductor:
