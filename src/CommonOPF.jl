@@ -168,6 +168,7 @@ include("edges/conductors.jl")
 include("edges/transformers.jl")
 include("edges/voltage_regulators.jl")
 
+include("adapters/line_impedances.jl")
 include("adapters/opendss.jl")
 include("adapters/psse.jl")
 

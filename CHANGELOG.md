@@ -1,5 +1,8 @@
 # CommonOPF Change log
 
+## main (development)
+- add `Conductor.kv_class` for default `SinglePhase` impedances
+
 ## v0.5.0
 - add `Ysparse` for bus admittance matrix from `Network`
     - use new `BusTerminal` and `EdgeTerminals` structs for building `Ysparse`

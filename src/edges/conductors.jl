@@ -1,7 +1,7 @@
 """
     struct Conductor <: AbstractEdge
 
-Interface for conductors in a Network. Fieldnames can be provided via a YAML file, JSON file, or
+Interface for conductors in a Network. Fieldnames can be provided via a YAML file or
     populated manually. Conductors are specified via two busses, the **impedance in ohms per-unit
     length**, and a length value. 
 
@@ -96,6 +96,23 @@ Conductor:
 
 Conductors also have a `cmatrix` attribute that is used when parsing OpenDSS models. The `cmatrix`
 is used to define `ShuntAdmittance` values for busses.
+
+For high kV lines one can specify the `kv_class` instead of impedance values. The impedance values
+are populated using a look up table. Only r1 and x1 are filled in and have units of ohms/km; which
+means that **the length value should be provided in km**. For
+example, a conductor like:
+```yaml
+Conductor:
+  - busses: 
+      - b1
+      - b2
+    kv_class: 345 
+    length: 100
+```
+will be filled such that the `Conductor` in the `Network` looks like:
+```julia
+TODO
+```
 """
 @with_kw mutable struct Conductor <: AbstractEdge
     # mutable because we set the rmatrix and xmatrix later in some cases
@@ -115,6 +132,7 @@ is used to define `ShuntAdmittance` values for busses.
     cmatrix::Union{AbstractArray, Missing} = missing
     length::Union{Real, Missing} = missing
     amps_limit::Union{Real, Missing} = missing
+    kv_class::Union{Int, Missing} = missing
 end
 
 
@@ -180,18 +198,33 @@ function warn_singlephase_conductors_and_copy_templates(conds::AbstractVector{Co
     n_cannot_define_impedance = 0
     templates = String[]
     for cond in conds
+        # these are all the ways that we can define impedance:
         if (
             any(ismissing.([cond.template, cond.length])) &&
-            any(ismissing.([cond.x1, cond.r1, cond.length]))
+            any(ismissing.([cond.x1, cond.r1, cond.length])) &&
+            any(ismissing.([cond.kv_class, cond.length]))
         )
             n_cannot_define_impedance += 1
         end
         if !ismissing(cond.template)
             push!(templates, cond.template)
         end
+
+        # fill r1, x1 based on kv_class
+        if !(ismissing(cond.kv_class))
+            if !_check_kv_class(cond.kv_class)
+                continue
+            end
+            if ismissing(cond.r1)
+                cond.r1 = OVERHEAD_LINE_IMPEDANCES_BY_KV[cond.kv_class][:R_ohm_per_km]
+            end
+            if ismissing(cond.x1)
+                cond.x1 = OVERHEAD_LINE_IMPEDANCES_BY_KV[cond.kv_class][:X_ohm_per_km]
+            end
+        end
     end
 
-    # copy template values
+    # copy template resistance and reactance values, check for missing templates 
     missing_templates = String[]
     for template_name in templates
         template_index = findfirst(c -> !ismissing(c.name) && c.name == template_name, conds)

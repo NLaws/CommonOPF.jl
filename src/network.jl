@@ -118,6 +118,8 @@ end
 Construct a `Network` from a yaml or OpenDSS file at the file path `fp`.
 Pass `allow_parallel_conductor=true` to merge duplicate conductors between the
 same busses into a [`ParallelConductor`](@ref).
+
+Parsing .raw files is a work-in-progress.
 """
 function Network(fp::String; allow_parallel_conductor::Bool=false)
     # parse inputs

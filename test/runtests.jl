@@ -44,6 +44,8 @@ with_logger(test_logger) do
 
     include("test_graphs.jl")
 
+    include("test_impedances.jl")
+
     include("test_opendss.jl")
 
     include("test_psse.jl")
