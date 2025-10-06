@@ -1,6 +1,6 @@
 # CommonOPF Change log
 
-## main (development)
+## v0.5.1
 - add `Conductor.kv_class` for default `SinglePhase` impedances
 - add `Network_IEEE5` and `BUS_TYPES_DUPLICATES_ALLOWED` for `Generator`
 - extend Base.iterate, length, and eltype for `Generator` to allow iteration over single values of
