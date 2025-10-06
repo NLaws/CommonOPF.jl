@@ -160,9 +160,11 @@ conductors must share the same pair of busses. The phases are the union of the
 phases on the contained lines and the length is the mean length of the lines.
 """
 function ParallelConductor(cs::Vector{Conductor})
+    # canonicalize a pair so that (a,b) and (b,a) become the same tuple
+    canon(p) = (min(p[1], p[2]), max(p[1], p[2]))
     @assert !isempty(cs)
     busses = cs[1].busses
-    @assert all(c -> c.busses == busses, cs)
+    @assert all(c -> canon(c.busses) == canon(busses), cs)
     phs = [c.phases for c in cs if !ismissing(c.phases)]
     phases = isempty(phs) ? missing : sort(unique(reduce(vcat, phs)))
     len = sum(c.length for c in cs) / length(cs)  # mean length
