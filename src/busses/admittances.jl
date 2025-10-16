@@ -126,7 +126,7 @@ function Ysparse(net::CommonOPF.Network)::Tuple{Symmetric, Vector{BusTerminal}}
         for (i1, term1) in enumerate(terms), (i2, term2) in enumerate(terms)
             rows[i] = term1.Y_index
             cols[i] = term2.Y_index
-            vals[i] = y[i1, i2]
+            vals[i] = y[i1, i2]  # indexing a number at [1,1] gives the number (SinglePhase case)
             i += 1
         end
     end

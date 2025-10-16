@@ -1,5 +1,11 @@
 # CommonOPF Change log
 
+## dev
+- bug fixes for `ParallelConductors` 
+    - pass `allow_parallel_conductor` from `Network` builder to `fill_edges!`
+    - canonicalize node tuples so that order does not matter in `ParallelConductors` builder
+
+
 ## v0.5.1
 - add `Conductor.kv_class` for default `SinglePhase` impedances
 - add `Network_IEEE5` and `BUS_TYPES_DUPLICATES_ALLOWED` for `Generator`

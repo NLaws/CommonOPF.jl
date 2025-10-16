@@ -106,7 +106,7 @@ function Network(d::Dict; directed::Union{Bool,Missing}=missing, allow_parallel_
     end
 
     # make the graph
-    g = make_graph(edge_structs; directed=directed)
+    g = make_graph(edge_structs; directed=directed, allow_parallel_conductor=allow_parallel_conductor)
     if length(bus_vec) > 0
         fill_node_attributes!(g, bus_vec)
     end

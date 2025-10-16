@@ -172,7 +172,7 @@ end
 
 admittance matrix of edge (i,j)
 """
-function yij(i::AbstractString, j::AbstractString, net::Network)
+function yij(i::AbstractString, j::AbstractString, net::Network)::AbstractMatrix
     return conductance(net[(i, j)], network_phase_type(net)) + 
         susceptance(net[(i, j)], network_phase_type(net))im
 end
@@ -193,7 +193,7 @@ end
 
 branch admittance of edge (i,j)
 """
-function yij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})
+function yij(i::AbstractString, j::AbstractString, net::Network{SinglePhase})::Complex
     return conductance(net[(i, j)], network_phase_type(net))[1,1] + 
         im * susceptance(net[(i, j)], network_phase_type(net))[1,1]
 end

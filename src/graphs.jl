@@ -14,7 +14,7 @@ end
 
 
 """
-    function fill_edges!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractEdge})
+    function fill_edges!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractEdge}; allow_parallel_conductor::Bool=false)
 
 For each `edge`` in `vals` store the `edge`` in the graph using the `edge.busses`:
 ```julia
@@ -23,7 +23,11 @@ graph[b1, b2] = edge
 ```
 Existing edges are overwritten with a warning.
 """
-function fill_edges!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:AbstractEdge})
+function fill_edges!(
+    g::MetaGraphsNext.AbstractGraph, 
+    vals::AbstractVector{<:AbstractEdge}; 
+    allow_parallel_conductor::Bool=false
+)
     for edge in vals
         b1, b2 = edge.busses
         try
@@ -33,7 +37,7 @@ function fill_edges!(g::MetaGraphsNext.AbstractGraph, vals::AbstractVector{<:Abs
                 existing.phases = isempty([c.phases for c in existing.conductors if !ismissing(c.phases)]) ? missing :
                     sort(unique(reduce(vcat, [c.phases for c in existing.conductors if !ismissing(c.phases)])))
                 existing.length = mean(c.length for c in existing.conductors)
-            elseif existing isa Conductor && edge isa Conductor
+            elseif existing isa Conductor && edge isa Conductor && allow_parallel_conductor
                 g[b1, b2] = ParallelConductor([existing, edge])
             else
                 @warn "Replacing existing data in edge $(edge.busses)\n$(existing)"
@@ -69,7 +73,11 @@ julia> get_prop(g, :int_bus_map)[13]
 "24"
 ```
 """
-function make_graph(edges::AbstractVector{<:AbstractEdge}; directed::Union{Bool,Missing}=missing)
+function make_graph(
+    edges::AbstractVector{<:AbstractEdge}; 
+    directed::Union{Bool,Missing}=missing, 
+    allow_parallel_conductor::Bool=false
+)
     busses = CommonOPF.busses_from_edges([e.busses for e in edges])  # TODO rm this hack
     bus_int_map = Dict(b => i for (i,b) in enumerate(busses))
     int_bus_map = Dict(i => b for (b, i) in bus_int_map)
@@ -99,7 +107,7 @@ function make_graph(edges::AbstractVector{<:AbstractEdge}; directed::Union{Bool,
         setindex!(g, dtype(), b)  # emtpy dict to fill later
     end
 
-    fill_edges!(g, edges)
+    fill_edges!(g, edges; allow_parallel_conductor=allow_parallel_conductor)
 
     return g
 end
