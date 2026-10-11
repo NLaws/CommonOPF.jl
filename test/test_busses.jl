@@ -41,7 +41,7 @@ end
 end
 
 
-@testset "BUS_TYPES_DUPLICATES_ALLOWED" begin
+@testset "multiple generators at one bus allowed" begin
     # there are two generators at bus A in IEEE 5, we put them in a vector
     net = Network_IEEE5()
     @test length(net["A"][:Generator]) == 2

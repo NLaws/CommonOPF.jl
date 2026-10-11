@@ -34,6 +34,8 @@ with_logger(test_logger) do
 
     include("test_admittances.jl")
 
+    include("test_batteries.jl")
+
     include("test_busses.jl")
 
     include("test_conductor.jl")

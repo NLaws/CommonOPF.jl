@@ -93,6 +93,7 @@ export
     # attributes of the Network
     edges,
     busses,
+    battery_busses,
     capacitor_busses,
     connected_busses,
     generator_busses,
@@ -166,6 +167,7 @@ include("busses/loads.jl")
 include("busses/generators.jl")
 include("busses/admittances.jl")
 include("busses/terminals.jl")
+include("busses/batteries.jl")
 
 include("edges/edges.jl")
 include("edges/conductors.jl")
