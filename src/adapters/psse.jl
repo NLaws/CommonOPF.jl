@@ -364,9 +364,9 @@ function psse_to_Network(fp::AbstractString; allow_parallel_conductor::Bool=fals
     lines = readlines(fp)
 
     header = split(lines[1], ",")
-    MVA_base = parse(Float64, strip(header[2]))
     version = parse(Int, strip(header[3]))
     v = version == 33 ? v33 : throw(ArgumentError("Unsupported PSS/E RAW version $(version)"))
+    MVA_base = parse(Float64, strip(header[2]))
 
     bus_kv, slack_bus, v0 = psse_bus_data(lines)
 

@@ -135,7 +135,7 @@ A Network can be created directly, via a `Dict`, or a filepath. The minimum inpu
 vector of [Conductor](@ref) specifications and a `Network` key containing at least the
 `substation_bus`. See [Input Formats](@ref) for more details.
 
-`var_names` is empty be default. It is used in the results getters like `opf_results`.
+`var_names` is empty by default. It is used in the results getters like `opf_results`.
 
 `var_info` and `constraint_info` are empty be default. They are used in other packages like
 BranchFlowModel.jl to document the variables and constraints that are created for OPF models. See
