@@ -15,6 +15,7 @@ Work in progress. Adding fields as needed for BIM and BFM tests.
     pmin::Real = 0.0
     charge_efficiency::Real = 1.0
     discharge_efficiency::Real = 1.0
+    duration_hours::Real = 0.0
 end
 
 
