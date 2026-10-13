@@ -9,6 +9,7 @@
         @test battery.discharge_efficiency == 0.9
         @test battery.soc_max_kwh == 1.0
         @test battery.soc_min_kwh == 0.0
+        @test battery.soc_init_kwh == 0.0
     end
 
     battery = CommonOPF.Battery(;
@@ -20,6 +21,7 @@
         discharge_efficiency=0.85,
         soc_max_kwh=20.0,
         soc_min_kwh=2.0,
+        soc_init_kwh=10.0
     )
     @test battery isa CommonOPF.Battery
     @test battery.bus == "B"
@@ -30,6 +32,7 @@
     @test battery.discharge_efficiency == 0.85
     @test battery.soc_max_kwh == 20.0
     @test battery.soc_min_kwh == 2.0
+    @test battery.soc_init_kwh == 10.0
 
     net = Network_IEEE5()
 

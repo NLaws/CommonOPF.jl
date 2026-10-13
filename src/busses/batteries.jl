@@ -17,6 +17,7 @@ Work in progress. Adding fields as needed for BIM and BFM tests.
     discharge_efficiency::Real = 0.9
     soc_max_kwh::Real = 1.0
     soc_min_kwh::Real = 0.0
+    soc_init_kwh::Real = 0.0
 end
 
 
