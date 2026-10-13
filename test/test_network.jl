@@ -1,3 +1,28 @@
+@testset "Edgeless Network" begin
+    net = Network(Dict(
+        :Network => Dict(:substation_bus => "grid"),
+        :Conductor => Dict{Symbol,Any}[],
+        :Load => [Dict{Symbol,Any}(:bus => "load", :kws1 => [100.0])],
+        :Battery => [Dict{Symbol,Any}(:bus => "load", :pmax_kw => 20.0)],
+    ))
+    @test net isa Network{SinglePhase}
+    @test isempty(edges(net))
+    @test sort(busses(net)) == ["grid", "load"]
+    @test net.substation_bus == "grid"
+    @test net["load"][:Load].kws1 == [100.0]
+    @test net["load"][:Battery].pmax_kw == 20.0
+    @test total_load_kw(net) == [100.0]
+    @test sort(collect(values(net.graph[][:int_bus_map]))) == ["grid", "load"]
+
+    grid_only = Network(Dict(
+        :Network => Dict(:substation_bus => 1),
+        :Conductor => Dict{Symbol,Any}[],
+    ))
+    @test isempty(edges(grid_only))
+    @test busses(grid_only) == ["1"]
+    @test grid_only.substation_bus == "1"
+end
+
 @testset "Network single phase" begin
     # TODO make/test JSON
     fp = joinpath(@__DIR__, "data", "yaml_inputs", "no_conductors.yaml")

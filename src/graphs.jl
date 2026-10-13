@@ -56,12 +56,40 @@ end
 
 
 """
-    make_graph(edges::AbstractVector{<:AbstractEdge};  directed::Union{Bool,Missing}=missing)
+    make_graph(edges::AbstractVector{<:AbstractEdge};
+        directed::Union{Bool,Missing}=missing,
+        allow_parallel_conductor::Bool=false,
+        bus_labels::AbstractVector{String}=String[])
 
-return MetaGraph made up of the `edges`
+Return a `MetaGraphsNext.MetaGraph` with string bus labels and the supplied edge data.
+Vertices are created from the edge endpoints and any additional `bus_labels`, with
+duplicates removed. Each vertex starts with an empty `Dict{Symbol,Any}` for bus attributes.
 
-Also the graph[:int_bus_map] is created with the dicts for bus => int and int => bus
-(because Graphs.jl only works with integer nodes)
+Use `bus_labels` to include isolated buses or to create an edgeless graph:
+
+```julia
+g = make_graph(AbstractEdge[]; bus_labels=["grid", "load"])
+```
+
+If `directed` is `missing`, the graph is directed when the number of edges plus one
+equals the number of unique buses; otherwise it is undirected. This is a heuristic
+and does not validate radiality. Set `directed` explicitly to override it.
+
+If `allow_parallel_conductor` is `true`, duplicate conductor edges are combined
+into a `ParallelConductor`. Otherwise, existing edge data is replaced with a warning.
+
+The graph data includes an integer-to-bus-label map, accessible as
+`g[][:int_bus_map]`. Bus attributes and edge data are accessed by label:
+
+```julia
+g["grid"]                 # bus attribute dictionary
+g[][:int_bus_map][1]       # "grid" in the edgeless example above
+# For a graph with an edge between "grid" and "load":
+g["grid", "load"]         # edge data
+```
+
+Bus mapping examples:
+
 ```julia
 julia> g["13", :bus]
 10
@@ -76,9 +104,10 @@ julia> get_prop(g, :int_bus_map)[13]
 function make_graph(
     edges::AbstractVector{<:AbstractEdge}; 
     directed::Union{Bool,Missing}=missing, 
-    allow_parallel_conductor::Bool=false
+    allow_parallel_conductor::Bool=false,
+    bus_labels::AbstractVector{String}=String[]
 )
-    busses = CommonOPF.busses_from_edges([e.busses for e in edges])  # TODO rm this hack
+    busses = unique(vcat(CommonOPF.busses_from_edges([e.busses for e in edges]), bus_labels))
     bus_int_map = Dict(b => i for (i,b) in enumerate(busses))
     int_bus_map = Dict(i => b for (b, i) in bus_int_map)
     dtype = Dict{Symbol, Any}

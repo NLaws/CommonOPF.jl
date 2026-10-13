@@ -48,6 +48,9 @@ Construct a `Network` from a dictionary that has at least keys for:
 1. `:Conductor`, a vector of dicts with [Conductor](@ref) specs
 2. `:Network`, a dict with at least `:substation_bus`
 
+With no other edges, an empty `:Conductor` vector creates an edgeless network. Its vertices come from
+the `:substation_bus` and any bus specifications, and its phase type defaults to `SinglePhase`.
+
 If `directed` is missing then the graph is directed only if the number of busses and edges imply a radial graph.
 
 If `allow_parallel_conductor` is `true`, duplicate `Conductor` entries between the same pair of busses are stored as a [`ParallelConductor`](@ref). Otherwise a duplicate edge raises an error.
@@ -108,7 +111,11 @@ function Network(d::Dict; directed::Union{Bool,Missing}=missing, allow_parallel_
     end
 
     # make the graph
-    g = make_graph(edge_structs; directed=directed, allow_parallel_conductor=allow_parallel_conductor)
+    bus_labels = isempty(edge_structs) ?  # copper plate model if no edges
+        unique(vcat([string(d[:Network][:substation_bus])], String[b.bus for b in bus_vec])) :
+        String[]
+    g = make_graph(edge_structs; directed=directed,
+        allow_parallel_conductor=allow_parallel_conductor, bus_labels=bus_labels)
     if length(bus_vec) > 0
         fill_node_attributes!(g, bus_vec)
     end
