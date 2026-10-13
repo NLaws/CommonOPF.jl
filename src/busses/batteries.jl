@@ -11,11 +11,12 @@ Work in progress. Adding fields as needed for BIM and BFM tests.
     bus::String
     # optional values
     name::Union{String, Missing} = missing
-    pmax::Real = 0.0
-    pmin::Real = 0.0
-    charge_efficiency::Real = 1.0
-    discharge_efficiency::Real = 1.0
-    duration_hours::Real = 0.0
+    pmax_kw::Real = 0.0
+    pmin_kw::Real = 0.0
+    charge_efficiency::Real = 0.9
+    discharge_efficiency::Real = 0.9
+    soc_max_kwh::Real = 1.0
+    soc_min_kwh::Real = 0.0
 end
 
 
