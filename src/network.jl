@@ -17,6 +17,7 @@ function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict, net_type::Type)
     Zbase = get(ntwk, :Zbase, Vbase^2 / Sbase)
     v0 = get(ntwk, :v0, 1)
     Ntimesteps = get(ntwk, :Ntimesteps, 1)
+    time_steps_per_hour = get(ntwk, :time_steps_per_hour, 1)
     bounds = VariableBounds(ntwk)
     Network{net_type}(
         g,
@@ -30,6 +31,7 @@ function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict, net_type::Type)
         Vector{Symbol}(),
         Dict{Symbol, VariableInfo}(),
         Dict{Symbol, ConstraintInfo}(),
+        time_steps_per_hour
     )
 end
 

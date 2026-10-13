@@ -153,4 +153,5 @@ mutable struct Network{T<:Phases} <: AbstractNetwork
     var_names::AbstractVector{Symbol}
     var_info::Dict{Symbol, VariableInfo}
     constraint_info::Dict{Symbol, ConstraintInfo}
+    time_steps_per_hour::Real
 end
