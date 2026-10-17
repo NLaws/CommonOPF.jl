@@ -26,7 +26,7 @@ MathOptInterface = "1.40.2"
 MetaGraphsNext = "0.7"
 OpenDSSDirect = "=0.9.9"
 Parameters = "0.12"
-PrettyTables = "2.4.0"
+PrettyTables = "2.4.0, 3"
 YAML = "0.4"
 julia = "1"
 
