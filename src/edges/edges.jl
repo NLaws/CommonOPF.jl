@@ -2,12 +2,12 @@
 
 
 """
-    function build_edges(dicts::AbstractVector{Dict}, Edge::DataType)
+    function build_edges(dicts::AbstractVector, Edge::DataType)
 
 unpack each dict in `dicts` into `Edge` and pass the results to `check_edges!`.
 returns `Vector{Edge}`
 """
-function build_edges(dicts::T where T <: AbstractVector{Dict{Symbol, Any}}, Edge::DataType)
+function build_edges(dicts::AbstractVector, Edge::DataType)
     @assert supertype(Edge) == AbstractEdge
     edges = Edge[Edge(;edict...) for edict in dicts]
     check_edges!(edges)  # dispatch on Vector{Edge}
