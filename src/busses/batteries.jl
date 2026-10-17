@@ -24,3 +24,12 @@ end
 battery_busses(net::Network) = collect(
     b for b in busses(net) if haskey(net[b], :Battery)
 )
+
+# extensions to allow `for batt in net[bus][:Battery]` regardless of number of batteries in a bus.
+# first iteration over Battery: return the element and an arbitrary state
+Base.iterate(b::CommonOPF.Battery) = (b, true)
+# On the next iteration, stop.
+Base.iterate(::CommonOPF.Battery, ::Bool) = nothing
+# nice for APIs using the iteration interface
+Base.length(::CommonOPF.Battery) = 1
+Base.eltype(::Type{CommonOPF.Battery}) = CommonOPF.Battery
