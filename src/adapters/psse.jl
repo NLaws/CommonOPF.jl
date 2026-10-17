@@ -183,12 +183,11 @@ end
     psse_generator_data(lines::Vector{String}, bus_kv::Dict{String, Float64}, slack_bus::String)
 
 Parse the generator section of a PSS/E RAW (v33) file and return a vector of
-dictionaries for [`Generator`](@ref) objects. Impedance values are converted from
-per-unit to ohms.
+dictionaries for [`Generator`](@ref) objects. MW output is converted to
+single-phase kW.
 """
 function psse_generator_data(lines::Vector{String}, bus_kv::Dict{String, Float64}, slack_bus::String)
     header = split(lines[1], ",")
-    MVA_base = parse(Float64, strip(header[2]))
     version = parse(Int, strip(header[3]))
     v = version == 33 ? v33 : throw(ArgumentError("Unsupported PSS/E RAW version $(version)"))
 
@@ -208,21 +207,9 @@ function psse_generator_data(lines::Vector{String}, bus_kv::Dict{String, Float64
         end
         name = strip(cols[v[:id]], ['\'', ' '])
         pg = parse(Float64, cols[v[:pg]])
-        qg = parse(Float64, cols[v[:qg]])
-        qmax = parse(Float64, cols[v[:qmax]])
-        qmin = parse(Float64, cols[v[:qmin]])
         voltage_pu = parse(Float64, cols[v[:voltage_pu]])
-        reg_bus = strip(cols[v[:reg_bus]]) 
         mva_base = parse(Float64, cols[v[:mva_base]])
-        Z_base = (bus_kv[bus]^2) / MVA_base
-        r_step_up = parse(Float64, cols[v[:zr]])
-        x_step_up = parse(Float64, cols[v[:zx]])
-        r_tapping = parse(Float64, cols[v[:rt]])
-        x_tapping = parse(Float64, cols[v[:xt]])
-        z_trfx = Z_base * ( (r_step_up + r_tapping) + im * (x_step_up + x_tapping) )
-        gtap = parse(Float64, cols[v[:gtap]])
         status = parse(Int, cols[v[:status]])
-        rmpct = parse(Float64, cols[v[:rmpct]])
         pmax = parse(Float64, cols[v[:pmax]])
         pmin = parse(Float64, cols[v[:pmin]])
         push!(generator_dicts, Dict(
@@ -231,17 +218,9 @@ function psse_generator_data(lines::Vector{String}, bus_kv::Dict{String, Float64
             :kws1 => [pg] * 1e3 / 3,  # MW -> kW per phase
             :voltage_series_pu => [voltage_pu],  # TODO this is a vector of time, should have length net.Ntimesteps
             :name => name,
-            :pg => pg,
-            :qg => qg,
-            :q_max_kvar => qmax * 1e3,
-            :q_min_kvar => qmin * 1e3,
             :voltage_pu => voltage_pu,
-            :reg_bus => reg_bus == "0" ? missing : reg_bus,
             :mva_base => mva_base,
-            :z_transformers => z_trfx,
-            :gtap => gtap,
             :status => status,  # TODO parse inactive generators? if so makes this a bool for :active
-            :rmpct => rmpct,
             :pmax => pmax,
             :pmin => pmin,
         ))

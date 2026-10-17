@@ -24,7 +24,7 @@
 
     gens = CommonOPF.psse_generator_data(lines, bus_kv, source_bus)
     @test gens[1][:bus] == "1"
-    @test ismissing(gens[1][:reg_bus])
+    @test gens[1][:kws1] == [0.0]
     @test gens[1][:mva_base] == 100.0
     shunts = CommonOPF.psse_shunt_data(lines, bus_kv)
     # TODO test shunt values
