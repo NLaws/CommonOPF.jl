@@ -11,9 +11,8 @@ Work in progress. Adding fields as needed for BIM and BFM tests.
     bus::String
     # optional values
     is_PV_bus::Bool = false
-    kws1::Vector{Real} = [0.0]
+    p1::Vector{Real} = [0.0]
     voltage_series_pu::Vector{Real} = [1.0]
-    # RAW file fields
     name::Union{String, Missing} = missing
     voltage_pu::Real = 1.0          # voltage setpoint (pu)
     mva_base::Real = 100.0

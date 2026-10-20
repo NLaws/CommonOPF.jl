@@ -4,9 +4,9 @@
         dssfilepath = joinpath(@__DIR__, "data", "ieee13", "IEEE13Nodeckt.dss")
         net = CommonOPF.dss_to_Network(dssfilepath)
 
-        @test net["671"][:Load].kws2 == [1155.0 / 3]
-        @test net["670"][:Load].kws1 == [17.0]
-        @test net["670"][:Load].kvars3 == [68.0]
+        @test net["671"][:Load].p2 == [1155000.0 / 3]
+        @test net["670"][:Load].p1 == [17000.0]
+        @test net["670"][:Load].q3 == [68000.0]
 
         # need to merge the phases together for regulator edges
         # and the transformers get overwritten (b/c they're parsed first, which is actually what we
@@ -17,14 +17,14 @@
         @test :Capacitor in keys(net["675"])
         @test :Capacitor in keys(net["611"])
 
-        kvar1 = net["675"][:Capacitor].kvar1
-        kvar2 = net["675"][:Capacitor].kvar2
-        kvar3 = net["675"][:Capacitor].kvar3
+        q1 = net["675"][:Capacitor].q1
+        q2 = net["675"][:Capacitor].q2
+        q3 = net["675"][:Capacitor].q3
         
-        @test kvar1 == kvar2 == kvar3 == 200.0
+        @test q1 == q2 == q3 == 200000.0
 
-        @test net["611"][:Capacitor].kvar1 == net["611"][:Capacitor].kvar2 == 0.0
-        @test net["611"][:Capacitor].kvar3 == 100.0
+        @test net["611"][:Capacitor].q1 == net["611"][:Capacitor].q2 == 0.0
+        @test net["611"][:Capacitor].q3 == 100000.0
 
         # TODO compare to data/yaml_inputs/ieee13_multi_phase.yaml (which was manually constructed)
         # can use dict equality for all conductors?
@@ -109,11 +109,11 @@
         dssfilepath = joinpath(@__DIR__, "data", "ieee8500", "Master-no-secondaries.dss")
         net = CommonOPF.dss_to_Network(dssfilepath)
 
-        kvar1 = net["r42247"][:Capacitor].kvar1
-        kvar2 = net["r42247"][:Capacitor].kvar2
-        kvar3 = net["r42247"][:Capacitor].kvar3
+        q1 = net["r42247"][:Capacitor].q1
+        q2 = net["r42247"][:Capacitor].q2
+        q3 = net["r42247"][:Capacitor].q3
         
-        @test kvar1 == kvar2 == kvar3 == 300.0
+        @test q1 == q2 == q3 == 300000.0
 
         # we join single phase lines between the same busses into one Conductor
         # there are three sets of these merged lines (for single phase CapControl in IEEE 8500)

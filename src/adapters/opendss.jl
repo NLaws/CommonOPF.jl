@@ -140,16 +140,16 @@ function opendss_loads(;disable::Bool=true)::Vector{Dict{Symbol, Any}}
             phases = collect(1:OpenDSS.Loads.Phases())
         end
 
-        kw_per_phase = OpenDSS.Loads.kW() / length(phases)
-        kvar_per_phase = OpenDSS.Loads.kvar() / length(phases)
+        kw_per_phase = OpenDSS.Loads.kW() * 1e3 / length(phases)
+        kvar_per_phase = OpenDSS.Loads.kvar() * 1e3 / length(phases)
 
-        kws1 = 1 in phases ? [kw_per_phase] : missing
-        kws2 = 2 in phases ? [kw_per_phase] : missing
-        kws3 = 3 in phases ? [kw_per_phase] : missing
+        p1 = 1 in phases ? [kw_per_phase] : missing
+        p2 = 2 in phases ? [kw_per_phase] : missing
+        p3 = 3 in phases ? [kw_per_phase] : missing
 
-        kvars1 = 1 in phases ? [kvar_per_phase] : missing
-        kvars2 = 2 in phases ? [kvar_per_phase] : missing
-        kvars3 = 3 in phases ? [kvar_per_phase] : missing
+        q1 = 1 in phases ? [kvar_per_phase] : missing
+        q2 = 2 in phases ? [kvar_per_phase] : missing
+        q3 = 3 in phases ? [kvar_per_phase] : missing
 
         # TODO time-series loads
 
@@ -157,32 +157,32 @@ function opendss_loads(;disable::Bool=true)::Vector{Dict{Symbol, Any}}
         if !(bus in keys(loads))
             loads[bus] = Dict(
                 :bus => bus,
-                :kws1 => kws1,
-                :kws2 => kws2,
-                :kws3 => kws3,
-                :kvars1 => kvars1,
-                :kvars2 => kvars2,
-                :kvars3 => kvars3,
+                :p1 => p1,
+                :p2 => p2,
+                :p3 => p3,
+                :q1 => q1,
+                :q2 => q2,
+                :q3 => q3,
             )
         else  # add to existing bus load (accounting for missing values)
-            loads[bus][:kws1] = ismissing(loads[bus][:kws1]) ? kws1 : loads[bus][:kws1] + (
-                ismissing(kws1) ? [0.0] : kws1
+            loads[bus][:p1] = ismissing(loads[bus][:p1]) ? p1 : loads[bus][:p1] + (
+                ismissing(p1) ? [0.0] : p1
             )
-            loads[bus][:kws2] = ismissing(loads[bus][:kws2]) ? kws2 : loads[bus][:kws2] + (
-                ismissing(kws2) ? [0.0] : kws2
+            loads[bus][:p2] = ismissing(loads[bus][:p2]) ? p2 : loads[bus][:p2] + (
+                ismissing(p2) ? [0.0] : p2
             )
-            loads[bus][:kws3] = ismissing(loads[bus][:kws3]) ? kws3 : loads[bus][:kws3] + (
-                ismissing(kws3) ? [0.0] : kws3
+            loads[bus][:p3] = ismissing(loads[bus][:p3]) ? p3 : loads[bus][:p3] + (
+                ismissing(p3) ? [0.0] : p3
             )
 
-            loads[bus][:kvars1] = ismissing(loads[bus][:kvars1]) ? kvars1 : loads[bus][:kvars1] + (
-                ismissing(kvars1) ? [0.0] : kvars1
+            loads[bus][:q1] = ismissing(loads[bus][:q1]) ? q1 : loads[bus][:q1] + (
+                ismissing(q1) ? [0.0] : q1
             )
-            loads[bus][:kvars2] = ismissing(loads[bus][:kvars2]) ? kvars2 : loads[bus][:kvars2] + (
-                ismissing(kvars2) ? [0.0] : kvars2
+            loads[bus][:q2] = ismissing(loads[bus][:q2]) ? q2 : loads[bus][:q2] + (
+                ismissing(q2) ? [0.0] : q2
             )
-            loads[bus][:kvars3] = ismissing(loads[bus][:kvars3]) ? kvars3 : loads[bus][:kvars3] + (
-                ismissing(kvars3) ? [0.0] : kvars3
+            loads[bus][:q3] = ismissing(loads[bus][:q3]) ? q3 : loads[bus][:q3] + (
+                ismissing(q3) ? [0.0] : q3
             )
         end
 
@@ -652,7 +652,7 @@ function opendss_capacitors()::Vector{Dict{Symbol, Any}}
         phases = OpenDSS.CktElement.NodeOrder()[1:OpenDSS.CktElement.NumPhases()]
         bus1 = strip_phases(bus1)
         bus2 = strip_phases(bus2)
-        per_phase_kvar = OpenDSS.Capacitors.kvar() / length(phases)
+        per_phase_var = OpenDSS.Capacitors.kvar() / length(phases) * 1e3  # convert to vars
 
         if !(bus1 == bus2)
             @warn "Series capacitors are not modeled. Found one between busses $bus1 and $bus2"
@@ -663,14 +663,14 @@ function opendss_capacitors()::Vector{Dict{Symbol, Any}}
         if !(bus1 in keys(caps))
             caps[bus1] = Dict(
                 :bus => bus1,
-                :kvar1 => 1 in phases ? per_phase_kvar : 0.0,
-                :kvar2 => 2 in phases ? per_phase_kvar : 0.0,
-                :kvar3 => 3 in phases ? per_phase_kvar : 0.0,
+                :q1 => 1 in phases ? per_phase_var : 0.0,
+                :q2 => 2 in phases ? per_phase_var : 0.0,
+                :q3 => 3 in phases ? per_phase_var : 0.0,
             )
         else  # merge into existing capacitor
-            caps[bus1][:kvar1] += 1 in phases ? per_phase_kvar : 0.0
-            caps[bus1][:kvar2] += 2 in phases ? per_phase_kvar : 0.0
-            caps[bus1][:kvar3] += 3 in phases ? per_phase_kvar : 0.0
+            caps[bus1][:q1] += 1 in phases ? per_phase_var : 0.0
+            caps[bus1][:q2] += 2 in phases ? per_phase_var : 0.0
+            caps[bus1][:q3] += 3 in phases ? per_phase_var : 0.0
         end
         cap_number = OpenDSS.Capacitors.Next()
     end

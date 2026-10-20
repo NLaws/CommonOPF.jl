@@ -11,14 +11,14 @@
     load = CommonOPF.Load(;
         bus="bname",
         q_to_p=0.1,
-        kws1=[10],
-        kws2=[20],
-        kws3=[30],
+        p1=[10],
+        p2=[20],
+        p3=[30],
     )
     CommonOPF.fill_load!(load)
-    @test load.kvars1 == [1]
-    @test load.kvars2 == [2]
-    @test load.kvars3 == [3]
+    @test load.q1 == [1]
+    @test load.q2 == [2]
+    @test load.q3 == [3]
 end
 
 
@@ -31,7 +31,7 @@ end
     expected_p = -133.33
     expected_q = -im*96.67
     @test CommonOPF.sj(bus, net) ≈ [expected_p + expected_q]
-    @test sj_per_unit(bus, net) ≈ [expected_p + expected_q] / 1e3
+    @test sj_per_unit(bus, net) ≈ [expected_p + expected_q] / net.Sbase
 
     # MultiPhase
     dssfilepath = joinpath(@__DIR__, "data", "ieee13", "IEEE13Nodeckt.dss")

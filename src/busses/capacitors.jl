@@ -3,19 +3,19 @@
 
 Required fields:
 - `bus::String`
-- `kvar1::Real` reactive power in kVaR on phase1
-- `kvar2::Real` reactive power in kVaR on phase2
-- `kvar3::Real` reactive power in kVaR on phase4
+- `q1::Real` reactive power on phase1
+- `q2::Real` reactive power on phase2
+- `q3::Real` reactive power on phase4
 
-Only modeling fixed capacitors so far. Positive kvar values are injected.
+Only modeling fixed capacitors so far. Positive `q` values are injected.
 """
 @with_kw struct Capacitor <: AbstractBus
     # required values
     bus::String
     # optional values
-    kvar1::Real = 0.0
-    kvar2::Real = 0.0
-    kvar3::Real = 0.0
+    q1::Real = 0.0
+    q2::Real = 0.0
+    q3::Real = 0.0
     fixed::Bool = true
 end
 

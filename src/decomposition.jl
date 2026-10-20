@@ -117,13 +117,13 @@ function init_split_networks!(nets::Vector{Network{SinglePhase}}; init_vs::Dict 
                     \nTry using CommonOPF.trim_tree! to eliminate the deadend branches."
                 else
                     if other_net.substation_bus in load_busses(net)
-                        net[other_net.substation_bus][:Load].kws1 += total_load_kw(other_net)
-                        net[other_net.substation_bus][:Load].kvars1 += total_load_kvar(other_net)
+                        net[other_net.substation_bus][:Load].p1 += total_load_p(other_net)
+                        net[other_net.substation_bus][:Load].q1 += total_load_q(other_net)
                     else
                         net[other_net.substation_bus][:Load] = CommonOPF.Load(;
                             bus=other_net.substation_bus,
-                            kws1=total_load_kw(other_net),
-                            kvars1=total_load_kvar(other_net),
+                            p1=total_load_p(other_net),
+                            q1=total_load_q(other_net),
                         )
                     end
                 end

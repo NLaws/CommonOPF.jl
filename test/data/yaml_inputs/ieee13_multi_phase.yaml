@@ -131,81 +131,81 @@ Conductor:
 
 Load:
   - bus: 671
-    kws1: 
+    p1: 
       - 385
-    kvars1: 
+    q1: 
       - 220
-    kws2: 
+    p2: 
       - 385
-    kvars2: 
+    q2: 
       - 220
-    kws3: 
+    p3: 
       - 385
-    kvars3: 
+    q3: 
       - 220
   - bus: 634
-    kws1: 
+    p1: 
       - 160
-    kvars1: 
+    q1: 
       - 110
-    kws2: 
+    p2: 
       - 120
-    kvars2: 
+    q2: 
       - 90
-    kws3: 
+    p3: 
       - 120
-    kvars3: 
+    q3: 
       - 90
   - bus: 645
-    kws2: 
+    p2: 
       - 170
-    kvars2: 
+    q2: 
       - 125
   - bus: 646
-    kws3: 
+    p3: 
       - 230
-    kvars3: 
+    q3: 
       - 132
   - bus: 692
-    kws3: 
+    p3: 
       - 170
-    kvars3: 
+    q3: 
       - 151
   - bus: 675
-    kws1: 
+    p1: 
       - 485
-    kvars1: 
+    q1: 
       - 190
-    kws2: 
+    p2: 
       - 68
-    kvars2: 
+    q2: 
       - 60
-    kws3: 
+    p3: 
       - 290
-    kvars3: 
+    q3: 
       - 212
   - bus: 611
-    kws3: 
+    p3: 
       - 170
-    kvars3: 
+    q3: 
       - 80
   - bus: 652
-    kws1: 
+    p1: 
       - 128
-    kvars1: 
+    q1: 
       - 86
   - bus: 670
-    kws1: 
+    p1: 
       - 17
-    kvars1: 
+    q1: 
       - 10
-    kws2: 
+    p2: 
       - 66
-    kvars2: 
+    q2: 
       - 38
-    kws3: 
+    p3: 
       - 117
-    kvars3: 
+    q3: 
       - 68
 
 Transformer:

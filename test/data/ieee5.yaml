@@ -1,6 +1,6 @@
 Network:
   substation_bus: B
-  Sbase: 1000.0 # 1 MVA
+  Sbase: 1.0
   Vbase: 1
 
 Conductor:
@@ -57,21 +57,21 @@ Conductor:
 
 Load:
   - bus: B
-    kws1: 
+    p1: 
       - 300.0
-    kvars1: 
+    q1: 
       - 98.61
 
   - bus: C
-    kws1: 
+    p1: 
       - 300.0
-    kvars1: 
+    q1: 
       - 98.61
   
   - bus: D
-    kws1: 
+    p1: 
       - 400.0
-    kvars1: 
+    q1: 
       - 131.47
 
 Generator:

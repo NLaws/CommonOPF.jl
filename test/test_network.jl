@@ -2,16 +2,16 @@
     net = Network(Dict(
         :Network => Dict(:substation_bus => "grid"),
         :Conductor => Dict{Symbol,Any}[],
-        :Load => [Dict{Symbol,Any}(:bus => "load", :kws1 => [100.0])],
-        :Battery => [Dict{Symbol,Any}(:bus => "load", :pmax_kw => 20.0)],
+        :Load => [Dict{Symbol,Any}(:bus => "load", :p1 => [100.0])],
+        :Battery => [Dict{Symbol,Any}(:bus => "load", :pmax => 20.0)],
     ))
     @test net isa Network{SinglePhase}
     @test isempty(edges(net))
     @test sort(busses(net)) == ["grid", "load"]
     @test net.substation_bus == "grid"
-    @test net["load"][:Load].kws1 == [100.0]
-    @test net["load"][:Battery].pmax_kw == 20.0
-    @test total_load_kw(net) == [100.0]
+    @test net["load"][:Load].p1 == [100.0]
+    @test net["load"][:Battery].pmax == 20.0
+    @test total_load_p(net) == [100.0]
     @test sort(collect(values(net.graph[][:int_bus_map]))) == ["grid", "load"]
 
     grid_only = Network(Dict(
@@ -49,20 +49,20 @@ end
     @test zij("b1", "b2", net) ≈ 1 / yij("b1", "b2", net)
 
     # loads
-    @test net["b3"][:Load].kws1 == [5.6]
-    @test net["b2"][:Load].kvars1 == [1.2]
-    @test total_load_kw(net) == [11.2]
-    @test total_load_kvar(net) == [2.4]
+    @test net["b3"][:Load].p1 == [5.6]
+    @test net["b2"][:Load].q1 == [1.2]
+    @test total_load_p(net) == [11.2]
+    @test total_load_q(net) == [2.4]
     # the safe getter looks like:
-    @test net["b3", :kws, 1] == [5.6]
-    @test net["b3", :kvars, 1] == [1.2]
-    @test net["b3", :kws, 2] == [0]
-    @test net["b3", :kvars, 2] == [0]
+    @test net["b3", :p, 1] == [5.6]
+    @test net["b3", :q, 1] == [1.2]
+    @test net["b3", :p, 2] == [0]
+    @test net["b3", :q, 2] == [0]
     # do we want to keep this missing behavior?
-    @test ismissing(net["b2"][:Load].kvars2)
-    @test net["b2", :kvars, 2] == [0.0]
+    @test ismissing(net["b2"][:Load].q2)
+    @test net["b2", :q, 2] == [0.0]
 
-    @test_throws KeyError net["notabus", :kws, 2]
+    @test_throws KeyError net["notabus", :p, 2]
     @test_throws KeyError net["b3", :bad, 2]
     @test_throws KeyError net["b3", :kvar, 4]
 
@@ -225,7 +225,7 @@ end
             Dict(:busses => ("a", "b"), :length => 1, :r1 => 1.0, :x1 => 1.0),
             Dict(:busses => ("b", "c"), :length => 1, :r1 => 0.5, :x1 => 0.5),
         ],
-        :Load => [Dict(:bus => "c", :kws1 => [1.0])],
+        :Load => [Dict(:bus => "c", :p1 => [1.0])],
     )
     @test_throws ArgumentError Network(net_dict_parallel)
     net_p = Network(net_dict_parallel; allow_parallel_conductor=true)
@@ -237,7 +237,7 @@ end
             Dict(:busses => ("a", "b"), :length => 1, :r1 => 0.5, :x1 => 0.5),
             Dict(:busses => ("b", "c"), :length => 1, :r1 => 0.5, :x1 => 0.5),
         ],
-        :Load => [Dict(:bus => "c", :kws1 => [1.0])],
+        :Load => [Dict(:bus => "c", :p1 => [1.0])],
     )
     net_s = Network(net_dict_single)
     reduce_tree!(net_p)

@@ -52,16 +52,16 @@ Conductor:
 
 Load:
   - bus: b3
-    kws1: 
+    p1: 
       - 5.6
       - 5.6
       - 5.6
-    kvars1: 
+    q1: 
       - 1.2
       - 1.2
       - 1.2
   - bus: b5
-    kws1: 
+    p1: 
       - 5.6
       - 5.6
       - 5.6

@@ -6,7 +6,7 @@ Documentation for CommonOPF.jl a module of shared scaffolding and methods for:
 - [LinDistFlow](https://github.com/NLaws/LinDistFlow)
 
 In most cases you will not need to use CommonOPF because the libraries above will export the
-CommonOPF things that you need to use them. The most import part of CommonOPF is the [Network Model](@ref)
+CommonOPF things that you need to use them. The most important part of CommonOPF is the [Network Model](@ref)
 and how to specify inputs to all of the above libraries. See [Input Formats](@ref) for more.
 
 The primary work flow for CommonOPF is:

@@ -104,49 +104,49 @@ Conductor:
 
 Load:
   - bus: 671
-    kws1: 
+    p1: 
       - 385
-    kvars1: 
+    q1: 
       - 220
   - bus: 634
-    kws1: 
+    p1: 
       - 133.33
-    kvars1: 
+    q1: 
       - 96.67
   - bus: 645
-    kws1: 
+    p1: 
       - 56.67
-    kvars1: 
+    q1: 
       - 41.67
   - bus: 646
-    kws1: 
+    p1: 
       - 76.67
-    kvars1: 
+    q1: 
       - 44
   - bus: 692
-    kws1: 
+    p1: 
       - 56.67
-    kvars1: 
+    q1: 
       - 50.3
   - bus: 675
-    kws1: 
+    p1: 
       - 281
-    kvars1: 
+    q1: 
       - 154
   - bus: 611
-    kws1: 
+    p1: 
       - 56.67
-    kvars1: 
+    q1: 
       - 26.67
   - bus: 652
-    kws1: 
+    p1: 
       - 42.67
-    kvars1: 
+    q1: 
       - 28.67
   - bus: 670
-    kws1: 
+    p1: 
       - 66.67
-    kvars1: 
+    q1: 
       - 38.67
 
 # TODO rm this file and add Network_IEEE13_SinglePhase to CommonOPF for use in other package tests

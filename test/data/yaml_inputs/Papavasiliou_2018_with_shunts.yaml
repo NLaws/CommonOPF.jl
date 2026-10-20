@@ -107,81 +107,81 @@ Conductor:
 
 Load:
   - bus: 1
-    kws1: 
+    p1: 
       - 0.7936
-    kvars1: 
+    q1: 
       - 0.01855
 
   - bus: 3
-    kws1: 
+    p1: 
       - 0.0201
-    kvars1: 
+    q1: 
       - 0.0084
       
   - bus: 4
-    kws1: 
+    p1: 
       - 0.0173
-    kvars1: 
+    q1: 
       - 0.0043
       
   - bus: 5
-    kws1: 
+    p1: 
       - 0.0291
-    kvars1: 
+    q1: 
       - 0.0073
       
   - bus: 6
-    kws1: 
+    p1: 
       - 0.0219
-    kvars1: 
+    q1: 
       - 0.0055
       
   - bus: 7
-    kws1: 
+    p1: 
       - -0.1969  # uncontrolled generator
-    kvars1: 
+    q1: 
       - 0.0019
       
   - bus: 8
-    kws1: 
+    p1: 
       - 0.0235
-    kvars1: 
+    q1: 
       - 0.0059
       
   - bus: 9
-    kws1: 
+    p1: 
       - 0.0229
-    kvars1: 
+    q1: 
       - 0.0142
       
   - bus: 10
-    kws1: 
+    p1: 
       - 0.0217
-    kvars1: 
+    q1: 
       - 0.0065
       
   - bus: 11
-    kws1: 
+    p1: 
       - 0.0132
-    kvars1: 
+    q1: 
       - 0.0033
       
   - bus: 12
-    kws1: 
+    p1: 
       - 0.6219
-    kvars1: 
+    q1: 
       - 0.1291
       
   - bus: 13
-    kws1: 
+    p1: 
       - 0.0014
-    kvars1: 
+    q1: 
       - 0.0008
       
   - bus: 14
-    kws1: 
+    p1: 
       - 0.0224
-    kvars1: 
+    q1: 
       - 0.0083
       
 ShuntAdmittance:

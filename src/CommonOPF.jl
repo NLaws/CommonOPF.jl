@@ -116,8 +116,8 @@ export
     load_busses,
     real_load_busses,
     reactive_load_busses,
-    total_load_kw,
-    total_load_kvar,
+    total_load_p,
+    total_load_q,
     sj_per_unit,
     power_injection_vector_pu,
     

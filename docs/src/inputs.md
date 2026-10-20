@@ -4,7 +4,7 @@ CommmonOPF provides three ways to construct the [Network Model](@ref) model:
 2. JSON file(s)
 3. Julia code (manual)
 
-Only `Network` and `Conductor` are required to build the `Network`. Note that the input keys are, singular,
+Only `Network` is required to build the `Network`. Note that the input keys are, singular,
 CamelCase words to align with the data type names. For example a single phase, single time step
 model looks like:
 ```yaml
@@ -27,17 +27,23 @@ Conductor:
 
 Load:
   - bus: b2
-    kws1: 
+    p1: 
       - 5.6  # you can specify more loads at each bus to add time steps
-    kvars1: 
+    q1: 
       - 1.2
   - bus: b3
-    kws1: 
+    p1: 
       - 5.6
-    kvars1: 
+    q1: 
       - 1.2
 ```
 The [`Network(fp::String)`](@ref) constructor excepts a path to a yaml file.
+
+
+## Battery
+```@docs
+CommonOPF.Battery
+```
 
 
 ## Conductor
@@ -45,10 +51,15 @@ The [`Network(fp::String)`](@ref) constructor excepts a path to a yaml file.
 CommonOPF.Conductor
 ```
 
+## Generator
+```@docs
+CommonOPF.Generator
+```
+
 ## Load
 ```@docs
 CommonOPF.Load
-Base.getindex(net::Network, bus::String, kws_kvars::Symbol, phase::Int)
+Base.getindex(net::Network, bus::String, power_symbol::Symbol, phase::Int)
 ```
 
 ## Capacitor

@@ -1,6 +1,8 @@
 # CommonOPF Change log
 
-## 0.5.2
+## 0.6.0
+- BREAKING remove units from `Load` and `Capacitor` fields: `kw` -> `p` and `kvar` -> `q`
+    - also convert OpenDSS translated kW and kVar to watt and var
 - bug fixes for `ParallelConductors` 
     - pass `allow_parallel_conductor` from `Network` builder to `fill_edges!`
     - canonicalize node tuples so that order does not matter in `ParallelConductors` builder

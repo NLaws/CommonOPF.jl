@@ -15,16 +15,16 @@
     net = CommonOPF.psse_to_Network(fp; allow_parallel_conductor=true)
     @test net.substation_bus == "69"
     @test length(conductors(net)) == length(cds)
-    @test net["1"][:Load].kws1 == [17000.0]
+    @test net["1"][:Load].p1 == [17000.0]
     @test net["1"][:Generator].mva_base == 100.0
 
     loads = CommonOPF.psse_load_data(lines)
     @test loads[1][:bus] == "1"
-    @test loads[1][:kws1] == [17000.0]
+    @test loads[1][:p1] == [17000.0]
 
     gens = CommonOPF.psse_generator_data(lines, bus_kv, source_bus)
     @test gens[1][:bus] == "1"
-    @test gens[1][:kws1] == [0.0]
+    @test gens[1][:p1] == [0.0]
     @test gens[1][:mva_base] == 100.0
     shunts = CommonOPF.psse_shunt_data(lines, bus_kv)
     # TODO test shunt values

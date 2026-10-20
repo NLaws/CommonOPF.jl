@@ -33,6 +33,8 @@ terminals, where each phase-wire connects. Busses are implicitly specified in th
 edge specifications.
 
 Nodes contain:
+- [Battery](@ref)
+- [Generator](@ref)
 - [Load](@ref)
 - [Capacitor](@ref)
 - [ShuntAdmittance](@ref)

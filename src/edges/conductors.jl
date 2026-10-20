@@ -155,7 +155,7 @@ end
 """
     ParallelConductor(cs::Vector{Conductor})
 
-Create a [`ParallelConductor`](@ref) from a vector of `Conductor` objects. All
+Create a [`CommonOPF.ParallelConductor`](@ref) from a vector of `Conductor` objects. All
 conductors must share the same pair of busses. The phases are the union of the
 phases on the contained lines and the length is the mean length of the lines.
 """

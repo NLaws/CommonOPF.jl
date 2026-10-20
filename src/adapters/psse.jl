@@ -215,7 +215,7 @@ function psse_generator_data(lines::Vector{String}, bus_kv::Dict{String, Float64
         push!(generator_dicts, Dict(
             :bus => bus,
             :is_PV_bus => true,
-            :kws1 => [pg] * 1e3 / 3,  # MW -> kW per phase
+            :p1 => [pg] * 1e3 / 3,  # MW -> kW per phase
             :voltage_series_pu => [voltage_pu],  # TODO this is a vector of time, should have length net.Ntimesteps
             :name => name,
             :voltage_pu => voltage_pu,
@@ -255,8 +255,8 @@ function psse_load_data(lines::Vector{String})
         kvar_per_phase = (q_mvar * 1e3) / 3
         push!(load_dicts, Dict(
             :bus => bus,
-            :kws1 => [kw_per_phase],
-            :kvars1 => [kvar_per_phase],
+            :p1 => [kw_per_phase],
+            :q1 => [kvar_per_phase],
         ))
     end
 
