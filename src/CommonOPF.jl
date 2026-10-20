@@ -38,7 +38,6 @@ export
     Phases,
     SinglePhase,
     MultiPhase,
-    MultiPhaseVariableContainerType,
     check_paths_for_loads,
     info_max_rpu_xpu,
 
