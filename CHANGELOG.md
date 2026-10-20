@@ -1,10 +1,13 @@
 # CommonOPF Change log
 
-## dev
+## 0.5.2
 - bug fixes for `ParallelConductors` 
     - pass `allow_parallel_conductor` from `Network` builder to `fill_edges!`
     - canonicalize node tuples so that order does not matter in `ParallelConductors` builder
-
+- support copper plate models (don't require `Conductor` inputs)
+- add a basic `Battery` model
+- add `Network.time_steps_per_hour` with default value of `1`
+- bug fix for multi-time step, zero load from `sj` function
 
 ## v0.5.1
 - add `Conductor.kv_class` for default `SinglePhase` impedances
