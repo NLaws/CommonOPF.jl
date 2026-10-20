@@ -36,7 +36,6 @@ function Network(g::MetaGraphsNext.AbstractGraph, ntwk::Dict, net_type::Type)
 end
 
 
-REQUIRED_EDGES = [CommonOPF.Conductor]
 BUS_TYPES_DUPLICATES_ALLOWED = [:Generator]
 
 
@@ -62,8 +61,6 @@ function Network(d::Dict; directed::Union{Bool,Missing}=missing, allow_parallel_
         dkey = Symbol(split(string(EdgeType), ".")[end])  # left-strip CommonOPF.
         if dkey in keys(d)
             edge_structs = vcat(edge_structs, CommonOPF.build_edges(d[dkey], EdgeType))
-        elseif EdgeType in REQUIRED_EDGES
-            throw(error("Missing required input $(string(dkey))"))
         end
     end
     # merge any duplicate conductor edges into ParallelConductor structs

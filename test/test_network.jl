@@ -25,8 +25,8 @@ end
 
 @testset "Network single phase" begin
     # TODO make/test JSON
-    fp = joinpath(@__DIR__, "data", "yaml_inputs", "no_conductors.yaml")
-    @test_throws "Missing required input Conductor" Network(fp)
+    fp = joinpath(@__DIR__, "data", "yaml_inputs", "no_network.yaml")
+    @test_throws "KeyError: key :Network not found" Network(fp)
 
     fp = joinpath(@__DIR__, "data", "yaml_inputs", "basic_single_phase.yaml")
     net = Network(fp)
